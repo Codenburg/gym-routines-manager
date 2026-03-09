@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Rutina {
+  id          String   @id @default(uuid())
+  nombre      String
+  tipo        String
+  descripcion String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  dias        Dia[]
+}
+
+model Dia {
+  id                String     @id @default(uuid())
+  rutinaId          String
+  nombre            String
+  musculosEnfocados String?
+  orden             Int        @default(0)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  rutina            Rutina     @relation(fields: [rutinaId], references: [id], onDelete: Cascade)
+  ejercicios        Ejercicio[]
+
+  @@index([rutinaId])
+}
+
+model Ejercicio {
+  id        String   @id @default(uuid())
+  diaId     String
+  nombre    String
+  orden     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  dia       Dia      @relation(fields: [diaId], references: [id], onDelete: Cascade)
+
+  @@index([diaId])
+}

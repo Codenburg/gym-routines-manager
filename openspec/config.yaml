@@ -1,0 +1,195 @@
+# OpenSpec Config
+# Schema reference: https://openspec.dev/schema/spec-driven/v1
+# Purpose: Defines conventions, rules, and constraints for AI-assisted development
+
+schema: spec-driven
+
+context: |
+  Tech stack: Next.js 16.1.6 + React 19 + TypeScript 5 + Tailwind CSS 4 + Prisma 7 + PostgreSQL 18.3
+  Architecture: Next.js App Router
+  Runtime: Node.js
+  Package manager: npm
+  Testing: None configured
+  Style: ESLint 9 flat config
+
+# ─────────────────────────────────────────W
+# WORKFLOW RULES
+# ─────────────────────────────────────────
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Identify affected modules and packages
+    - Estimate impact on performance, bundle size, and breaking changes
+
+  specs:
+    - Use Given/When/Then format for all scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY) for normative statements
+    - Define measurable and verifiable acceptance criteria
+
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with explicit rationale
+    - Provide module interaction overview
+
+  tasks:
+    - Group tasks by phase (infrastructure, implementation, testing)
+    - Use hierarchical numbering (1.1, 1.2, etc.)
+    - Keep tasks small enough to complete in one session
+
+  apply:
+    - Follow existing code patterns and conventions
+    - Do NOT write tests unless explicitly requested
+
+  verify:
+    - Run TypeScript type check
+    - Run ESLint
+    - Run production build
+    - Run tests if test infrastructure exists
+    - Compare implementation against every spec scenario
+
+  archive:
+    - Warn before merging destructive deltas (>500 lines removed)
+
+# ─────────────────────────────────────────
+# ARCHITECTURE
+# ─────────────────────────────────────────
+
+architecture:
+  layering:
+    ui:
+      includes: [components, pages]
+      description: Presentation layer — renders UI, handles user interactions
+    application:
+      includes: [hooks, services]
+      description: Orchestration layer — coordinates domain logic and infrastructure
+    domain:
+      includes: [business logic, domain models]
+      description: Core business rules — pure logic, no framework dependencies
+    infrastructure:
+      includes: [api, database]
+      description: External integrations — HTTP clients, DB access, third-party services
+
+  constraints:
+    - ui MUST NOT access database or infrastructure directly
+    - domain MUST NOT import from ui or application layers
+    - services MUST orchestrate domain logic, not contain it
+    - hooks MUST NOT contain UI rendering logic
+    - infrastructure MUST NOT contain business rules
+
+# ─────────────────────────────────────────
+# PROJECT STRUCTURE
+# ─────────────────────────────────────────
+
+structure:
+  src:
+    app:
+      description: Next.js App Router pages and layouts
+      layer: ui
+    components:
+      description: Reusable UI components — MUST be presentational unless explicitly stateful
+      layer: ui
+    hooks:
+      description: Custom React hooks — MUST NOT contain UI logic or direct DB access
+      layer: application
+    services:
+      description: API calls and application services — MUST orchestrate domain logic
+      layer: application
+    lib:
+      description: Utilities and helpers — MUST be pure functions with no side effects
+      layer: domain
+    types:
+      description: Shared TypeScript types and interfaces
+      layer: domain
+
+# ─────────────────────────────────────────
+# NAMING CONVENTIONS
+# ─────────────────────────────────────────
+
+conventions:
+  naming:
+    components: PascalCase
+    hooks: useCamelCase
+    files: kebab-case
+    variables: camelCase
+    types: PascalCase
+    constants: UPPER_SNAKE_CASE
+
+# ─────────────────────────────────────────
+# REACT RULES
+# ─────────────────────────────────────────
+
+react_rules:
+  components:
+    - MUST use function components — class components are forbidden
+    - SHOULD be small and focused on a single responsibility
+    - MUST NOT exceed 200 lines; extract sub-components if needed
+    - SHOULD be server components by default; opt into client components explicitly
+
+  hooks:
+    - MUST start with the `use` prefix
+    - MUST NOT be called conditionally or inside loops
+    - SHOULD encapsulate a single concern
+
+# ─────────────────────────────────────────
+# TAILWIND RULES
+# ─────────────────────────────────────────
+
+tailwind_rules:
+  styling:
+    - MUST prefer Tailwind utility classes over custom CSS
+    - MUST NOT use inline styles unless dynamically computed at runtime
+    - SHOULD extract repeated class combinations into reusable components or variants
+
+# ─────────────────────────────────────────
+# SECURITY
+# ─────────────────────────────────────────
+
+security:
+  rules:
+    - MUST NEVER expose environment variables prefixed with NEXT_PUBLIC_ unless intentional
+    - MUST validate all user input on the server side before processing
+    - MUST sanitize all external data before rendering or storing
+    - MUST avoid SQL injection, XSS, and SSRF patterns
+    - SHOULD use allowlists over denylists for input validation
+
+# ─────────────────────────────────────────
+# PERFORMANCE
+# ─────────────────────────────────────────
+
+performance:
+  rules:
+    - MUST avoid unnecessary re-renders; use memoization when profiling confirms benefit
+    - SHOULD prefer React Server Components over client components when no interactivity is needed
+    - MUST lazy load components heavier than ~50KB
+    - SHOULD avoid importing large libraries client-side without dynamic imports
+
+# ─────────────────────────────────────────
+# AI CONSTRAINTS
+# ─────────────────────────────────────────
+
+ai_constraints:
+  forbidden:
+    - Deleting large modules without explicit justification in the proposal
+    - Modifying configuration files without explaining the reason and impact
+    - Changing or adding environment variables without documenting their purpose
+
+  on_violation: ask_for_confirmation
+
+  limits:
+    large_file_change:
+      threshold: 300 lines
+      action: warn and summarize what changed
+    large_diff:
+      threshold: 500 lines
+      action: warn and require explicit approval before proceeding
+
+# ─────────────────────────────────────────
+# DOCUMENTATION
+# ─────────────────────────────────────────
+
+documentation:
+  rules:
+    - Public functions MUST include JSDoc with @param and @returns
+    - Complex modules SHOULD include a README.md explaining purpose and usage
+    - Non-obvious logic MUST include inline comments explaining the why, not the what
