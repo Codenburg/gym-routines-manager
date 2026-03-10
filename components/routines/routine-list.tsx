@@ -1,11 +1,26 @@
 import { RoutineCard } from "./routine-card";
 
+interface Ejercicio {
+  id: string;
+  nombre: string;
+  series: string | null;
+  repes: string | null;
+}
+
+interface Dia {
+  id: string;
+  nombre: string;
+  musculosEnfocados: string | null;
+  ejercicios: Ejercicio[];
+}
+
 interface Rutina {
   id: string;
   nombre: string;
   tipo: string;
   descripcion: string | null;
   diasCount: number;
+  dias?: Dia[];
 }
 
 interface RoutineListProps {

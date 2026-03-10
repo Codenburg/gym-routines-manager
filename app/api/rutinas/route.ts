@@ -11,6 +11,18 @@ interface RutinaQueryResult {
   _count: {
     dias: number;
   };
+  dias: {
+    id: string;
+    nombre: string;
+    musculosEnfocados: string | null;
+    orden: number;
+    ejercicios: {
+      id: string;
+      nombre: string;
+      series: string | null;
+      repes: string | null;
+    }[];
+  }[];
 }
 
 /**
@@ -57,6 +69,28 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             dias: true,
           },
         },
+        dias: {
+          select: {
+            id: true,
+            nombre: true,
+            musculosEnfocados: true,
+            orden: true,
+            ejercicios: {
+              select: {
+                id: true,
+                nombre: true,
+                series: true,
+                repes: true,
+              },
+              orderBy: {
+                orden: "asc",
+              },
+            },
+          },
+          orderBy: {
+            orden: "asc",
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
@@ -72,6 +106,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       createdAt: rutina.createdAt.toISOString(),
       updatedAt: rutina.updatedAt.toISOString(),
       diasCount: rutina._count.dias,
+      dias: rutina.dias.map((dia) => ({
+        id: dia.id,
+        nombre: dia.nombre,
+        musculosEnfocados: dia.musculosEnfocados,
+        orden: dia.orden,
+        ejercicios: dia.ejercicios.map((ej) => ({
+          id: ej.id,
+          nombre: ej.nombre,
+          series: ej.series,
+          repes: ej.repes,
+        })),
+      })),
     }));
 
     return NextResponse.json(response);
