@@ -1,18 +1,20 @@
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+interface Ejercicio {
+  id: string;
+  nombre: string;
+  series: string | null;
+  orden: number;
+}
 
 interface Dia {
   id: string;
   nombre: string;
   musculosEnfocados: string | null;
   orden: number;
-  ejercicios: {
-    id: string;
-    nombre: string;
-    orden: number;
-  }[];
+  ejercicios: Ejercicio[];
 }
 
 interface Rutina {
@@ -112,47 +114,69 @@ export default async function RoutineDetailPage({
           ) : (
             <div className="grid gap-6">
               {rutina.dias.map((dia, index) => (
-                <Card
+                <Link
                   key={dia.id}
-                  className="bg-slate-800 border-slate-700"
+                  href={`/rutinas/${rutina.id}/dias/${dia.id}`}
+                  className="block"
                 >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg text-white flex items-center gap-3">
-                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 text-sm font-bold">
-                          {index + 1}
-                        </span>
-                        {dia.nombre}
-                      </CardTitle>
-                      {dia.musculosEnfocados && (
-                        <span className="text-sm text-slate-400">
-                          {dia.musculosEnfocados}
-                        </span>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {dia.ejercicios.length === 0 ? (
-                      <p className="text-slate-500 text-sm">
-                        No hay ejercicios configurados
-                      </p>
-                    ) : (
-                      <ul className="space-y-2">
-                        {dia.ejercicios.map((ejercicio, ejIndex) => (
-                          <li
-                            key={ejercicio.id}
-                            className="flex items-center gap-3 text-slate-300"
-                          >
-                            <span className="text-slate-500 text-sm w-6">
-                              {ejIndex + 1}.
+                  <Card className="bg-slate-800 border-slate-700 hover:border-blue-500/50 hover:bg-slate-800/80 transition-all cursor-pointer">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg text-white flex items-center gap-3">
+                          <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 text-sm font-bold">
+                            {index + 1}
+                          </span>
+                          {dia.nombre}
+                        </CardTitle>
+                        <div className="flex items-center gap-4">
+                          {dia.musculosEnfocados && (
+                            <span className="text-sm text-slate-400">
+                              {dia.musculosEnfocados}
                             </span>
-                            {ejercicio.nombre}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </CardContent>
-                </Card>
+                          )}
+                          {dia.ejercicios.length > 0 && (
+                            <span className="text-sm text-blue-400">
+                              {dia.ejercicios.length} ejercicio{dia.ejercicios.length !== 1 ? 's' : ''}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </CardHeader>
+                      <CardContent>
+                        {dia.ejercicios.length === 0 ? (
+                          <p className="text-slate-500 text-sm">
+                            No hay ejercicios configurados
+                          </p>
+                        ) : (
+                          <ul className="space-y-2">
+                            {dia.ejercicios.slice(0, 3).map((ejercicio, ejIndex) => (
+                              <li
+                                key={ejercicio.id}
+                                className="flex items-center justify-between text-slate-300"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className="text-slate-500 text-sm w-6">
+                                    {ejIndex + 1}.
+                                  </span>
+                                  {ejercicio.nombre}
+                                </div>
+                                {ejercicio.series && (
+                                  <span className="text-sm text-green-400">
+                                    {ejercicio.series}
+                                  </span>
+                                )}
+                              </li>
+                            ))}
+                            {dia.ejercicios.length > 3 && (
+                              <li className="text-sm text-blue-400">
+                                +{dia.ejercicios.length - 3} más...
+                              </li>
+                            )}
+                          </ul>
+                        )}
+                      </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           )}

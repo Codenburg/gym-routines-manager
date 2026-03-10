@@ -1,6 +1,11 @@
 {
   "version": 1,
   "skills": {
+    "api-testing-patterns": {
+      "source": "proffesor-for-testing/agentic-qe",
+      "sourceType": "github",
+      "computedHash": "9e6bb85e82285dcd32ee6ebc5f28bb57e63a9541a6c420da9b100bd8b49515cd"
+    },
     "frontend-design": {
       "source": "anthropics/skills",
       "sourceType": "github",

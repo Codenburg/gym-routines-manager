@@ -62,6 +62,7 @@ export async function GET(
         ejercicios: dia.ejercicios.map((ejercicio) => ({
           id: ejercicio.id,
           nombre: ejercicio.nombre,
+          series: ejercicio.series,
           orden: ejercicio.orden,
         })),
       })),
