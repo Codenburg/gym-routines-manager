@@ -58,8 +58,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
     <div className="min-h-screen bg-slate-900">
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Mis Rutinas</h1>
-          <p className="text-slate-400 mb-6">Gestiona y organiza tus rutinas de entrenamiento</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Rutinas Champion Gym</h1>
+          <p className="text-slate-400 mb-6">Explora las mejores rutinas de entrenamiento</p>
           <SearchBar defaultValue={search ?? ""} />
         </div>
 

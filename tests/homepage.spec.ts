@@ -214,8 +214,8 @@ test.describe('Homepage Integration', () => {
     await setupMockApi(page);
     await page.goto('/');
     
-    await expect(page.getByText('Mis Rutinas')).toBeVisible();
-    await expect(page.getByText('Gestiona y organiza tus rutinas de entrenamiento')).toBeVisible();
+    await expect(page.getByText('Rutinas Champion Gym')).toBeVisible();
+    await expect(page.getByText('Explora las mejores rutinas de entrenamiento')).toBeVisible();
     await expect(page.getByText('Full Body')).toBeVisible();
     await expect(page.getByText('Upper Body')).toBeVisible();
     await expect(page.getByText('Leg Day')).toBeVisible();

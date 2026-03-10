@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Gym Routines Manager",
-  description: "Gestiona y organiza tus rutinas de entrenamiento",
+  title: "Champion Gym",
+  description: "Explora las mejores rutinas de entrenamiento",
 };
 
 export default function RootLayout({
