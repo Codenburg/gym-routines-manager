@@ -12,9 +12,7 @@ context: |
   Testing: None configured
   Style: ESLint 9 flat config
 
-# ─────────────────────────────────────────W
 # WORKFLOW RULES
-# ─────────────────────────────────────────
 
 rules:
   proposal:
@@ -51,9 +49,7 @@ rules:
   archive:
     - Warn before merging destructive deltas (>500 lines removed)
 
-# ─────────────────────────────────────────
 # ARCHITECTURE
-# ─────────────────────────────────────────
 
 architecture:
   layering:
@@ -77,9 +73,7 @@ architecture:
     - hooks MUST NOT contain UI rendering logic
     - infrastructure MUST NOT contain business rules
 
-# ─────────────────────────────────────────
 # PROJECT STRUCTURE
-# ─────────────────────────────────────────
 
 structure:
   src:
@@ -102,9 +96,7 @@ structure:
       description: Shared TypeScript types and interfaces
       layer: domain
 
-# ─────────────────────────────────────────
 # NAMING CONVENTIONS
-# ─────────────────────────────────────────
 
 conventions:
   naming:
@@ -115,9 +107,7 @@ conventions:
     types: PascalCase
     constants: UPPER_SNAKE_CASE
 
-# ─────────────────────────────────────────
 # REACT RULES
-# ─────────────────────────────────────────
 
 react_rules:
   components:
@@ -131,9 +121,7 @@ react_rules:
     - MUST NOT be called conditionally or inside loops
     - SHOULD encapsulate a single concern
 
-# ─────────────────────────────────────────
 # TAILWIND RULES
-# ─────────────────────────────────────────
 
 tailwind_rules:
   styling:
@@ -141,9 +129,7 @@ tailwind_rules:
     - MUST NOT use inline styles unless dynamically computed at runtime
     - SHOULD extract repeated class combinations into reusable components or variants
 
-# ─────────────────────────────────────────
 # SECURITY
-# ─────────────────────────────────────────
 
 security:
   rules:
@@ -153,9 +139,7 @@ security:
     - MUST avoid SQL injection, XSS, and SSRF patterns
     - SHOULD use allowlists over denylists for input validation
 
-# ─────────────────────────────────────────
 # PERFORMANCE
-# ─────────────────────────────────────────
 
 performance:
   rules:
@@ -164,9 +148,7 @@ performance:
     - MUST lazy load components heavier than ~50KB
     - SHOULD avoid importing large libraries client-side without dynamic imports
 
-# ─────────────────────────────────────────
 # AI CONSTRAINTS
-# ─────────────────────────────────────────
 
 ai_constraints:
   forbidden:
@@ -184,9 +166,7 @@ ai_constraints:
       threshold: 500 lines
       action: warn and require explicit approval before proceeding
 
-# ─────────────────────────────────────────
 # DOCUMENTATION
-# ─────────────────────────────────────────
 
 documentation:
   rules:
