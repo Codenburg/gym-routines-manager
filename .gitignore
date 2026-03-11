@@ -1,7 +1,6 @@
 #local importants
 .priv/**
 *.priv/
-PRD.md
 
 # dependencies
 /node_modules

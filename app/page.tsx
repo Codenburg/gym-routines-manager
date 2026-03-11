@@ -55,7 +55,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
   const rutinasPromise = getRutinas(search);
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-black">
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Rutinas Champion Gym</h1>

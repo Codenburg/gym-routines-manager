@@ -18,24 +18,24 @@ export function RoutineCard({ rutina }: RoutineCardProps) {
 
   return (
     <Link href={`/rutinas/${rutina.id}`}>
-      <Card className="group cursor-pointer transition-all duration-200 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 h-full bg-slate-800 border-slate-700">
+      <Card className="group cursor-pointer transition-all duration-200 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/10 h-full bg-slate-800 border-white/20">
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
-            <CardTitle className="text-lg group-hover:text-blue-400 transition-colors text-white">
+            <CardTitle className="text-lg group-hover:text-red-400 transition-colors text-white">
               {rutina.nombre}
             </CardTitle>
-            <span className="shrink-0 rounded-full bg-blue-500/20 px-2.5 py-0.5 text-xs font-medium text-blue-400">
+            <span className="shrink-0 rounded-full bg-red-500/20 px-2.5 py-0.5 text-xs font-medium text-red-400">
               {rutina.tipo}
             </span>
           </div>
         </CardHeader>
         <CardContent>
           {rutina.descripcion && (
-            <p className="text-sm text-slate-400 line-clamp-2">{rutina.descripcion}</p>
+            <p className="text-sm text-white/60 line-clamp-2">{rutina.descripcion}</p>
           )}
         </CardContent>
         <CardFooter>
-          <span className="text-xs text-slate-500 flex items-center gap-1">
+          <span className="text-xs text-white/60 flex items-center gap-1">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 20 20"

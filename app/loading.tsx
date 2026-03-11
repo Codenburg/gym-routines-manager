@@ -2,25 +2,25 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 
 function SkeletonCard() {
   return (
-    <Card className="animate-pulse bg-slate-800/50 border-slate-700/50">
+    <Card className="animate-pulse bg-neutral-900/50 border-white/10">
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-2">
-            <div className="h-6 w-32 bg-slate-700/50 rounded animate-pulse" />
-            <div className="h-4 w-24 bg-slate-700/30 rounded animate-pulse" style={{ animationDelay: '0.1s' }} />
+            <div className="h-6 w-32 bg-neutral-800/50 rounded animate-pulse" />
+            <div className="h-4 w-24 bg-neutral-800/30 rounded animate-pulse" style={{ animationDelay: '0.1s' }} />
           </div>
-          <div className="h-6 w-16 bg-blue-500/20 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
+          <div className="h-6 w-16 bg-red-500/20 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          <div className="h-4 w-full bg-slate-700/30 rounded animate-pulse" style={{ animationDelay: '0.3s' }} />
-          <div className="h-4 w-3/4 bg-slate-700/30 rounded animate-pulse" style={{ animationDelay: '0.4s' }} />
-          <div className="h-4 w-1/2 bg-slate-700/30 rounded animate-pulse" style={{ animationDelay: '0.5s' }} />
+          <div className="h-4 w-full bg-neutral-800/30 rounded animate-pulse" style={{ animationDelay: '0.3s' }} />
+          <div className="h-4 w-3/4 bg-neutral-800/30 rounded animate-pulse" style={{ animationDelay: '0.4s' }} />
+          <div className="h-4 w-1/2 bg-neutral-800/30 rounded animate-pulse" style={{ animationDelay: '0.5s' }} />
         </div>
       </CardContent>
       <CardFooter>
-        <div className="h-4 w-20 bg-slate-700/30 rounded animate-pulse" style={{ animationDelay: '0.6s' }} />
+        <div className="h-4 w-20 bg-neutral-800/30 rounded animate-pulse" style={{ animationDelay: '0.6s' }} />
       </CardFooter>
     </Card>
   );

@@ -58,12 +58,12 @@ export default async function RoutineDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-black">
       <main className="container mx-auto px-4 py-8">
         {/* Back button */}
         <Link
           href="/"
-          className="inline-flex items-center text-blue-400 hover:text-blue-300 mb-6 transition-colors"
+          className="inline-flex items-center text-red-400 hover:text-red-300 mb-6 transition-colors"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -89,7 +89,7 @@ export default async function RoutineDetailPage({
               <h1 className="text-3xl font-bold text-white mb-2">
                 {rutina.nombre}
               </h1>
-              <span className="inline-block rounded-full bg-blue-500/20 px-3 py-1 text-sm font-medium text-blue-400">
+              <span className="inline-block rounded-full bg-red-500/20 px-3 py-1 text-sm font-medium text-red-400">
                 {rutina.tipo}
               </span>
             </div>
@@ -106,7 +106,7 @@ export default async function RoutineDetailPage({
           </h2>
 
           {rutina.dias.length === 0 ? (
-            <Card className="bg-slate-800 border-slate-700">
+            <Card className="bg-neutral-900 border-white/20">
               <CardContent className="py-8 text-center text-slate-400">
                 No hay días configurados en esta rutina
               </CardContent>
@@ -119,11 +119,11 @@ export default async function RoutineDetailPage({
                   href={`/rutinas/${rutina.id}/dias/${dia.id}`}
                   className="block"
                 >
-                  <Card className="bg-slate-800 border-slate-700 hover:border-blue-500/50 hover:bg-slate-800/80 transition-all cursor-pointer">
+                  <Card className="bg-neutral-900 border-white/20 hover:border-red-500/50 hover:bg-neutral-800/80 transition-all cursor-pointer">
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg text-white flex items-center gap-3">
-                          <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 text-sm font-bold">
+                          <span className="flex items-center justify-center w-8 h-8 rounded-full bg-red-500/20 text-red-400 text-sm font-bold">
                             {index + 1}
                           </span>
                           {dia.nombre}
@@ -135,7 +135,7 @@ export default async function RoutineDetailPage({
                             </span>
                           )}
                           {dia.ejercicios.length > 0 && (
-                            <span className="text-sm text-blue-400">
+                            <span className="text-sm text-red-400">
                               {dia.ejercicios.length} ejercicio{dia.ejercicios.length !== 1 ? 's' : ''}
                             </span>
                           )}
@@ -168,7 +168,7 @@ export default async function RoutineDetailPage({
                               </li>
                             ))}
                             {dia.ejercicios.length > 3 && (
-                              <li className="text-sm text-blue-400">
+                              <li className="text-sm text-red-400">
                                 +{dia.ejercicios.length - 3} más...
                               </li>
                             )}

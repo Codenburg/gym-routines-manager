@@ -9,11 +9,11 @@ export function Input({ className, type = "text", error, ...props }: InputProps)
     <input
       type={type}
       className={cn(
-        "flex h-10 w-full rounded-lg border bg-slate-800/50 px-3 py-2 text-sm text-white placeholder:text-slate-500",
-        "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+        "flex h-10 w-full rounded-lg border bg-black px-3 py-2 text-sm text-white placeholder:text-white/50",
+        "focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent",
         "disabled:cursor-not-allowed disabled:opacity-50",
         "transition-colors duration-200",
-        error ? "border-red-500 focus:ring-red-500" : "border-slate-700 hover:border-slate-600",
+        error ? "border-red-500 focus:ring-red-500" : "border-white/30 hover:border-white/50",
         className
       )}
       {...props}

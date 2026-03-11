@@ -48,12 +48,12 @@ export default async function DayDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-black">
       <main className="container mx-auto px-4 py-8">
         {/* Back button */}
         <Link
           href={`/rutinas/${rutinaId}`}
-          className="inline-flex items-center text-blue-400 hover:text-blue-300 mb-6 transition-colors"
+          className="inline-flex items-center text-red-400 hover:text-red-300 mb-6 transition-colors"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -80,7 +80,7 @@ export default async function DayDetailPage({
                 {dia.nombre}
               </h1>
               {dia.musculosEnfocados && (
-                <span className="inline-block rounded-full bg-purple-500/20 px-3 py-1 text-sm font-medium text-purple-400">
+                <span className="inline-block rounded-full bg-red-500/20 px-3 py-1 text-sm font-medium text-red-400">
                   {dia.musculosEnfocados}
                 </span>
               )}
@@ -95,7 +95,7 @@ export default async function DayDetailPage({
           </h2>
 
           {dia.ejercicios.length === 0 ? (
-            <Card className="bg-slate-800 border-slate-700">
+            <Card className="bg-neutral-900 border-white/20">
               <CardContent className="py-8 text-center text-slate-400">
                 No hay ejercicios configurados para este día
               </CardContent>
@@ -105,12 +105,12 @@ export default async function DayDetailPage({
               {dia.ejercicios.map((ejercicio, index) => (
                 <Card
                   key={ejercicio.id}
-                  className="bg-slate-800 border-slate-700"
+                  className="bg-neutral-900 border-white/20"
                 >
                   <CardHeader className="py-4">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <span className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500/20 text-blue-400 text-lg font-bold">
+                        <span className="flex items-center justify-center w-10 h-10 rounded-full bg-red-500/20 text-red-400 text-lg font-bold">
                           {index + 1}
                         </span>
                         <CardTitle className="text-lg text-white">
