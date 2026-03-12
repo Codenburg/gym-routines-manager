@@ -1,22 +1,16 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
-import { auth } from "@/lib/auth";
 import { getRutinas, deleteRutina } from "@/app/actions/rutinas";
+import { AuthGuard } from "@/components/auth-guard";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
 
 export default async function AdminRutinasPage() {
-  const session = await auth.api.getSession();
-
-  if (!session) {
-    redirect("/admin/login");
-  }
-
   const rutinas = await getRutinas();
 
   return (
-    <div className="space-y-6">
+    <AuthGuard>
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -123,5 +117,6 @@ export default async function AdminRutinasPage() {
         </div>
       )}
     </div>
+    </AuthGuard>
   );
 }

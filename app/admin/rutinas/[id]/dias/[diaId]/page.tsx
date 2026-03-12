@@ -1,4 +1,5 @@
 import { redirect, notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { getRutina } from "@/app/actions/rutinas";
 import { EjercicioList } from "@/components/admin/ejercicio-list";
@@ -15,7 +16,9 @@ interface EjerciciosPageProps {
 }
 
 export default async function EjerciciosPage({ params }: EjerciciosPageProps) {
-  const session = await auth.api.getSession();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   if (!session) {
     redirect("/admin/login");

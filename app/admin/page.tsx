@@ -1,8 +1,7 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
-import { auth } from "@/lib/auth";
 import { getRutinas } from "@/app/actions/rutinas";
 import prisma from "@/lib/prisma";
+import { AuthGuard } from "@/components/auth-guard";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -30,23 +29,12 @@ async function getStats() {
 }
 
 export default async function AdminDashboardPage() {
-  const session = await auth.api.getSession();
-
-  if (!session) {
-    redirect("/admin/login");
-  }
-
-  // Verify admin role
-  const user = session.user as { admin?: boolean } | undefined;
-  if (!user?.admin) {
-    redirect("/");
-  }
-
   const stats = await getStats();
   const rutinas = await getRutinas();
 
   return (
-    <div className="space-y-8">
+    <AuthGuard>
+      <div className="space-y-8">
       {/* Welcome */}
       <div>
         <h1 className="text-2xl font-bold text-white">Bienvenido al Panel de Administración</h1>
@@ -159,5 +147,6 @@ export default async function AdminDashboardPage() {
         )}
       </div>
     </div>
+    </AuthGuard>
   );
 }

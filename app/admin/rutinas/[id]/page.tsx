@@ -1,10 +1,12 @@
 import { redirect, notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { getRutina, deleteRutina } from "@/app/actions/rutinas";
 import { RutinaForm } from "@/components/admin/rutina-form";
 import { DiaManager } from "@/components/admin/dia-manager";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { AuthGuard } from "@/components/auth-guard";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -14,7 +16,9 @@ interface EditRutinaPageProps {
 }
 
 export default async function EditRutinaPage({ params }: EditRutinaPageProps) {
-  const session = await auth.api.getSession();
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   if (!session) {
     redirect("/admin/login");
