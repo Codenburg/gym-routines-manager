@@ -2,7 +2,27 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 import { reorderSchema, type FormState } from "@/lib/schemas";
+
+/**
+ * Helper function to verify admin access
+ */
+async function verifyAdmin(): Promise<{ authorized: boolean; message?: string }> {
+  try {
+    const session = await auth.api.getSession();
+    if (!session) {
+      return { authorized: false, message: "Debes iniciar sesión" };
+    }
+    const user = session.user as { admin?: boolean } | undefined;
+    if (!user?.admin) {
+      return { authorized: false, message: "No tienes permisos de administrador" };
+    }
+    return { authorized: true };
+  } catch {
+    return { authorized: false, message: "Error de autenticación" };
+  }
+}
 
 /**
  * Reorder Ejercicios within a Dia
@@ -12,6 +32,12 @@ export async function reorderEjercicios(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
+  // Verify admin access
+  const authCheck = await verifyAdmin();
+  if (!authCheck.authorized) {
+    return { success: false, message: authCheck.message };
+  }
+
   const diaId = formData.get("diaId") as string;
   const ejercicioIdsRaw = formData.get("ejercicioIds");
 

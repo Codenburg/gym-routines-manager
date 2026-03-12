@@ -2,7 +2,27 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 import { diaSchema, diaUpdateSchema, type FormState } from "@/lib/schemas";
+
+/**
+ * Helper function to verify admin access
+ */
+async function verifyAdmin(): Promise<{ authorized: boolean; message?: string }> {
+  try {
+    const session = await auth.api.getSession();
+    if (!session) {
+      return { authorized: false, message: "Debes iniciar sesión" };
+    }
+    const user = session.user as { admin?: boolean } | undefined;
+    if (!user?.admin) {
+      return { authorized: false, message: "No tienes permisos de administrador" };
+    }
+    return { authorized: true };
+  } catch {
+    return { authorized: false, message: "Error de autenticación" };
+  }
+}
 
 /**
  * Create a new Dia in a Rutina
@@ -11,6 +31,12 @@ export async function createDia(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState<{ id: string }>> {
+  // Verify admin access
+  const authCheck = await verifyAdmin();
+  if (!authCheck.authorized) {
+    return { success: false, message: authCheck.message };
+  }
+
   // Validate form data
   const rawData = Object.fromEntries(formData.entries());
   const parsed = diaSchema.safeParse(rawData);
@@ -63,6 +89,12 @@ export async function updateDia(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState<{ id: string }>> {
+  // Verify admin access
+  const authCheck = await verifyAdmin();
+  if (!authCheck.authorized) {
+    return { success: false, message: authCheck.message };
+  }
+
   const id = formData.get("id") as string;
   const rutinaId = formData.get("rutinaId") as string;
 
@@ -115,6 +147,12 @@ export async function deleteDia(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
+  // Verify admin access
+  const authCheck = await verifyAdmin();
+  if (!authCheck.authorized) {
+    return { success: false, message: authCheck.message };
+  }
+
   const id = formData.get("id") as string;
   const rutinaId = formData.get("rutinaId") as string;
 
@@ -153,6 +191,12 @@ export async function reorderDias(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
+  // Verify admin access
+  const authCheck = await verifyAdmin();
+  if (!authCheck.authorized) {
+    return { success: false, message: authCheck.message };
+  }
+
   const rutinaId = formData.get("rutinaId") as string;
   const diaIdsRaw = formData.get("diaIds");
 
