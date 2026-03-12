@@ -40,6 +40,38 @@ async function main() {
   // Rutina 1: Full Body (5 días)
   // ========================================
   
+  // Create admin user for testing
+  const adminUser = await prisma.user.upsert({
+    where: { email: 'admin@championgym.com' },
+    update: {},
+    create: {
+      name: 'Admin',
+      email: 'admin@championgym.com',
+      emailVerified: true,
+    },
+  });
+
+  // Create admin account with password
+  await prisma.account.upsert({
+    where: {
+      providerId_providerType_accountId: {
+        providerId: 'champion-admin',
+        providerType: 'email',
+        accountId: adminUser.id,
+      },
+    },
+    update: {},
+    create: {
+      userId: adminUser.id,
+      accountId: adminUser.id,
+      providerId: 'champion-admin',
+      providerType: 'email',
+      password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYIqJ4J.Wfy', // password: admin123
+    },
+  });
+
+  console.log('Admin user created:', adminUser.email);
+  
   // Día 1: Pecho y Espalda
   const dia1Rutina1 = await prisma.dia.create({
     data: {
