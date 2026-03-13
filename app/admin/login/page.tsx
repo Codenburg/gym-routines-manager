@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
 
 interface FormState {
   error: string | null;
@@ -23,24 +24,27 @@ export default function AdminLoginPage() {
     setFormState({ error: null, isLoading: true });
 
     try {
-      // Dynamic import to avoid initialization issues
-      const { signIn } = await import("@/lib/auth-client");
-      
-      const result = await signIn.email({
-        email,
-        password,
-      });
-
-      if (result.error) {
-        setFormState({
-          error: result.error.message || "Error al iniciar sesión",
-          isLoading: false,
-        });
-        return;
-      }
-
-      router.push("/admin");
-      router.refresh();
+      const result = await authClient.signIn.email(
+        {
+          email,
+          password,
+        },
+        {
+          onRequest: () => {
+            setFormState({ error: null, isLoading: true });
+          },
+          onSuccess: () => {
+            router.push("/admin");
+            router.refresh();
+          },
+          onError: (ctx) => {
+            setFormState({
+              error: ctx.error.message || "Error al iniciar sesión",
+              isLoading: false,
+            });
+          },
+        }
+      );
     } catch (err) {
       setFormState({
         error: "Error de conexión. Intenta de nuevo.",

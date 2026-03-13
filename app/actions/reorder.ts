@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { reorderSchema, type FormState } from "@/lib/schemas";
@@ -8,9 +9,9 @@ import { reorderSchema, type FormState } from "@/lib/schemas";
 /**
  * Helper function to verify admin access
  */
-async function verifyAdmin(): Promise<{ authorized: boolean; message?: string }> {
+async function verifyAdmin(hdrs: Headers): Promise<{ authorized: boolean; message?: string }> {
   try {
-    const session = await auth.api.getSession();
+    const session = await auth.api.getSession({ headers: hdrs });
     if (!session) {
       return { authorized: false, message: "Debes iniciar sesión" };
     }
@@ -33,7 +34,7 @@ export async function reorderEjercicios(
   formData: FormData
 ): Promise<FormState> {
   // Verify admin access
-  const authCheck = await verifyAdmin();
+  const authCheck = await verifyAdmin(await headers());
   if (!authCheck.authorized) {
     return { success: false, message: authCheck.message };
   }

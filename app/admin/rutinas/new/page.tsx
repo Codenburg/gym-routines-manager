@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
-import { RutinaForm } from "@/components/admin/rutina-form";
 import Link from "next/link";
 import { AuthGuard } from "@/components/auth-guard";
+import { NuevaRutinaForm } from "@/components/admin/nueva-rutina-form";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
 
-export default async function NewRutinaPage() {
+export default function NewRutinaPage() {
   return (
     <AuthGuard>
       <div className="max-w-2xl mx-auto space-y-6">
@@ -28,11 +28,7 @@ export default async function NewRutinaPage() {
 
         {/* Form */}
         <div className="bg-zinc-900 border border-white/10 rounded-xl p-6">
-          <RutinaForm
-            onSuccess={() => {
-              redirect("/admin/rutinas");
-            }}
-          />
+          <NuevaRutinaForm />
         </div>
       </div>
     </AuthGuard>
