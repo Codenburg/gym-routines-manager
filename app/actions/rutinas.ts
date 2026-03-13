@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { rutinaSchema, rutinaUpdateSchema, idSchema, type FormState } from "@/lib/schemas";
@@ -8,9 +9,9 @@ import { rutinaSchema, rutinaUpdateSchema, idSchema, type FormState } from "@/li
 /**
  * Helper function to verify admin access
  */
-async function verifyAdmin(): Promise<{ authorized: boolean; message?: string }> {
+async function verifyAdmin(headers: Headers): Promise<{ authorized: boolean; message?: string }> {
   try {
-    const session = await auth.api.getSession();
+    const session = await auth.api.getSession({ headers });
     if (!session) {
       return { authorized: false, message: "Debes iniciar sesión" };
     }
@@ -32,7 +33,7 @@ export async function createRutina(
   formData: FormData
 ): Promise<FormState<{ id: string }>> {
   // Verify admin access
-  const authCheck = await verifyAdmin();
+  const authCheck = await verifyAdmin(await headers());
   if (!authCheck.authorized) {
     return { success: false, message: authCheck.message };
   }
@@ -79,7 +80,7 @@ export async function updateRutina(
   formData: FormData
 ): Promise<FormState<{ id: string }>> {
   // Verify admin access
-  const authCheck = await verifyAdmin();
+  const authCheck = await verifyAdmin(await headers());
   if (!authCheck.authorized) {
     return { success: false, message: authCheck.message };
   }
@@ -139,7 +140,7 @@ export async function deleteRutina(
   formData: FormData
 ): Promise<FormState> {
   // Verify admin access
-  const authCheck = await verifyAdmin();
+  const authCheck = await verifyAdmin(await headers());
   if (!authCheck.authorized) {
     return { success: false, message: authCheck.message };
   }
