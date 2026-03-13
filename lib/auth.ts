@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin } from "better-auth/plugins/admin";
+import bcrypt from "bcrypt";
 import prisma from "./prisma";
 
 export const auth = betterAuth({
@@ -10,6 +11,22 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,
+    password: {
+      hash: async (password) => {
+        return await bcrypt.hash(password, 12);
+      },
+      verify: async ({ hash, password }) => {
+        return await bcrypt.compare(password, hash);
+      },
+    },
+  },
+  user: {
+    additionalFields: {
+      admin: {
+        type: "boolean",
+        defaultValue: false,
+      },
+    },
   },
   plugins: [admin()],
   trustedOrigins: [

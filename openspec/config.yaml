@@ -11,6 +11,7 @@ context: |
   Package manager: npm
   Testing: None configured
   Style: ESLint 9 flat config
+  Dev server: MUST always use port 3000 (never 3001, 3002, etc.)
 
 # WORKFLOW RULES
 
