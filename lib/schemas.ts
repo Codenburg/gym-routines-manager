@@ -1,7 +1,64 @@
 import { z } from "zod";
 
 // ======================
-// Rutina Schemas
+// Ejercicio Schemas (Flat - for separate creation)
+// ======================
+
+export const ejercicioSchema = z.object({
+  nombre: z.string().min(1, { error: "El nombre es requerido" }).max(100),
+  series: z.string().max(20).optional(),
+  repes: z.string().max(20).optional(),
+  diaId: z.string().uuid({ error: "ID de día inválido" }),
+});
+
+export const ejercicioUpdateSchema = ejercicioSchema.partial();
+
+export type EjercicioInput = z.infer<typeof ejercicioSchema>;
+export type EjercicioUpdateInput = z.infer<typeof ejercicioUpdateSchema>;
+
+// ======================
+// Ejercicio Schema (Nested - for routine creation)
+// ======================
+
+const ejercicioNestedSchema = z.object({
+  nombre: z.string().min(1, { error: "El nombre del ejercicio es requerido" }).max(100),
+  series: z.string().max(20).optional(),
+  repes: z.string().max(20).optional(),
+});
+
+export type EjercicioNestedInput = z.infer<typeof ejercicioNestedSchema>;
+
+// ======================
+// Dia Schemas (Flat - for separate creation)
+// ======================
+
+export const diaSchema = z.object({
+  nombre: z.string().min(1, { error: "El nombre es requerido" }).max(50),
+  musculosEnfocados: z.string().max(200).optional(),
+  rutinaId: z.string().uuid({ error: "ID de rutina inválido" }),
+});
+
+export const diaUpdateSchema = diaSchema.partial();
+
+export type DiaInput = z.infer<typeof diaSchema>;
+export type DiaUpdateInput = z.infer<typeof diaUpdateSchema>;
+
+// ======================
+// Dia Schema (Nested - for routine creation)
+// ======================
+
+const diaNestedSchema = z.object({
+  nombre: z.string().min(1, { error: "El nombre del día es requerido" }).max(50),
+  musculosEnfocados: z.string().max(200).optional(),
+  ejercicios: z
+    .array(ejercicioNestedSchema)
+    .min(1, { error: "Cada día debe tener al menos un ejercicio" }),
+});
+
+export type DiaNestedInput = z.infer<typeof diaNestedSchema>;
+
+// ======================
+// Rutina Schema (Flat - for separate creation)
 // ======================
 
 export const rutinaSchema = z.object({
@@ -18,35 +75,21 @@ export type RutinaInput = z.infer<typeof rutinaSchema>;
 export type RutinaUpdateInput = z.infer<typeof rutinaUpdateSchema>;
 
 // ======================
-// Dia Schemas
+// Rutina Completa Schema (Nested - for routine creation)
 // ======================
 
-export const diaSchema = z.object({
-  nombre: z.string().min(1, { error: "El nombre es requerido" }).max(50),
-  musculosEnfocados: z.string().max(200).optional(),
-  rutinaId: z.string().uuid({ error: "ID de rutina inválido" }),
-});
-
-export const diaUpdateSchema = diaSchema.partial();
-
-export type DiaInput = z.infer<typeof diaSchema>;
-export type DiaUpdateInput = z.infer<typeof diaUpdateSchema>;
-
-// ======================
-// Ejercicio Schemas
-// ======================
-
-export const ejercicioSchema = z.object({
+export const rutinaCompletaSchema = z.object({
   nombre: z.string().min(1, { error: "El nombre es requerido" }).max(100),
-  series: z.string().max(20).optional(),
-  repes: z.string().max(20).optional(),
-  diaId: z.string().uuid({ error: "ID de día inválido" }),
+  tipo: z.enum(["fuerza", "cardio", "flexibilidad", "hipertrofia"], {
+    error: "Tipo inválido",
+  }),
+  descripcion: z.string().max(500).optional(),
+  dias: z
+    .array(diaNestedSchema)
+    .min(1, { error: "La rutina debe tener al menos un día" }),
 });
 
-export const ejercicioUpdateSchema = ejercicioSchema.partial();
-
-export type EjercicioInput = z.infer<typeof ejercicioSchema>;
-export type EjercicioUpdateInput = z.infer<typeof ejercicioUpdateSchema>;
+export type RutinaCompletaInput = z.infer<typeof rutinaCompletaSchema>;
 
 // ======================
 // Reorder Schema

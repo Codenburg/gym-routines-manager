@@ -1,0 +1,75 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - link [ref=e6] [cursor=pointer]:
+          - /url: /admin/rutinas
+          - img [ref=e7]
+        - generic [ref=e9]:
+          - heading "Nueva Rutina" [level=1] [ref=e10]
+          - paragraph [ref=e11]: Crea una rutina con días y ejercicios
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - generic [ref=e15]:
+            - generic [ref=e16]:
+              - text: Nombre de la rutina *
+              - textbox "Nombre de la rutina *" [ref=e17]:
+                - /placeholder: "Ej: Rutina Full Body"
+            - generic [ref=e18]:
+              - text: Tipo *
+              - combobox "Tipo *" [ref=e19]:
+                - option "Seleccionar tipo" [disabled] [selected]
+                - option "Fuerza"
+                - option "Cardio"
+                - option "Flexibilidad"
+                - option "Hipertrofia"
+          - generic [ref=e20]:
+            - text: Descripción
+            - textbox "Descripción" [ref=e21]:
+              - /placeholder: Describe los objetivos de esta rutina...
+        - generic [ref=e23]:
+          - generic [ref=e24]:
+            - heading "Días de entrenamiento" [level=2] [ref=e25]
+            - generic [ref=e26]: Al menos 1 día
+          - generic [ref=e28]:
+            - generic [ref=e29]:
+              - heading "Día 1" [level=3] [ref=e30]
+              - button "Eliminar día" [ref=e31]
+            - generic [ref=e32]:
+              - text: Nombre del día *
+              - 'textbox "Ej: Pierna, Espalda, Pecho..." [ref=e33]'
+            - generic [ref=e34]:
+              - text: Músculos enfocados
+              - 'textbox "Ej: Cuádriceps, isquiotibiales, glúteos..." [ref=e35]'
+            - generic [ref=e36]:
+              - generic [ref=e37]:
+                - generic [ref=e38]: Ejercicios *
+                - generic [ref=e39]: Al menos 1 ejercicio
+              - generic [ref=e40]:
+                - generic [ref=e41]: Nombre
+                - generic [ref=e42]: Series
+                - generic [ref=e43]: Repes
+              - generic [ref=e46]:
+                - textbox "Nombre del ejercicio" [ref=e48]
+                - textbox "Series" [ref=e50]
+                - textbox "Repes" [ref=e52]
+                - button "✕" [ref=e53]
+              - button "+ Agregar Ejercicio" [ref=e54]
+          - button "+ Agregar Día" [ref=e55]
+        - generic [ref=e57]:
+          - button "Cancelar" [ref=e58]
+          - button "Crear Rutina Completa" [ref=e59]
+  - contentinfo [ref=e60]:
+    - generic [ref=e62]:
+      - paragraph [ref=e63]: © 2026 Codenburg
+      - link "Administradores" [ref=e65] [cursor=pointer]:
+        - /url: /admin
+        - img [ref=e66]
+        - text: Administradores
+  - button "Open Next.js Dev Tools" [ref=e73] [cursor=pointer]:
+    - img [ref=e74]
+  - alert [ref=e77]
+```

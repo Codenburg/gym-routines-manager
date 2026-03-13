@@ -1,7 +1,6 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { AuthGuard } from "@/components/auth-guard";
-import { NuevaRutinaForm } from "@/components/admin/nueva-rutina-form";
+import { RutinaCompletaForm } from "@/components/admin/rutina-completa-form";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -9,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default function NewRutinaPage() {
   return (
     <AuthGuard>
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Link
@@ -22,13 +21,13 @@ export default function NewRutinaPage() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold text-white">Nueva Rutina</h1>
-            <p className="text-white/60 mt-1">Crea una nueva rutina de entrenamiento</p>
+            <p className="text-white/60 mt-1">Crea una rutina con días y ejercicios</p>
           </div>
         </div>
 
         {/* Form */}
         <div className="bg-zinc-900 border border-white/10 rounded-xl p-6">
-          <NuevaRutinaForm />
+          <RutinaCompletaForm />
         </div>
       </div>
     </AuthGuard>
