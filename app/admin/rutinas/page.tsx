@@ -13,8 +13,16 @@ export default async function AdminRutinasPage() {
     <AuthGuard>
       <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-center gap-4">
+        <Link
+          href="/admin"
+          className="p-2 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </Link>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold text-white">Rutinas</h1>
           <p className="text-white/60 mt-1">Administra todas las rutinas</p>
         </div>

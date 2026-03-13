@@ -49,7 +49,7 @@ export default async function DayDetailPage({
 
   return (
     <div className="min-h-screen bg-black">
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-6 py-8 max-w-4xl">
         {/* Back button */}
         <Link
           href={`/rutinas/${rutinaId}`}
