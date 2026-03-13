@@ -2,6 +2,7 @@ import { PrismaClient } from '../generated/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 import 'dotenv/config';
+import bcrypt from 'bcrypt';
 
 const { Pool } = pg;
 
@@ -37,36 +38,41 @@ async function main() {
   await prisma.rutina.deleteMany();
 
   // ========================================
-  // Rutina 1: Full Body (5 días)
+  // Create admin user manually with correct format
   // ========================================
   
-  // Create admin user for testing
-  const adminUser = await prisma.user.upsert({
-    where: { email: 'admin@championgym.com' },
-    update: {},
-    create: {
+  // Delete existing admin user if any
+  const existingUser = await prisma.user.findUnique({
+    where: { email: 'admin@championgym.com' }
+  });
+  if (existingUser) {
+    await prisma.session.deleteMany({ where: { userId: existingUser.id } });
+    await prisma.account.deleteMany({ where: { userId: existingUser.id } });
+    await prisma.user.delete({ where: { id: existingUser.id } });
+  }
+
+  // Create admin user
+  const hashedPassword = await bcrypt.hash('admin123', 12);
+  
+  const adminUser = await prisma.user.create({
+    data: {
       name: 'Admin',
       email: 'admin@championgym.com',
       emailVerified: true,
+      admin: true,
+      role: 'admin',
+      banned: false,
     },
   });
 
-  // Create admin account with password
-  await prisma.account.upsert({
-    where: {
-      providerId_providerType_accountId: {
-        providerId: 'champion-admin',
-        providerType: 'email',
-        accountId: adminUser.id,
-      },
-    },
-    update: {},
-    create: {
+  // Create admin account - providerType must be 'credential' for better-auth
+  await prisma.account.create({
+    data: {
       userId: adminUser.id,
       accountId: adminUser.id,
-      providerId: 'champion-admin',
-      providerType: 'email',
-      password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYIqJ4J.Wfy', // password: admin123
+      providerId: 'credential',
+      providerType: 'credential',
+      password: hashedPassword,
     },
   });
 
