@@ -1,12 +1,57 @@
 @import "tailwindcss";
 
 :root {
-  /* Black/White/Red theme */
+  /* Dark theme (default) */
   --background: #000000;
   --foreground: #ffffff;
   --border: #ffffff;
   --accent-red: #ef4444;
   --accent-red-foreground: #ffffff;
+  
+  /* Component variables - Dark */
+  --card-bg: #000000;
+  --card-border: rgba(255, 255, 255, 0.2);
+  --card-foreground: #ffffff;
+  
+  --input-bg: #000000;
+  --input-border: rgba(255, 255, 255, 0.3);
+  --input-foreground: #ffffff;
+  --input-placeholder: rgba(255, 255, 255, 0.5);
+  
+  --button-primary-bg: #dc2626;
+  --button-primary-foreground: #ffffff;
+  --button-secondary-bg: rgba(255, 255, 255, 0.1);
+  --button-secondary-foreground: #ffffff;
+  --button-secondary-border: rgba(255, 255, 255, 0.3);
+  
+  --muted: rgba(255, 255, 255, 0.6);
+}
+
+.light {
+  /* Light theme */
+  --background: #ffffff;
+  --foreground: #000000;
+  --border: #000000;
+  --accent-red: #dc2626;
+  --accent-red-foreground: #ffffff;
+  
+  /* Component variables - Light */
+  --card-bg: #ffffff;
+  --card-border: rgba(0, 0, 0, 0.2);
+  --card-foreground: #000000;
+  
+  --input-bg: #ffffff;
+  --input-border: rgba(0, 0, 0, 0.3);
+  --input-foreground: #000000;
+  --input-placeholder: rgba(0, 0, 0, 0.5);
+  
+  --button-primary-bg: #dc2626;
+  --button-primary-foreground: #ffffff;
+  --button-secondary-bg: rgba(0, 0, 0, 0.1);
+  --button-secondary-foreground: #000000;
+  --button-secondary-border: rgba(0, 0, 0, 0.3);
+  
+  --muted: rgba(0, 0, 0, 0.6);
 }
 
 @theme inline {
@@ -15,6 +60,19 @@
   --color-border: var(--border);
   --color-accent-red: var(--accent-red);
   --color-accent-red-foreground: var(--accent-red-foreground);
+  --color-card-bg: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-card-foreground: var(--card-foreground);
+  --color-input-bg: var(--input-bg);
+  --color-input-border: var(--input-border);
+  --color-input-foreground: var(--input-foreground);
+  --color-input-placeholder: var(--input-placeholder);
+  --color-button-primary-bg: var(--button-primary-bg);
+  --color-button-primary-foreground: var(--button-primary-foreground);
+  --color-button-secondary-bg: var(--button-secondary-bg);
+  --color-button-secondary-foreground: var(--button-secondary-foreground);
+  --color-button-secondary-border: var(--button-secondary-border);
+  --color-muted: var(--muted);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

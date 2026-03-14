@@ -8,7 +8,7 @@ interface CardProps {
 
 export function Card({ children, className }: CardProps) {
   return (
-    <div className={cn("rounded-xl border border-white/20 bg-black shadow-sm", className)}>
+    <div className={cn("rounded-xl border shadow-sm bg-[var(--card-bg)] border-[var(--card-border)]", className)}>
       {children}
     </div>
   );
@@ -19,11 +19,11 @@ export function CardHeader({ children, className }: { children: React.ReactNode;
 }
 
 export function CardTitle({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <h3 className={cn("font-semibold leading-none tracking-tight text-white", className)}>{children}</h3>;
+  return <h3 className={cn("font-semibold leading-none tracking-tight text-[var(--card-foreground)]", className)}>{children}</h3>;
 }
 
 export function CardDescription({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <p className={cn("text-sm text-white/60", className)}>{children}</p>;
+  return <p className={cn("text-sm text-[var(--muted)]", className)}>{children}</p>;
 }
 
 export function CardContent({ children, className }: { children: React.ReactNode; className?: string }) {

@@ -114,6 +114,16 @@ export const loginSchema = z.object({
 export type LoginInput = z.infer<typeof loginSchema>;
 
 // ======================
+// Feriado Schema
+// ======================
+
+export const feriadoSchema = z.object({
+  fecha: z.string().min(1, { error: "La fecha es requerida" }).transform((val) => new Date(val)),
+});
+
+export type FeriadoInput = z.infer<typeof feriadoSchema>;
+
+// ======================
 // ID Validation Schema
 // ======================
 

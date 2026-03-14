@@ -99,7 +99,7 @@ export default async function AdminDashboardPage() {
       {/* Quick Actions */}
       <div>
         <h2 className="text-lg font-semibold text-white mb-4">Acciones Rápidas</h2>
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-wrap">
           <Link
             href="/admin/rutinas/new"
             className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
@@ -117,6 +117,15 @@ export default async function AdminDashboardPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             Ver Rutinas
+          </Link>
+          <Link
+            href="/admin/feriados"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Ver Feriados
           </Link>
         </div>
       </div>

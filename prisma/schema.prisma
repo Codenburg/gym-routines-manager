@@ -114,3 +114,13 @@ model Verification {
 
   @@unique([identifier, value])
 }
+
+// ======================
+// Information Page Models
+// ======================
+
+model Feriado {
+  id        String   @id @default(uuid())
+  fecha     DateTime
+  createdAt DateTime @default(now())
+}
