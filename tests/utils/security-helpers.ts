@@ -54,7 +54,7 @@ export async function loginAsAdmin(page: Page): Promise<void> {
  * Used for authorization security tests
  */
 export async function loginAsUser(page: Page, email: string, password: string): Promise<void> {
-  await page.goto('/login');
+  await page.goto('/admin/login');
   
   // Wait for the form to be ready
   await page.waitForSelector('input[type="email"]', { timeout: 10000 });

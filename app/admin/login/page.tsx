@@ -54,7 +54,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+    <div className="fixed inset-0 flex items-center justify-center bg-[var(--background)] overflow-hidden">
       <div className="w-full max-w-md p-8 space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
