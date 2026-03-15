@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { AuthGuard } from "@/components/auth-guard";
 import { DeleteRutinaButton } from "@/components/admin/delete-rutina-button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { ArrowLeft, FileText, Calendar, TrendingUp, Plus } from "lucide-react";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -44,9 +45,7 @@ export default async function AdminDashboardPage() {
             href="/"
             className="p-2 hover:bg-[var(--button-secondary-bg)] rounded-lg text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
             <h1 className="text-2xl font-bold text-[var(--foreground)]">Bienvenido al Panel de Administración</h1>
@@ -61,9 +60,7 @@ export default async function AdminDashboardPage() {
         <div className="bg-[var(--button-secondary-bg)] border border-[var(--card-border)] rounded-xl p-6">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-red-600/20 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
+              <FileText className="w-6 h-6 text-red-500" />
             </div>
             <div>
               <p className="text-[var(--muted)] text-sm">Total Rutinas</p>
@@ -75,9 +72,7 @@ export default async function AdminDashboardPage() {
         <div className="bg-[var(--button-secondary-bg)] border border-[var(--card-border)] rounded-xl p-6">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-blue-600/20 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
+              <Calendar className="w-6 h-6 text-blue-500" />
             </div>
             <div>
               <p className="text-[var(--muted)] text-sm">Total Días</p>
@@ -89,9 +84,7 @@ export default async function AdminDashboardPage() {
         <div className="bg-[var(--button-secondary-bg)] border border-[var(--card-border)] rounded-xl p-6">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-green-600/20 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
+              <TrendingUp className="w-6 h-6 text-green-500" />
             </div>
             <div>
               <p className="text-[var(--muted)] text-sm">Total Ejercicios</p>
@@ -109,27 +102,21 @@ export default async function AdminDashboardPage() {
             href="/admin/rutinas/new"
             className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--button-primary-bg)] hover:opacity-90 text-[var(--button-primary-foreground)] rounded-lg transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
+            <Plus className="w-5 h-5" />
             Nueva Rutina
           </Link>
           <Link
             href="/admin/rutinas"
             className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--button-secondary-bg)] hover:opacity-80 text-[var(--button-secondary-foreground)] rounded-lg transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
+            <FileText className="w-5 h-5" />
             Ver Rutinas
           </Link>
           <Link
             href="/admin/feriados"
             className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--button-secondary-bg)] hover:opacity-80 text-[var(--button-secondary-foreground)] rounded-lg transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
+            <Calendar className="w-5 h-5" />
             Ver Feriados
           </Link>
         </div>

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft } from "lucide-react";
 
 interface Ejercicio {
   id: string;
@@ -55,20 +56,7 @@ export default async function DayDetailPage({
           href={`/rutinas/${rutinaId}`}
           className="inline-flex items-center text-red-400 hover:text-red-300 mb-6 transition-colors"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="w-5 h-5 mr-2"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
-            />
-          </svg>
+          <ArrowLeft className="w-5 h-5 mr-2" />
           Volver a la rutina
         </Link>
 

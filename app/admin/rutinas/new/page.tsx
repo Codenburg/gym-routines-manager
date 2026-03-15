@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AuthGuard } from "@/components/auth-guard";
 import { RutinaCompletaForm } from "@/components/admin/rutina-completa-form";
+import { ArrowLeft } from "lucide-react";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -15,9 +16,7 @@ export default function NewRutinaPage() {
             href="/admin/rutinas"
             className="p-2 hover:bg-[var(--button-secondary-bg)] rounded-lg text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
             <h1 className="text-2xl font-bold text-[var(--foreground)]">Nueva Rutina</h1>

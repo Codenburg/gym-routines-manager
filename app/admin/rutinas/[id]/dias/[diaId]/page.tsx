@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { getRutina } from "@/app/actions/rutinas";
 import { EjercicioList } from "@/components/admin/ejercicio-list";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -64,9 +65,7 @@ export default async function EjerciciosPage({ params }: EjerciciosPageProps) {
           href={`/admin/rutinas/${id}`}
           className="p-2 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-colors"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
+          <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-white">{dia.nombre}</h1>

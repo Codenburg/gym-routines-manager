@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getRutinas, deleteRutina } from "@/app/actions/rutinas";
 import { AuthGuard } from "@/components/auth-guard";
 import { DeleteRutinaButton } from "@/components/admin/delete-rutina-button";
+import { ArrowLeft, Plus, Pencil, FileText } from "lucide-react";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -18,9 +19,7 @@ export default async function AdminRutinasPage() {
           href="/admin"
           className="p-2 hover:bg-[var(--button-secondary-bg)] rounded-lg text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
+          <ArrowLeft className="w-5 h-5" />
         </Link>
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-[var(--foreground)]">Rutinas</h1>
@@ -30,9 +29,7 @@ export default async function AdminRutinasPage() {
           href="/admin/rutinas/new"
           className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--button-primary-bg)] hover:opacity-90 text-[var(--button-primary-foreground)] rounded-lg transition-colors"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
+          <Plus className="w-5 h-5" />
           Nueva Rutina
         </Link>
       </div>
@@ -74,9 +71,7 @@ export default async function AdminRutinasPage() {
                         className="p-2 hover:bg-[var(--button-secondary-bg)] rounded-lg text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
                         title="Editar"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
+                        <Pencil className="w-5 h-5" />
                       </Link>
                       <DeleteRutinaButton rutinaId={rutina.id} />
                     </div>
@@ -88,18 +83,14 @@ export default async function AdminRutinasPage() {
         </div>
       ) : (
         <div className="text-center py-16 bg-[var(--button-secondary-bg)]/50 rounded-xl border border-[var(--card-border)]">
-          <svg className="w-16 h-16 text-[var(--muted)] mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
+          <FileText className="w-16 h-16 text-[var(--muted)] mx-auto mb-4" />
           <p className="text-[var(--muted)] text-lg">No hay rutinas creadas</p>
           <p className="text-[var(--muted)] text-sm mt-2 mb-6">Crea tu primera rutina para comenzar</p>
           <Link
             href="/admin/rutinas/new"
             className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--button-primary-bg)] hover:opacity-90 text-[var(--button-primary-foreground)] rounded-lg transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
+            <Plus className="w-5 h-5" />
             Crear Rutina
           </Link>
         </div>

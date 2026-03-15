@@ -7,6 +7,7 @@ import { DiaManager } from "@/components/admin/dia-manager";
 import Link from "next/link";
 import { AuthGuard } from "@/components/auth-guard";
 import { DeleteRutinaPageButton } from "@/components/admin/delete-rutina-page-button";
+import { ArrowLeft } from "lucide-react";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -41,9 +42,7 @@ export default async function EditRutinaPage({ params }: EditRutinaPageProps) {
             href="/admin/rutinas"
             className="p-2 hover:bg-[var(--button-secondary-bg)] rounded-lg text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
             <h1 className="text-2xl font-bold text-[var(--foreground)]">Editar Rutina</h1>
