@@ -14,12 +14,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         className={cn(
           "inline-flex items-center justify-center font-medium rounded-lg transition-colors",
-          "focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-[var(--background)]",
+          "focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:ring-offset-2 focus:ring-offset-[var(--background)]",
           "disabled:opacity-50 disabled:cursor-not-allowed",
           // Variants
           variant === "primary" && "bg-[var(--button-primary-bg)] hover:opacity-90 text-[var(--button-primary-foreground)]",
           variant === "secondary" && "bg-[var(--button-secondary-bg)] hover:opacity-80 text-[var(--button-secondary-foreground)] border border-[var(--button-secondary-border)]",
-          variant === "danger" && "bg-red-900/50 hover:bg-red-900 text-red-400 border border-red-700",
+          variant === "danger" && "bg-[var(--destructive)] text-[var(--destructive-foreground)] hover:opacity-90",
           variant === "ghost" && "hover:bg-[var(--button-secondary-bg)] text-[var(--muted)] hover:text-[var(--foreground)]",
           // Sizes
           size === "sm" && "px-3 py-1.5 text-sm",
