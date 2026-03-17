@@ -20,6 +20,7 @@ interface Rutina {
   nombre: string;
   tipo: string;
   descripcion: string | null;
+  creador: string | null;
   diasCount: number;
   dias?: Dia[];
 }
@@ -32,9 +33,9 @@ export function RoutineList({ rutinas }: RoutineListProps) {
   if (rutinas.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <FolderOpen className="w-16 h-16 text-[var(--muted)] mb-4" />
-        <p className="text-[var(--muted)] text-lg font-medium">No hay rutinas disponibles</p>
-        <p className="text-[var(--muted)] text-sm mt-1">Crea tu primera rutina para comenzar</p>
+        <FolderOpen className="w-16 h-16 text-[var(--muted-foreground)] mb-4" />
+        <p className="text-[var(--muted-foreground)] text-lg font-medium">No hay rutinas disponibles</p>
+        <p className="text-[var(--muted-foreground)] text-sm mt-1">Crea tu primera rutina para comenzar</p>
       </div>
     );
   }

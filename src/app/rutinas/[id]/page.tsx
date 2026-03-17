@@ -23,6 +23,7 @@ interface Rutina {
   nombre: string;
   tipo: string;
   descripcion: string | null;
+  creador: string | null;
   createdAt: string;
   updatedAt: string;
   dias: Dia[];
@@ -77,9 +78,16 @@ export default async function RoutineDetailPage({
               <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
                 {rutina.nombre}
               </h1>
-              <span className="inline-block rounded-full bg-red-500/20 px-3 py-1 text-sm font-medium text-red-400">
-                {rutina.tipo}
-              </span>
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="inline-block rounded-full bg-red-500/20 px-3 py-1 text-sm font-medium text-red-400">
+                  {rutina.tipo}
+                </span>
+                {rutina.creador && (
+                  <span className="text-sm text-[var(--muted)]">
+                    Creado por <span className="text-[var(--foreground)] font-medium">{rutina.creador}</span>
+                  </span>
+                )}
+              </div>
             </div>
             {rutina.descripcion && (
               <p className="text-[var(--muted)] mt-2">{rutina.descripcion}</p>

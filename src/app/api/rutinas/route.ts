@@ -6,6 +6,7 @@ interface RutinaQueryResult {
   nombre: string;
   tipo: string;
   descripcion: string | null;
+  creador: string | null;
   createdAt: Date;
   updatedAt: Date;
   _count: {
@@ -62,6 +63,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         nombre: true,
         tipo: true,
         descripcion: true,
+        creador: true,
         createdAt: true,
         updatedAt: true,
         _count: {
@@ -103,6 +105,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       nombre: rutina.nombre,
       tipo: rutina.tipo,
       descripcion: rutina.descripcion,
+      creador: rutina.creador,
       createdAt: rutina.createdAt.toISOString(),
       updatedAt: rutina.updatedAt.toISOString(),
       diasCount: rutina._count.dias,

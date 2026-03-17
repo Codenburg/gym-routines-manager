@@ -52,6 +52,7 @@ export async function GET(
       nombre: rutina.nombre,
       tipo: rutina.tipo,
       descripcion: rutina.descripcion,
+      creador: rutina.creador,
       createdAt: rutina.createdAt.toISOString(),
       updatedAt: rutina.updatedAt.toISOString(),
       dias: rutina.dias.map((dia) => ({

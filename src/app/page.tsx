@@ -29,6 +29,7 @@ interface Rutina {
   nombre: string;
   tipo: string;
   descripcion: string | null;
+  creador: string | null;
   diasCount: number;
   dias?: Dia[];
 }
@@ -64,7 +65,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
             <div>
               <h1 className="text-3xl sm:text-4xl font-bold text-[var(--foreground)] mb-3">Rutinas Champion Gym</h1>
-              <p className="text-[var(--muted)] text-lg">Explora las mejores rutinas de entrenamiento</p>
+              <p className="text-[var(--muted-foreground)] text-lg">Explora las mejores rutinas de entrenamiento</p>
             </div>
             <ThemeToggle />
           </div>

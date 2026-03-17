@@ -7,6 +7,7 @@ interface Rutina {
   nombre: string;
   tipo: string;
   descripcion: string | null;
+  creador: string | null;
   diasCount: number;
 }
 
@@ -33,6 +34,11 @@ export function RoutineCard({ rutina }: RoutineCardProps) {
         <CardContent>
           {rutina.descripcion && (
             <p className="text-sm text-[var(--muted)] line-clamp-2">{rutina.descripcion}</p>
+          )}
+          {rutina.creador && (
+            <p className="text-xs text-[var(--muted)] mt-2">
+              Creado por <span className="text-[var(--foreground)]">{rutina.creador}</span>
+            </p>
           )}
         </CardContent>
         <CardFooter>

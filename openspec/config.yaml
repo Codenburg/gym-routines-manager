@@ -130,6 +130,16 @@ tailwind_rules:
     - MUST NOT use inline styles unless dynamically computed at runtime
     - SHOULD extract repeated class combinations into reusable components or variants
 
+# UI COMPONENTS
+
+ui_components:
+  rules:
+    - MUST use shadcn/ui for all UI components
+    - MUST NOT create custom button, input, select, dialog, dropdown, or card components
+    - SHALL use 'npx shadcn@latest add <component>' to add new UI components
+    - SHOULD search shadcn registries before implementing any new component
+    - Components MUST be installed via shadcn CLI, NOT copied from documentation
+
 # SECURITY
 
 security:

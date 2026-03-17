@@ -43,9 +43,12 @@ export default function RootLayout({
                   var theme = saved ? JSON.parse(saved).state.theme : 'dark';
                   if (theme === 'light') {
                     document.documentElement.classList.add('light');
+                  } else {
+                    document.documentElement.classList.add('dark');
                   }
                 } catch (e) {
-                  // Ignore errors, default to dark
+                  // Default to dark
+                  document.documentElement.classList.add('dark');
                 }
               })();
             `,

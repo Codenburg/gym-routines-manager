@@ -42,6 +42,7 @@ export default async function AdminRutinasPage() {
               <tr className="border-b border-[var(--card-border)]">
                 <th className="text-left px-6 py-4 text-[var(--muted)] font-medium text-sm">Nombre</th>
                 <th className="text-left px-6 py-4 text-[var(--muted)] font-medium text-sm">Tipo</th>
+                <th className="text-left px-6 py-4 text-[var(--muted)] font-medium text-sm">Creador</th>
                 <th className="text-left px-6 py-4 text-[var(--muted)] font-medium text-sm">Días</th>
                 <th className="text-left px-6 py-4 text-[var(--muted)] font-medium text-sm">Descripción</th>
                 <th className="text-right px-6 py-4 text-[var(--muted)] font-medium text-sm">Acciones</th>
@@ -57,6 +58,9 @@ export default async function AdminRutinasPage() {
                     <span className="px-2 py-1 bg-[var(--button-secondary-bg)] rounded text-xs text-[var(--muted)] capitalize">
                       {rutina.tipo}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 text-[var(--foreground)] text-sm">
+                    {rutina.creador || "—"}
                   </td>
                   <td className="px-6 py-4 text-[var(--muted)]">
                     {rutina.diasCount || 0} día{(rutina.diasCount || 0) !== 1 ? "s" : ""}
