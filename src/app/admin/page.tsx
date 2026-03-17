@@ -2,9 +2,8 @@ import Link from "next/link";
 import { getRutinas } from "@/app/actions/rutinas";
 import prisma from "@/lib/prisma";
 import { AuthGuard } from "@/components/auth-guard";
-import { DeleteRutinaButton } from "@/components/admin/delete-rutina-button";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { ArrowLeft, FileText, Calendar, TrendingUp, Plus } from "lucide-react";
+import { GymPriceEditor } from "@/components/admin/GymPriceEditor";
+import { FileText, Calendar, TrendingUp, Plus } from "lucide-react";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -31,28 +30,30 @@ async function getStats() {
   }
 }
 
+async function getGymPrice(): Promise<number> {
+  try {
+    const gym = await prisma.gym.findUnique({
+      where: { id: "gym" },
+    });
+    // Gym auto-created by API if not exists, but we keep fallback for safety
+    return gym ? Number(gym.price) : 45000;
+  } catch {
+    return 45000;
+  }
+}
+
 export default async function AdminDashboardPage() {
   const stats = await getStats();
   const rutinas = await getRutinas();
+  const gymPrice = await getGymPrice();
 
   return (
     <AuthGuard>
       <div className="space-y-8">
-      {/* Header */}
-      <div className="flex justify-between items-start mb-8">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/"
-            className="p-2 hover:bg-[var(--button-secondary-bg)] rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-[var(--foreground)]">Bienvenido al Panel de Administración</h1>
-            <p className="text-[var(--muted-foreground)] mt-1">Gestiona tus rutinas, días y ejercicios desde aquí</p>
-          </div>
-        </div>
-        <ThemeToggle />
+      {/* Gym Price Editor */}
+      <div>
+        <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">Panel de administrador</h2>
+        <GymPriceEditor initialPrice={gymPrice} />
       </div>
 
       {/* Stats Cards */}

@@ -29,7 +29,7 @@ export function SearchBar({ defaultValue = "" }: SearchBarProps) {
   }, [searchParams, query, setQuery]);
 
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full">
       <SearchInput
         value={query}
         onChange={setQuery}

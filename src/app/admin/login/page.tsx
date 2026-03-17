@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
+import { DumbbellSpinner } from "@/components/ui/dumbbell-spinner";
 
 interface LoginFormData {
   dni: string;
@@ -123,7 +124,7 @@ export default function AdminLoginPage() {
             className="w-full py-3 px-4 bg-[var(--button-primary-bg)] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-[var(--button-primary-foreground)] font-semibold rounded-md transition-colors cursor-pointer flex items-center justify-center gap-2"
           >
             {isLoading && (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <DumbbellSpinner size={20} />
             )}
             {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
           </button>

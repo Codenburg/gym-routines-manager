@@ -15,13 +15,13 @@ export function SearchInput({
   placeholder = "Buscar rutinas...",
 }: SearchInputProps) {
   return (
-    <div className="relative w-full max-w-md">
+    <div className="relative w-full">
       <Input
         type="search"
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="pl-10 pr-10"
+        className="pl-10 pr-10 w-full bg-background border-slate-300 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500/20"
         aria-label="Buscar rutinas"
       />
       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">

@@ -33,9 +33,9 @@ export function RoutineList({ rutinas }: RoutineListProps) {
   if (rutinas.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
-        <FolderOpen className="w-16 h-16 text-[var(--muted-foreground)] mb-4" />
-        <p className="text-[var(--muted-foreground)] text-lg font-medium">No hay rutinas disponibles</p>
-        <p className="text-[var(--muted-foreground)] text-sm mt-1">Crea tu primera rutina para comenzar</p>
+        <FolderOpen className="w-16 h-16 text-muted-foreground mb-4" />
+        <p className="text-muted-foreground text-lg font-medium">No hay rutinas disponibles</p>
+        <p className="text-muted-foreground text-sm mt-1">Crea tu primera rutina para comenzar</p>
       </div>
     );
   }

@@ -1,15 +1,19 @@
-// Simplified admin layout - just render children, auth handled by pages
+"use client";
+
+import { AdminLayout as AdminLayoutComponent } from "@/components/admin/admin-layout";
+import { usePathname } from "next/navigation";
 
 export default function AdminLayoutPage({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="min-h-screen bg-[var(--background)]">
-      <main className="container mx-auto px-6 py-8 max-w-5xl">
-        {children}
-      </main>
-    </div>
-  );
+  const pathname = usePathname();
+  
+  // Skip header for login page
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
+  }
+  
+  return <AdminLayoutComponent>{children}</AdminLayoutComponent>;
 }

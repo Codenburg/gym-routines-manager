@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
+import { DumbbellSpinner } from "@/components/ui/dumbbell-spinner";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -27,7 +28,7 @@ export function AuthGuard({ children, adminOnly = true }: AuthGuardProps) {
   if (isPending) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
+        <DumbbellSpinner />
       </div>
     );
   }

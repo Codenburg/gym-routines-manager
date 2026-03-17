@@ -8,6 +8,13 @@ interface Feriado {
   createdAt: string;
 }
 
+interface GymConfig {
+  id: string;
+  price: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 async function getFeriados(): Promise<Feriado[]> {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   const response = await fetch(`${baseUrl}/api/feriados`, {
@@ -21,6 +28,20 @@ async function getFeriados(): Promise<Feriado[]> {
   return response.json();
 }
 
+async function getGymPrice(): Promise<number> {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const response = await fetch(`${baseUrl}/api/gym`, {
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    return 45000;
+  }
+
+  const gym: GymConfig = await response.json();
+  return gym.price;
+}
+
 function formatDate(fechaStr: string): string {
   const fecha = new Date(fechaStr);
   return fecha.toLocaleDateString("es-AR", {
@@ -31,8 +52,16 @@ function formatDate(fechaStr: string): string {
   });
 }
 
+function formatPrice(price: number): string {
+  return new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+  }).format(price);
+}
+
 export default async function InformacionPage() {
   const feriadosPromise = getFeriados();
+  const gymPricePromise = getGymPrice();
 
   return (
     <div className="min-h-screen bg-[var(--background)]">
@@ -49,11 +78,9 @@ export default async function InformacionPage() {
 
         <div className="grid gap-6 sm:gap-8">
           {/* Price Section */}
-          <section className="bg-[var(--button-secondary-bg)] border border-[var(--card-border)] rounded-xl p-5 sm:p-6">
-            <h2 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)] mb-4">Precio</h2>
-            <p className="text-3xl font-bold text-[var(--foreground)]">$45.000</p>
-            <p className="text-[var(--muted-foreground)] mt-2">Abono mensual</p>
-          </section>
+          <Suspense fallback={<PriceSectionSkeleton />}>
+            <PriceSection pricePromise={gymPricePromise} />
+          </Suspense>
 
           {/* Hours Section */}
           <section className="bg-[var(--button-secondary-bg)] border border-[var(--card-border)] rounded-xl p-5 sm:p-6">
@@ -133,5 +160,36 @@ function HolidaysSkeleton() {
       <div className="h-5 w-32 bg-[var(--button-secondary-bg)] rounded animate-pulse" />
       <div className="h-5 w-40 bg-[var(--button-secondary-bg)] rounded animate-pulse" />
     </div>
+  );
+}
+
+async function PriceSection({
+  pricePromise,
+}: {
+  pricePromise: Promise<number>;
+}) {
+  const price = await pricePromise;
+
+  return (
+    <section className="bg-[var(--button-secondary-bg)] border border-[var(--card-border)] rounded-xl p-5 sm:p-6">
+      <h2 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)] mb-4">
+        Precio
+      </h2>
+      <p className="text-3xl font-bold text-[var(--foreground)]">
+        {formatPrice(price)}
+      </p>
+      <p className="text-[var(--muted-foreground)] mt-2">Abono mensual</p>
+    </section>
+  );
+}
+
+function PriceSectionSkeleton() {
+  return (
+    <section className="bg-[var(--button-secondary-bg)] border border-[var(--card-border)] rounded-xl p-5 sm:p-6">
+      <h2 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)] mb-4">
+        Precio
+      </h2>
+      <div className="h-10 w-32 bg-[var(--button-secondary-bg)] rounded animate-pulse" />
+    </section>
   );
 }

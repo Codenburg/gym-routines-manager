@@ -49,12 +49,12 @@ export default async function DayDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)]">
+    <div className="min-h-screen bg-background">
       <main className="container mx-auto px-6 py-8 max-w-4xl">
         {/* Back button */}
         <Link
           href={`/rutinas/${rutinaId}`}
-          className="inline-flex items-center text-red-400 hover:text-red-300 mb-6 transition-colors"
+          className="inline-flex items-center text-blue-500 hover:text-blue-400 mb-6 transition-colors font-medium"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
           Volver a la rutina
@@ -64,11 +64,11 @@ export default async function DayDetailPage({
         <div className="mb-8">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
+              <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">
                 {dia.nombre}
               </h1>
               {dia.musculosEnfocados && (
-                <span className="inline-block rounded-full bg-red-500/20 px-3 py-1 text-sm font-medium text-red-400">
+                <span className="inline-block rounded-full bg-blue-500/20 px-3 py-1 text-sm font-medium text-blue-500">
                   {dia.musculosEnfocados}
                 </span>
               )}
@@ -78,13 +78,13 @@ export default async function DayDetailPage({
 
         {/* Exercises */}
         <div className="space-y-6">
-          <h2 className="text-xl font-semibold text-[var(--foreground)]">
+          <h2 className="text-xl font-semibold text-foreground tracking-tight">
             Ejercicios ({dia.ejercicios.length})
           </h2>
 
           {dia.ejercicios.length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-center text-[var(--muted-foreground)]">
+            <Card className="bg-gradient-to-br from-card to-slate-50 dark:to-slate-800/50">
+              <CardContent className="py-8 text-center text-muted-foreground">
                 No hay ejercicios configurados para este día
               </CardContent>
             </Card>
@@ -93,19 +93,20 @@ export default async function DayDetailPage({
               {dia.ejercicios.map((ejercicio, index) => (
                 <Card
                   key={ejercicio.id}
+                  className="hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 bg-gradient-to-br from-card to-slate-50 dark:to-slate-800/50"
                 >
                   <CardHeader className="py-4">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <span className="flex items-center justify-center w-10 h-10 rounded-full bg-red-500/20 text-red-400 text-lg font-bold">
+                        <span className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500/20 text-blue-500 text-lg font-bold">
                           {index + 1}
                         </span>
-                        <CardTitle className="text-lg text-[var(--foreground)]">
+                        <CardTitle className="text-lg text-foreground font-semibold tracking-tight">
                           {ejercicio.nombre}
                         </CardTitle>
                       </div>
                       {ejercicio.series && (
-                        <span className="text-lg font-semibold text-green-400">
+                        <span className="text-lg font-semibold text-green-500">
                           {ejercicio.series}
                         </span>
                       )}

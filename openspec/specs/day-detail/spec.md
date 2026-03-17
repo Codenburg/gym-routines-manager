@@ -136,3 +136,76 @@ No requirements are being removed by this change.
 - GIVEN a day has no `musculosEnfocados` set
 - THEN the page SHALL NOT display the muscle groups section
 - AND SHALL NOT show null/undefined values
+
+---
+
+## UI Design Requirements
+
+### Requirement: Modern Visual Design
+
+The day detail page SHALL follow the same modern design system as the homepage.
+
+#### Scenario: Color Palette Consistency
+
+- GIVEN the day detail page is rendered
+- THEN it SHALL use the same blue accent color as other pages: `blue-500`
+- AND use the same slate-based neutral palette
+- AND use Tailwind CSS utility classes (not custom hex codes)
+
+#### Scenario: Card Styling for Days
+
+- GIVEN day cards are displayed on the routine detail page
+- THEN cards SHALL have gradient backgrounds: `bg-gradient-to-br from-card to-slate-50 dark:to-slate-800/50`
+- AND enhanced hover shadows: `hover:shadow-xl hover:shadow-blue-500/10`
+- AND border color change on hover: `hover:border-blue-500/50`
+- AND transition duration: `transition-all duration-300`
+- AND rounded corners: `rounded-xl`
+
+#### Scenario: Exercise Cards Styling
+
+- GIVEN exercise cards are displayed on the day detail page
+- THEN each exercise SHALL be in a card with gradient background
+- AND have hover shadow effect: `hover:shadow-lg hover:shadow-blue-500/10`
+- AND use blue accent for exercise number badges: `bg-blue-500/20 text-blue-500`
+- AND have rounded corners: `rounded-xl`
+
+#### Scenario: Navigation Elements
+
+- GIVEN back navigation buttons are rendered
+- THEN they SHALL use blue color: `text-blue-500 hover:text-blue-400`
+- AND have font-medium weight: `font-medium`
+- AND include smooth transitions: `transition-colors`
+
+#### Scenario: Badges and Labels
+
+- GIVEN type badges and muscle group tags are displayed
+- THEN they SHALL use blue background: `bg-blue-500/20`
+- AND blue text: `text-blue-500`
+- AND rounded-full shape: `rounded-full`
+- AND consistent padding: `px-3 py-1`
+
+#### Scenario: Typography Consistency
+
+- GIVEN all text elements are rendered
+- THEN headings SHALL use `tracking-tight`
+- AND titles SHALL use `font-semibold`
+- AND secondary text SHALL use `text-muted-foreground`
+
+---
+
+## Acceptance Criteria
+
+| Feature | Criterion | Priority |
+|---------|-----------|----------|
+| Navigation | Day cards are clickable links | MUST |
+| Navigation | Back button returns to routine | MUST |
+| API | GET day with exercises returns 200 | MUST |
+| API | GET non-existent day returns 404 | MUST |
+| Display | Day name as heading | MUST |
+| Display | Muscle groups (if set) | MUST |
+| Display | Exercises ordered by orden | MUST |
+| Empty State | Message when no exercises | MUST |
+| Design | Blue accent color | SHOULD |
+| Design | Gradient card backgrounds | SHOULD |
+| Design | Hover shadow effects | SHOULD |
+| Design | Consistent rounded corners | SHOULD |

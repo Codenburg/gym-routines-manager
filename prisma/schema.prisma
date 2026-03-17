@@ -4,6 +4,7 @@
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/client"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -121,6 +122,18 @@ model Verification {
 }
 
 // ======================
+// Singleton Gym Config Model
+// ======================
+
+model Gym {
+  id        String   @id @default("gym")
+  price     Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  feriados  Feriado[]
+}
+
+// ======================
 // Information Page Models
 // ======================
 
@@ -128,4 +141,8 @@ model Feriado {
   id        String   @id @default(uuid())
   fecha     DateTime
   createdAt DateTime @default(now())
+  gymId     String   @default("gym")
+  gym       Gym      @relation(fields: [gymId], references: [id], onDelete: Cascade)
+
+  @@index([gymId])
 }

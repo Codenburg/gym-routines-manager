@@ -363,6 +363,89 @@ This change MUST NOT affect the mobile layout (below `sm:`), where the layout us
 
 ---
 
+## Modern UI Design Requirements
+
+### Requirement: Visual Design System
+
+The homepage SHALL implement a modern, cohesive design system with the following specifications:
+
+#### Scenario: Color Palette - Blue/Gray Theme
+
+- GIVEN the design system is applied
+- THEN the application SHALL use a blue and soft gray color palette
+- AND primary accent color SHALL be blue-500 (#3b82f6)
+- AND neutral tones SHALL use slate-200 through slate-700
+- AND all color values SHALL use Tailwind CSS utility classes (not custom hex codes)
+
+#### Scenario: Typography
+
+- GIVEN text elements are rendered
+- THEN headings SHALL use `tracking-tight` for sharper, more modern appearance
+- AND font weight SHALL be semibold (font-semibold) or bold (font-bold) for emphasis
+- AND body text SHALL use `text-muted-foreground` for secondary information
+
+#### Scenario: Card Design
+
+- GIVEN RoutineCard components are displayed
+- THEN cards SHALL have gradient backgrounds: `bg-gradient-to-br from-card to-slate-50 dark:to-slate-800/50`
+- AND cards SHALL have enhanced shadows on hover: `hover:shadow-xl hover:shadow-blue-500/10`
+- AND border color SHALL change to blue on hover: `hover:border-blue-500/50`
+- AND transition duration SHALL be 300ms: `transition-all duration-300`
+- AND border radius SHALL be consistent: `rounded-xl`
+
+#### Scenario: Search Bar and Controls Alignment
+
+- GIVEN the search bar and action buttons are rendered
+- THEN the search input SHALL expand to fill available width: `flex-1 max-w-none`
+- AND action buttons SHALL have consistent padding: `py-2.5`
+- AND gap between elements SHALL be balanced: `gap-3`
+- AND the entire control block SHALL align with the routine cards grid
+
+#### Scenario: Trainer Sidebar
+
+- GIVEN the trainer sidebar is displayed
+- THEN the sidebar panel SHALL have rounded corners: `rounded-xl`
+- AND subtle shadow: `shadow-sm`
+- AND selected state SHALL use blue accent: `bg-blue-500 text-white`
+- AND the sidebar top edge SHALL align with the routine cards grid start
+
+#### Scenario: Action Buttons
+
+- GIVEN "Información" and "Feriados" buttons are rendered
+- THEN buttons SHALL use slate background: `bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600`
+- AND text color SHALL be dark slate: `text-slate-800 dark:text-slate-100`
+- AND border radius SHALL be consistent: `rounded-lg`
+
+#### Scenario: Theme Toggle
+
+- GIVEN the theme toggle button is rendered
+- THEN icon color SHALL explicitly use foreground: `text-foreground`
+- AND hover state SHALL use slate: `hover:bg-slate-200 dark:hover:bg-slate-700`
+
+---
+
+## Page Layout Requirements
+
+### Requirement: Responsive Grid Alignment
+
+The search/controls section SHALL align with the routine cards grid.
+
+#### Scenario: Desktop layout alignment
+
+- GIVEN viewport is ≥1024px (lg breakpoint)
+- WHEN observing the search bar, buttons, and routine cards
+- THEN all elements SHALL be horizontally aligned to the same left/right boundaries
+- AND the search bar SHALL span the same effective width as the cards grid below
+
+#### Scenario: Mobile layout
+
+- GIVEN viewport is <640px
+- THEN the layout SHALL stack vertically: `flex-col`
+- AND the search bar SHALL be full width
+- AND action buttons MAY appear below search or in header
+
+---
+
 ## Acceptance Criteria Summary
 
 | Feature | Criterion | Priority |
@@ -378,8 +461,12 @@ This change MUST NOT affect the mobile layout (below `sm:`), where the layout us
 | Loading | Suspense shows skeleton cards | MUST |
 | Loading | Skeletons match card layout | MUST |
 | Error | Graceful error handling with user message | MUST |
-| Design | Mobile-first responsive layout | SHOULD |
-| Design | Consistent typography and spacing | SHOULD |
+| Design | Blue/Gray color palette | SHOULD |
+| Design | Gradient card backgrounds | SHOULD |
+| Design | Hover shadows with blue accent | SHOULD |
+| Design | Aligned search bar and cards grid | SHOULD |
+| Design | Consistent rounded corners (rounded-xl) | SHOULD |
+| Design | Tracking-tight on headings | SHOULD |
 
 ---
 
