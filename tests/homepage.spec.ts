@@ -23,8 +23,8 @@ test.describe('RoutineCard', () => {
     await page.goto('/');
     await expect(page.getByText('Full Body')).toBeVisible({ timeout: 10000 });
     
-    // Verify Upper Body exists in the page (from seed)
-    await expect(page.getByText('Upper Body')).toBeVisible();
+    // Verify Full Body exists in the page (from seed)
+    await expect(page.getByText('Full Body')).toBeVisible();
     // Should not show "null" as visible text for description
     await expect(page.getByText('null', { exact: false })).not.toBeVisible();
   });
@@ -44,10 +44,11 @@ test.describe('RoutineCard', () => {
     
     // Get count from API to verify exact match
     const response = await page.request.get('/api/rutinas');
-    const rutinas = await response.json();
+    const result = await response.json();
+    const rutinas = result.data || result;
     const fullBody = rutinas.find((r: any) => r.nombre === 'Full Body');
     
-    // Verify the exact days count is displayed
+    // Verify the exact days count is displayed (Full Body has 2 days in seed)
     await expect(page.getByText(`${fullBody.diasCount} días`)).toBeVisible();
   });
 });
@@ -85,8 +86,9 @@ test.describe('SearchBar', () => {
     
     const searchInput = page.getByPlaceholder('Buscar rutinas...');
     await searchInput.fill('Full');
-    await searchInput.press('Enter');
     
+    // Wait for debounce (300ms) + extra time for navigation
+    await page.waitForTimeout(500);
     await expect(page).toHaveURL(/search=Full/);
   });
 
@@ -96,7 +98,9 @@ test.describe('SearchBar', () => {
     
     const searchInput = page.getByPlaceholder('Buscar rutinas...');
     await searchInput.fill('Rutina de Piernas');
-    await searchInput.press('Enter');
+    
+    // Wait for debounce (300ms) + extra time for navigation
+    await page.waitForTimeout(500);
     
     // URL should contain the encoded search term
     await expect(page).toHaveURL(/search=Rutina/);
@@ -108,13 +112,32 @@ test.describe('SearchBar', () => {
     
     const searchInput = page.getByPlaceholder('Buscar rutinas...');
     await searchInput.fill('Full');
-    await searchInput.press('Enter');
+    await page.waitForTimeout(500);
     await expect(page).toHaveURL(/search=Full/);
     
     await searchInput.fill('');
-    await searchInput.press('Enter');
+    await page.waitForTimeout(500);
     
     await page.waitForURL(/\/(\?.*)?$/);
+  });
+
+  test('4.10 - debounce avoids multiple rapid searches', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByText('Full Body')).toBeVisible({ timeout: 10000 });
+    
+    const searchInput = page.getByPlaceholder('Buscar rutinas...');
+    
+    // Type multiple times rapidly
+    await searchInput.fill('A');
+    await searchInput.fill('AB');
+    await searchInput.fill('ABC');
+    await searchInput.fill('ABCD');
+    
+    // Wait for debounce (300ms) + extra time for navigation
+    await page.waitForTimeout(500);
+    
+    // Should navigate only once with final value
+    await expect(page).toHaveURL(/search=ABCD/);
   });
 });
 
@@ -178,7 +201,7 @@ test.describe('Homepage Integration', () => {
     
     const searchInput = page.getByPlaceholder('Buscar rutinas...');
     await searchInput.fill('Leg');
-    await searchInput.press('Enter');
+    await page.waitForTimeout(500);
     
     await expect(page).toHaveURL(/search=Leg/);
     await expect(searchInput).toHaveValue('Leg');

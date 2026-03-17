@@ -1,0 +1,53 @@
+import Link from "next/link";
+import { Dumbbell } from "lucide-react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+
+interface Rutina {
+  id: string;
+  nombre: string;
+  tipo: string;
+  descripcion: string | null;
+  creador: string | null;
+  diasCount: number;
+}
+
+interface RoutineCardProps {
+  rutina: Rutina;
+}
+
+export function RoutineCard({ rutina }: RoutineCardProps) {
+  const diasLabel = rutina.diasCount === 1 ? "1 día" : `${rutina.diasCount} días`;
+
+  return (
+    <Link href={`/rutinas/${rutina.id}`}>
+      <Card className="group cursor-pointer transition-all duration-200 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/10 h-full flex flex-col">
+        <CardHeader>
+          <div className="flex items-start justify-between gap-2">
+            <CardTitle className="text-lg group-hover:text-red-400 transition-colors text-[var(--foreground)]">
+              {rutina.nombre}
+            </CardTitle>
+            <span className="shrink-0 rounded-full bg-red-500/20 px-2.5 py-0.5 text-xs font-medium text-red-400">
+              {rutina.tipo}
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent className="flex-1">
+          {rutina.descripcion && (
+            <p className="text-sm text-[var(--muted-foreground)] line-clamp-2">{rutina.descripcion}</p>
+          )}
+          {rutina.creador && (
+            <p className="text-xs text-[var(--muted-foreground)] mt-2">
+              Creado por <span className="text-[var(--foreground)]">{rutina.creador}</span>
+            </p>
+          )}
+        </CardContent>
+        <CardFooter className="mt-auto">
+          <span className="text-xs text-[var(--muted-foreground)] flex items-center gap-1">
+            <Dumbbell className="w-3.5 h-3.5" />
+            {diasLabel}
+          </span>
+        </CardFooter>
+      </Card>
+    </Link>
+  );
+}

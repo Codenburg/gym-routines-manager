@@ -15,6 +15,7 @@ model Rutina {
   nombre      String
   tipo        String
   descripcion String?
+  creador     String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   dias        Dia[]
@@ -55,8 +56,12 @@ model Ejercicio {
 model User {
   id             String    @id @default(uuid())
   name           String
-  email          String    @unique
-  emailVerified  Boolean
+  dni            String    @unique
+  // Username para login con DNI (requerido por username plugin)
+  username       String?   @unique
+  // Email opcional
+  email          String?   @unique
+  emailVerified  Boolean   @default(false)
   image          String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -113,4 +118,14 @@ model Verification {
   createdAt  DateTime @default(now())
 
   @@unique([identifier, value])
+}
+
+// ======================
+// Information Page Models
+// ======================
+
+model Feriado {
+  id        String   @id @default(uuid())
+  fecha     DateTime
+  createdAt DateTime @default(now())
 }

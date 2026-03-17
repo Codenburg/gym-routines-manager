@@ -10,7 +10,7 @@ This spec defines the requirements and behavior for the Admin Panel feature of t
 
 ### Requirement: Authentication System
 
-The system MUST provide a secure authentication system using Better Auth with email/password login.
+The system MUST provide a secure authentication system using Better Auth with DNI/password login.
 
 #### Scenario: Admin Login
 

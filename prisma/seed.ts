@@ -6,7 +6,6 @@ import bcrypt from 'bcrypt';
 
 const { Pool } = pg;
 
-// Parse the DATABASE_URL to get individual connection parameters
 const databaseUrl = process.env.DATABASE_URL || '';
 const urlMatch = databaseUrl.match(/postgresql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/([^?]+)/);
 
@@ -16,7 +15,7 @@ if (!urlMatch) {
 }
 
 const [, user, password, host, port, database] = urlMatch;
-const dbName = database.split('?')[0]; // Remove query params
+const dbName = database.split('?')[0];
 
 const pool = new Pool({
   user,
@@ -36,36 +35,28 @@ async function main() {
   await prisma.ejercicio.deleteMany();
   await prisma.dia.deleteMany();
   await prisma.rutina.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.user.deleteMany();
 
-  // ========================================
-  // Create admin user manually with correct format
-  // ========================================
-  
-  // Delete existing admin user if any
-  const existingUser = await prisma.user.findUnique({
-    where: { email: 'admin@championgym.com' }
-  });
-  if (existingUser) {
-    await prisma.session.deleteMany({ where: { userId: existingUser.id } });
-    await prisma.account.deleteMany({ where: { userId: existingUser.id } });
-    await prisma.user.delete({ where: { id: existingUser.id } });
-  }
-
-  // Create admin user
+  // Create admin user con username (DNI)
+  const adminDni = '12345678';
   const hashedPassword = await bcrypt.hash('admin123', 12);
   
   const adminUser = await prisma.user.create({
     data: {
       name: 'Admin',
-      email: 'admin@championgym.com',
-      emailVerified: true,
+      username: adminDni,
+      email: null,
+      dni: adminDni,
+      emailVerified: false,
       admin: true,
       role: 'admin',
       banned: false,
     },
   });
 
-  // Create admin account - providerType must be 'credential' for better-auth
+  // Create admin account
   await prisma.account.create({
     data: {
       userId: adminUser.id,
@@ -76,10 +67,10 @@ async function main() {
     },
   });
 
-  console.log('Admin user created:', adminUser.email);
+  console.log('Admin user created with DNI:', adminDni);
   
-  // Día 1: Pecho y Espalda
-  const dia1Rutina1 = await prisma.dia.create({
+  // Create sample routines...
+  const dia1 = await prisma.dia.create({
     data: {
       nombre: 'Día 1',
       musculosEnfocados: 'Pecho, Espalda',
@@ -93,309 +84,32 @@ async function main() {
       },
       ejercicios: {
         create: [
-          { nombre: 'Press de banca', series: '3x12 - 1x10', orden: 1 },
+          { nombre: 'Press de banca', series: '3x12', orden: 1 },
           { nombre: 'Dominadas', series: '3x10', orden: 2 },
           { nombre: 'Press inclinado', series: '3x12', orden: 3 },
-          { nombre: 'Remo con barra', series: '3x10', orden: 4 },
-          { nombre: 'Pullover', series: '3x12', orden: 5 },
         ],
       },
     },
     include: { rutina: true },
   });
 
-  // Día 2: Piernas
-  const dia2Rutina1 = await prisma.dia.create({
+  await prisma.dia.create({
     data: {
       nombre: 'Día 2',
       musculosEnfocados: 'Piernas',
       orden: 2,
-      rutinaId: dia1Rutina1.rutina.id,
+      rutinaId: dia1.rutina.id,
       ejercicios: {
         create: [
-          { nombre: 'Sentadilla', series: '4x8 - 1x6', orden: 1 },
+          { nombre: 'Sentadilla', series: '4x8', orden: 1 },
           { nombre: 'Peso muerto', series: '3x8', orden: 2 },
           { nombre: 'Prensa', series: '3x12', orden: 3 },
-          { nombre: 'Curl de femoral', series: '3x12', orden: 4 },
-          { nombre: 'Extensión de cuádriceps', series: '3x12', orden: 5 },
-          { nombre: 'Pantorrillas', series: '4x15', orden: 6 },
-        ],
-      },
-    },
-  });
-
-  // Día 3: Hombros y Brazos
-  const dia3Rutina1 = await prisma.dia.create({
-    data: {
-      nombre: 'Día 3',
-      musculosEnfocados: 'Hombros, Brazos',
-      orden: 3,
-      rutinaId: dia1Rutina1.rutina.id,
-      ejercicios: {
-        create: [
-          { nombre: 'Press militar', series: '3x10 - 1x8', orden: 1 },
-          { nombre: 'Elevaciones laterales', series: '3x15', orden: 2 },
-          { nombre: 'Face pulls', series: '3x15', orden: 3 },
-          { nombre: 'Curl de bíceps', series: '3x12', orden: 4 },
-          { nombre: 'Press de tríceps', series: '3x12', orden: 5 },
-          { nombre: 'Curl de martillo', series: '3x12', orden: 6 },
-        ],
-      },
-    },
-  });
-
-  // Día 4: Pecho y Espalda (repetición)
-  const dia4Rutina1 = await prisma.dia.create({
-    data: {
-      nombre: 'Día 4',
-      musculosEnfocados: 'Pecho, Espalda',
-      orden: 4,
-      rutinaId: dia1Rutina1.rutina.id,
-      ejercicios: {
-        create: [
-          { nombre: 'Press de banca', series: '3x10 - 1x8', orden: 1 },
-          { nombre: 'Jalón al pecho', series: '3x10', orden: 2 },
-          { nombre: 'Cruces con mancuernas', series: '3x12', orden: 3 },
-          { nombre: 'Remo unilateral', series: '3x10', orden: 4 },
-          { nombre: 'Press dip', series: '3x10', orden: 5 },
-        ],
-      },
-    },
-  });
-
-  // Día 5: Piernas (repetición)
-  const dia5Rutina1 = await prisma.dia.create({
-    data: {
-      nombre: 'Día 5',
-      musculosEnfocados: 'Piernas',
-      orden: 5,
-      rutinaId: dia1Rutina1.rutina.id,
-      ejercicios: {
-        create: [
-          { nombre: 'Sentadilla frontal', series: '3x10', orden: 1 },
-          { nombre: 'Zancadas', series: '3x10', orden: 2 },
-          { nombre: 'Peso muerto rumano', series: '3x10', orden: 3 },
-          { nombre: 'Sentadilla búlgara', series: '3x10', orden: 4 },
-          { nombre: 'Elevación de talones', series: '4x15', orden: 5 },
-        ],
-      },
-    },
-  });
-
-  // ========================================
-  // Rutina 2: Upper Body (4 días)
-  // ========================================
-
-  const rutina2 = await prisma.rutina.create({
-    data: {
-      nombre: 'Upper Body',
-      tipo: 'Hipertrofia',
-      dias: {
-        create: [
-          {
-            nombre: 'Día 1',
-            musculosEnfocados: 'Pecho',
-            orden: 1,
-            ejercicios: {
-              create: [
-                { nombre: 'Press de banca', series: '4x10 - 1x8', orden: 1 },
-                { nombre: 'Press inclinado', series: '3x10', orden: 2 },
-                { nombre: 'Fondos', series: '3x10', orden: 3 },
-                { nombre: 'Peck deck', series: '3x12', orden: 4 },
-                { nombre: 'Cruces polea', series: '3x12', orden: 5 },
-              ],
-            },
-          },
-          {
-            nombre: 'Día 2',
-            musculosEnfocados: 'Espalda',
-            orden: 2,
-            ejercicios: {
-              create: [
-                { nombre: 'Dominadas', series: '4x10', orden: 1 },
-                { nombre: 'Remo con barra', series: '3x10', orden: 2 },
-                { nombre: 'Jalón al pecho', series: '3x10', orden: 3 },
-                { nombre: 'Remo con mancuerna', series: '3x10', orden: 4 },
-                { nombre: 'Pull over', series: '3x12', orden: 5 },
-              ],
-            },
-          },
-          {
-            nombre: 'Día 3',
-            musculosEnfocados: 'Hombros',
-            orden: 3,
-            ejercicios: {
-              create: [
-                { nombre: 'Press militar', series: '4x10', orden: 1 },
-                { nombre: 'Press Arnold', series: '3x10', orden: 2 },
-                { nombre: 'Elevaciones laterales', series: '4x12', orden: 3 },
-                { nombre: 'Elevaciones posteriores', series: '3x12', orden: 4 },
-                { nombre: 'Face pulls', series: '3x15', orden: 5 },
-              ],
-            },
-          },
-          {
-            nombre: 'Día 4',
-            musculosEnfocados: 'Brazos',
-            orden: 4,
-            ejercicios: {
-              create: [
-                { nombre: 'Curl de bíceps barra', series: '3x10 - 1x8', orden: 1 },
-                { nombre: 'Curl martillo', series: '3x10', orden: 2 },
-                { nombre: 'Press de tríceps', series: '3x10', orden: 3 },
-                { nombre: 'Patada de tríceps', series: '3x12', orden: 4 },
-                { nombre: 'Curl concentrado', series: '3x12', orden: 5 },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  });
-
-  // ========================================
-  // Rutina 3: Leg Day (1 día)
-  // ========================================
-
-  const rutina3 = await prisma.rutina.create({
-    data: {
-      nombre: 'Leg Day',
-      tipo: 'Fuerza',
-      descripcion: 'Rutina enfocada en piernas',
-      dias: {
-        create: [
-          {
-            nombre: 'Día 1',
-            musculosEnfocados: 'Cuádriceps, Isquiotibiales',
-            orden: 1,
-            ejercicios: {
-              create: [
-                { nombre: 'Sentadilla', series: '5x5 - 1x3', orden: 1 },
-                { nombre: 'Peso muerto', series: '3x5', orden: 2 },
-                { nombre: 'Prensa', series: '3x12', orden: 3 },
-                { nombre: 'Hack squat', series: '3x10', orden: 4 },
-                { nombre: 'Curl de femoral', series: '3x12', orden: 5 },
-                { nombre: 'Extensión cuádriceps', series: '3x12', orden: 6 },
-                { nombre: 'Pantorrillas de pie', series: '4x15', orden: 7 },
-                { nombre: 'Pantorrillas sentado', series: '4x15', orden: 8 },
-              ],
-            },
-          },
-        ],
-      },
-    },
-  });
-
-  // ========================================
-  // Rutina 4: Push Pull Legs (6 días)
-  // ========================================
-
-  const rutina4 = await prisma.rutina.create({
-    data: {
-      nombre: 'Push Pull Legs',
-      tipo: 'Hipertrofia',
-      descripcion: 'Rutina dividida en push, pull y legs',
-      dias: {
-        create: [
-          {
-            nombre: 'Push',
-            musculosEnfocados: 'Pecho, Hombros, Tríceps',
-            orden: 1,
-            ejercicios: {
-              create: [
-                { nombre: 'Press de banca', series: '4x10', orden: 1 },
-                { nombre: 'Press militar', series: '3x10', orden: 2 },
-                { nombre: 'Press inclinado', series: '3x10', orden: 3 },
-                { nombre: 'Elevaciones laterales', series: '4x12', orden: 4 },
-                { nombre: 'Fondos', series: '3x10', orden: 5 },
-                { nombre: 'Press de tríceps', series: '3x12', orden: 6 },
-              ],
-            },
-          },
-          {
-            nombre: 'Pull',
-            musculosEnfocados: 'Espalda, Bíceps',
-            orden: 2,
-            ejercicios: {
-              create: [
-                { nombre: 'Dominadas', series: '4x10', orden: 1 },
-                { nombre: 'Remo con barra', series: '3x10', orden: 2 },
-                { nombre: 'Jalón al pecho', series: '3x10', orden: 3 },
-                { nombre: 'Remo con mancuerna', series: '3x10', orden: 4 },
-                { nombre: 'Curl de bíceps', series: '3x12', orden: 5 },
-                { nombre: 'Curl martillo', series: '3x12', orden: 6 },
-              ],
-            },
-          },
-          {
-            nombre: 'Legs',
-            musculosEnfocados: 'Piernas',
-            orden: 3,
-            ejercicios: {
-              create: [
-                { nombre: 'Sentadilla', series: '4x10', orden: 1 },
-                { nombre: 'Peso muerto rumano', series: '3x10', orden: 2 },
-                { nombre: 'Prensa', series: '3x12', orden: 3 },
-                { nombre: 'Zancadas', series: '3x10', orden: 4 },
-                { nombre: 'Curl femoral', series: '3x12', orden: 5 },
-                { nombre: 'Pantorrillas', series: '4x15', orden: 6 },
-              ],
-            },
-          },
-          {
-            nombre: 'Push',
-            musculosEnfocados: 'Pecho, Hombros, Tríceps',
-            orden: 4,
-            ejercicios: {
-              create: [
-                { nombre: 'Press de banca', series: '4x8 - 1x6', orden: 1 },
-                { nombre: 'Press Arnold', series: '3x10', orden: 2 },
-                { nombre: 'Peck deck', series: '3x12', orden: 3 },
-                { nombre: 'Elevaciones laterales', series: '4x12', orden: 4 },
-                { nombre: 'Press dip', series: '3x8', orden: 5 },
-                { nombre: 'Patada tríceps', series: '3x12', orden: 6 },
-              ],
-            },
-          },
-          {
-            nombre: 'Pull',
-            musculosEnfocados: 'Espalda, Bíceps',
-            orden: 5,
-            ejercicios: {
-              create: [
-                { nombre: 'Jalón al pecho', series: '4x10', orden: 1 },
-                { nombre: 'Remo T', series: '3x10', orden: 2 },
-                { nombre: 'Remo unilateral', series: '3x10', orden: 3 },
-                { nombre: 'Face pulls', series: '3x15', orden: 4 },
-                { nombre: 'Curl concentrado', series: '3x12', orden: 5 },
-                { nombre: 'Curl predicador', series: '3x10', orden: 6 },
-              ],
-            },
-          },
-          {
-            nombre: 'Legs',
-            musculosEnfocados: 'Piernas',
-            orden: 6,
-            ejercicios: {
-              create: [
-                { nombre: 'Sentadilla frontal', series: '4x10', orden: 1 },
-                { nombre: 'Peso muerto', series: '3x8', orden: 2 },
-                { nombre: 'Hack squat', series: '3x10', orden: 3 },
-                { nombre: 'Sentadilla búlgara', series: '3x10', orden: 4 },
-                { nombre: 'Extensión cuádriceps', series: '3x12', orden: 5 },
-                { nombre: 'Elevación talones', series: '4x15', orden: 6 },
-              ],
-            },
-          },
         ],
       },
     },
   });
 
   console.log('Seeding complete!');
-  console.log(`Created ${await prisma.rutina.count()} rutinas`);
-  console.log(`Created ${await prisma.dia.count()} dias`);
-  console.log(`Created ${await prisma.ejercicio.count()} ejercicios`);
 }
 
 main()

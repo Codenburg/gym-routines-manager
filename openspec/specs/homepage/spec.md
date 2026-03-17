@@ -341,6 +341,28 @@ The system SHALL support a complete user flow from page load to search interacti
 
 ---
 
+## Header Alignment Requirements
+
+### Requirement: Header Vertical Alignment
+
+The flex container containing the SearchBar and navigation buttons in `app/page.tsx` MUST use `items-center` instead of `items-start` for proper vertical centering at the `sm:` responsive breakpoint and above.
+
+This change MUST NOT affect the mobile layout (below `sm:`), where the layout uses `flex-col`.
+
+#### Scenario: Correct vertical alignment on desktop
+
+- GIVEN the user is on the homepage with viewport ≥640px
+- WHEN observing the search area and navigation
+- THEN the SearchBar and navigation buttons SHALL be vertically aligned to the center
+
+#### Scenario: Mobile layout unchanged
+
+- GIVEN the user is on the homepage with viewport <640px
+- WHEN observing the vertical layout (flex-col)
+- THEN the behavior SHALL be identical to before (the sm: breakpoint does not apply)
+
+---
+
 ## Acceptance Criteria Summary
 
 | Feature | Criterion | Priority |

@@ -10,3 +10,4 @@ When working with Frontend design, read `~/.agent/skills/frontend-design/SKILL.m
 When workinkg with postgreSQL, read `~/.agent/skills/postgresql-best-practices/SKILL.md` first.
 When writting API, read  `~/.agent/skills/api-testing-patterns/SKILL.md` first.
 When working with authentication, read `~/.agent/skills/better-auth-best-practices/SKILL.md` first.
+When working with username/DNI login, read `.agents/skills/better-auth-username/SKILL.md` first.

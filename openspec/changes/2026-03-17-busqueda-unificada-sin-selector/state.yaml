@@ -1,0 +1,10 @@
+change: 2026-03-17-busqueda-unificada-sin-selector
+created: 2026-03-17
+status: apply_in_progress
+
+phases:
+  proposal: completed
+  spec: completed
+  design: completed
+  tasks: completed
+  apply: in_progress
