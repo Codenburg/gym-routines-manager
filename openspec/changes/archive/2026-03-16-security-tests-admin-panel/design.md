@@ -137,13 +137,13 @@ export async function loginAsAdmin(page: Page): Promise<void>
 /**
  * Login as non-admin regular user
  */
-export async function loginAsUser(page: Page, email: string, password: string): Promise<void>
+export async function loginAsUser(page: Page, dni: string, password: string): Promise<void>
 
 /**
  * Create a non-admin test user
- * Returns { email, password } of created user
+ * Returns { dni, password } of created user
  */
-export async function createTestUser(): Promise<{ email: string; password: string }>
+export async function createTestUser(): Promise<{ dni: string; password: string }>
 
 /**
  * Set expired session cookie to simulate session timeout
@@ -158,10 +158,10 @@ export async function getRoutineIds(page: Page): Promise<Record<string, any>>
 
 ### Test Credentials
 
-| User Type | Email | Password | Admin Flag |
-|-----------|-------|----------|------------|
-| Admin | admin@championgym.com | admin123 | true |
-| Test User | testuser@test.com | testuser123 | false |
+| User Type | DNI | Password | Admin Flag |
+|-----------|-----|----------|------------|
+| Admin | 12345678 | admin123 | true |
+| Test User | 99999999 | testuser123 | false |
 
 ### Expected Test Results
 

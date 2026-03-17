@@ -1,55 +1,59 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 
-interface FormState {
-  error: string | null;
-  isLoading: boolean;
+interface LoginFormData {
+  dni: string;
+  password: string;
 }
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [formState, setFormState] = useState<FormState>({
-    error: null,
-    isLoading: false,
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    mode: "onBlur",
   });
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormState({ error: null, isLoading: true });
+  const onSubmit = async (data: LoginFormData) => {
+    if (isLoading) return;
+
+    setIsLoading(true);
 
     try {
-      const result = await authClient.signIn.email(
+      // Usar signIn.username para autenticar con DNI
+      await authClient.signIn.username(
         {
-          email,
-          password,
+          username: data.dni,
+          password: data.password,
         },
         {
-          onRequest: () => {
-            setFormState({ error: null, isLoading: true });
-          },
           onSuccess: () => {
             router.push("/admin");
             router.refresh();
           },
           onError: (ctx) => {
-            setFormState({
-              error: ctx.error.message || "Error al iniciar sesión",
-              isLoading: false,
-            });
+            let mensaje = ctx.error.message;
+            if (mensaje.includes("Invalid") || mensaje.includes("email")) {
+              mensaje = "DNI o contraseña incorrectos";
+            }
+            toast.error(mensaje);
+            setIsLoading(false);
           },
         }
       );
     } catch (err) {
-      setFormState({
-        error: "Error de conexión. Intenta de nuevo.",
-        isLoading: false,
-      });
+      toast.error("Error de conexión. Intenta de nuevo.");
+      setIsLoading(false);
     }
   };
 
@@ -63,26 +67,34 @@ export default function AdminLoginPage() {
         </div>
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {formState.error && (
-            <div className="p-3 bg-red-900/50 border border-red-600 rounded-md">
-              <p className="text-red-400 text-sm">{formState.error}</p>
-            </div>
-          )}
-
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="email" className="text-[var(--foreground)] text-sm font-medium">
-              Email
+            <label htmlFor="dni" className="text-[var(--foreground)] text-sm font-medium">
+              DNI
             </label>
             <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-md text-[var(--input-foreground)] placeholder:[var(--input-placeholder)] focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors"
-              placeholder="admin@championgym.com"
+              id="dni"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              disabled={isLoading}
+              autoComplete="off"
+              {...register("dni", {
+                required: "El DNI es requerido",
+                pattern: {
+                  value: /^\d{7,8}$/,
+                  message: "El DNI debe tener 7 u 8 dígitos",
+                },
+                onChange: (e) => {
+                  e.target.value = e.target.value.replace(/\D/g, "").slice(0, 8);
+                },
+              })}
+              className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-md text-[var(--input-foreground)] placeholder:[var(--input-placeholder)] focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors disabled:opacity-50"
+              placeholder="12345678"
             />
+            {errors.dni && (
+              <p className="text-red-400 text-sm">{errors.dni.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -92,20 +104,28 @@ export default function AdminLoginPage() {
             <input
               id="password"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-md text-[var(--input-foreground)] placeholder:[var(--input-placeholder)] focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors"
+              disabled={isLoading}
+              autoComplete="off"
+              {...register("password", {
+                required: "La contraseña es requerida",
+              })}
+              className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-md text-[var(--input-foreground)] placeholder:[var(--input-placeholder)] focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors disabled:opacity-50"
               placeholder="••••••••"
             />
+            {errors.password && (
+              <p className="text-red-400 text-sm">{errors.password.message}</p>
+            )}
           </div>
 
           <button
             type="submit"
-            disabled={formState.isLoading}
-            className="w-full py-3 px-4 bg-[var(--button-primary-bg)] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-[var(--button-primary-foreground)] font-semibold rounded-md transition-colors"
+            disabled={isLoading}
+            className="w-full py-3 px-4 bg-[var(--button-primary-bg)] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-[var(--button-primary-foreground)] font-semibold rounded-md transition-colors cursor-pointer flex items-center justify-center gap-2"
           >
-            {formState.isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
+            {isLoading && (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            )}
+            {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
           </button>
         </form>
 

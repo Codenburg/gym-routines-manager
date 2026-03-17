@@ -67,6 +67,7 @@ export const rutinaSchema = z.object({
     error: "Tipo inválido",
   }),
   descripcion: z.string().max(500).optional(),
+  creador: z.string().max(100).optional(),
 });
 
 export const rutinaUpdateSchema = rutinaSchema.partial();
@@ -84,6 +85,7 @@ export const rutinaCompletaSchema = z.object({
     error: "Tipo inválido",
   }),
   descripcion: z.string().max(500).optional(),
+  creador: z.string().max(100).optional(),
   dias: z
     .array(diaNestedSchema)
     .min(1, { error: "La rutina debe tener al menos un día" }),
@@ -107,7 +109,7 @@ export type ReorderInput = z.infer<typeof reorderSchema>;
 // ======================
 
 export const loginSchema = z.object({
-  email: z.email({ error: "Email inválido" }),
+  dni: z.string().regex(/^\d{7,8}$/, { error: "DNI inválido (7-8 dígitos)" }),
   password: z.string().min(1, { error: "La contraseña es requerida" }),
 });
 

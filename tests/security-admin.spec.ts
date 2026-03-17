@@ -5,13 +5,13 @@ import { test, expect, Page } from '@playwright/test';
 // ============================================
 
 // Test credentials
-const ADMIN_EMAIL = 'admin@championgym.com';
+const ADMIN_DNI = '12345678';
 const ADMIN_PASSWORD = 'admin123';
 
-// Helper to create non-admin user
-async function createNonAdminUser(): Promise<{ email: string; password: string }> {
+// Helper to create nonadmin user
+async function createNonAdminUser(): Promise<{ dni: string; password: string }> {
   const timestamp = Date.now();
-  const email = `testuser${timestamp}@test.com`;
+  const dni = `testuser${timestamp}`;
   const password = 'TestUser123!';
   
   try {
@@ -21,14 +21,14 @@ async function createNonAdminUser(): Promise<{ email: string; password: string }
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        email,
+        dni,
         password,
         name: 'Test User',
       }),
     });
 
     if (!response.ok) {
-      // If user already exists, try again with different email
+      // If user already exists, try again with different dni
       if (response.status === 400) {
         return createNonAdminUser();
       }
@@ -37,21 +37,21 @@ async function createNonAdminUser(): Promise<{ email: string; password: string }
   } catch (error) {
     // If API not available, use fallback credentials
     console.log('Using fallback test user credentials');
-    return { email: 'user@test.com', password: 'TestUser123!' };
+    return { dni: 'user123', password: 'TestUser123!' };
   }
 
-  return { email, password };
+  return { dni, password };
 }
 
-// Helper to login as non-admin user
-async function loginAsNonAdmin(page: Page, email: string, password: string): Promise<void> {
+// Helper to login as nonadmin user
+async function loginAsNonAdmin(page: Page, dni: string, password: string): Promise<void> {
   await page.goto('/admin/login');
   
   // Wait for the form to be ready
-  await page.waitForSelector('input[type="email"]', { timeout: 10000 });
+  await page.waitForSelector('input[id="dni"]', { timeout: 10000 });
   
   // Fill in credentials
-  await page.fill('input[type="email"]', email);
+  await page.fill('input[id="dni"]', dni);
   await page.fill('input[type="password"]', password);
   
   // Submit the form
@@ -66,10 +66,10 @@ async function loginAsAdmin(page: Page): Promise<void> {
   await page.goto('/admin/login');
   
   // Wait for the form to be ready
-  await page.waitForSelector('input[type="email"]', { timeout: 10000 });
+  await page.waitForSelector('input[id="dni"]', { timeout: 10000 });
   
   // Fill in credentials
-  await page.fill('input[type="email"]', ADMIN_EMAIL);
+  await page.fill('input[id="dni"]', ADMIN_DNI);
   await page.fill('input[type="password"]', ADMIN_PASSWORD);
   
   // Submit the form
@@ -94,7 +94,7 @@ test.describe('Auth Bypass - Unauthenticated Access', () => {
     await page.waitForURL('/admin/login', { timeout: 10000 });
     
     // Also verify the login page is shown
-    await expect(page.locator('input[type="email"]')).toBeVisible();
+    await expect(page.locator('input[id="dni"]')).toBeVisible();
   });
 
   test('2.2 - Unauthenticated user accessing /admin/rutinas redirects to login', async ({ page }) => {
@@ -103,7 +103,7 @@ test.describe('Auth Bypass - Unauthenticated Access', () => {
     
     // Should redirect to login
     await page.waitForURL('/admin/login', { timeout: 10000 });
-    await expect(page.locator('input[type="email"]')).toBeVisible();
+    await expect(page.locator('input[id="dni"]')).toBeVisible();
   });
 
   test('2.3 - Unauthenticated user accessing /admin/rutinas/new redirects to login', async ({ page }) => {
@@ -112,7 +112,7 @@ test.describe('Auth Bypass - Unauthenticated Access', () => {
     
     // Should redirect to login
     await page.waitForURL('/admin/login', { timeout: 10000 });
-    await expect(page.locator('input[type="email"]')).toBeVisible();
+    await expect(page.locator('input[id="dni"]')).toBeVisible();
   });
 
 });
@@ -126,7 +126,7 @@ test.describe('Auth Bypass - Non-Admin User Access', () => {
   test('2.4 - Non-admin user accessing /admin redirects to home', async ({ page }) => {
     // First create and login as non-admin user
     const testUser = await createNonAdminUser();
-    await loginAsNonAdmin(page, testUser.email, testUser.password);
+    await loginAsNonAdmin(page, testUser.dni, testUser.password);
     
     // Verify we're logged in (at home page)
     await page.waitForURL('/');
@@ -141,7 +141,7 @@ test.describe('Auth Bypass - Non-Admin User Access', () => {
   test('2.5 - Non-admin user accessing /admin/rutinas redirects to home', async ({ page }) => {
     // First create and login as non-admin user
     const testUser = await createNonAdminUser();
-    await loginAsNonAdmin(page, testUser.email, testUser.password);
+    await loginAsNonAdmin(page, testUser.dni, testUser.password);
     
     // Try to access admin rutinas
     await page.goto('/admin/rutinas');
@@ -153,7 +153,7 @@ test.describe('Auth Bypass - Non-Admin User Access', () => {
   test('2.6 - Non-admin user accessing /admin/rutinas/new redirects to home', async ({ page }) => {
     // First create and login as non-admin user
     const testUser = await createNonAdminUser();
-    await loginAsNonAdmin(page, testUser.email, testUser.password);
+    await loginAsNonAdmin(page, testUser.dni, testUser.password);
     
     // Try to access admin rutinas new
     await page.goto('/admin/rutinas/new');
@@ -165,7 +165,7 @@ test.describe('Auth Bypass - Non-Admin User Access', () => {
   test('2.7 - Non-admin user cannot access admin via direct URL after logout', async ({ page }) => {
     // Login as regular user first
     const testUser = await createNonAdminUser();
-    await loginAsNonAdmin(page, testUser.email, testUser.password);
+    await loginAsNonAdmin(page, testUser.dni, testUser.password);
     
     // Clear session to simulate logout
     await page.context().clearCookies();
@@ -203,7 +203,7 @@ test.describe('Auth Bypass - Non-Admin User Access', () => {
     
     // Try to access admin page directly with credentials in session
     // First login as non-admin
-    await loginAsNonAdmin(page, testUser.email, testUser.password);
+    await loginAsNonAdmin(page, testUser.dni, testUser.password);
     
     // Now try to access any admin route - all should redirect to home
     const adminRoutes = ['/admin', '/admin/rutinas', '/admin/rutinas/new'];
@@ -618,7 +618,7 @@ test.describe('Authorization - Cross-User Access Prevention', () => {
   test('4.4 - Cross-user data access prevention returns 403', async ({ page }) => {
     // Login as regular user first
     const testUser = await createNonAdminUser();
-    await loginAsNonAdmin(page, testUser.email, testUser.password);
+    await loginAsNonAdmin(page, testUser.dni, testUser.password);
     
     // Try to access admin API that should require admin role
     const response = await page.request.get('/api/rutinas');
@@ -649,7 +649,7 @@ test.describe('Authorization - Cross-User Access Prevention', () => {
       
       // Login as non-admin user
       const testUser = await createNonAdminUser();
-      await loginAsNonAdmin(page, testUser.email, testUser.password);
+      await loginAsNonAdmin(page, testUser.dni, testUser.password);
       
       // Try to access admin-only endpoint for that routine
       const response = await page.request.get(`/api/rutinas/${targetId}`);
@@ -663,7 +663,7 @@ test.describe('Authorization - Cross-User Access Prevention', () => {
   test('4.6 - Admin-only API protection returns 403 for regular user', async ({ page }) => {
     // Create and login as non-admin user
     const testUser = await createNonAdminUser();
-    await loginAsNonAdmin(page, testUser.email, testUser.password);
+    await loginAsNonAdmin(page, testUser.dni, testUser.password);
     
     // Try to access admin-only API endpoint (create routine)
     const response = await page.request.post('/api/rutinas', {
@@ -775,7 +775,7 @@ test.describe('Session Management - Session Expiration', () => {
     await page.waitForURL('/admin/login', { timeout: 10000 });
     
     // Verify login form is visible
-    await expect(page.locator('input[type="email"]')).toBeVisible();
+    await expect(page.locator('input[id="dni"]')).toBeVisible();
   });
 
   test('5.2 - Session isolation between admin and regular user', async ({ page }) => {
@@ -788,7 +788,7 @@ test.describe('Session Management - Session Expiration', () => {
     
     // Now login as regular user in same context (replaces session)
     const testUser = await createNonAdminUser();
-    await loginAsNonAdmin(page, testUser.email, testUser.password);
+    await loginAsNonAdmin(page, testUser.dni, testUser.password);
     
     // Try to access admin page - should be blocked
     await page.goto('/admin');
@@ -858,7 +858,7 @@ test.describe('Session Management - Logout', () => {
     await page.waitForURL('/admin/login', { timeout: 10000 });
     
     // Verify login form is shown
-    await expect(page.locator('input[type="email"]')).toBeVisible();
+    await expect(page.locator('input[id="dni"]')).toBeVisible();
     
     // Also test API access after logout
     const response = await page.request.get('/api/rutinas');

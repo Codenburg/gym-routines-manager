@@ -25,7 +25,7 @@ interface Rutina {
 }
 
 // Test credentials
-const ADMIN_EMAIL = 'admin@championgym.com';
+const ADMIN_DNI = '12345678';
 const ADMIN_PASSWORD = 'admin123';
 
 /**
@@ -36,11 +36,11 @@ export async function loginAsAdmin(page: Page): Promise<void> {
   await page.goto('/admin/login');
   
   // Wait for the form to be ready
-  await page.waitForSelector('input[type="email"]', { timeout: 10000 });
+  await page.waitForSelector('input[id="dni"]', { timeout: 10000 });
   
   // Fill in credentials
-  await page.fill('input[type="email"]', ADMIN_EMAIL);
-  await page.fill('input[type="password"]', ADMIN_PASSWORD);
+  await page.fill('input[id="dni"]', ADMIN_DNI);
+  await page.fill('input[id="password"]', ADMIN_PASSWORD);
   
   // Submit the form
   await page.click('button[type="submit"]');
@@ -53,15 +53,15 @@ export async function loginAsAdmin(page: Page): Promise<void> {
  * Login as regular (non-admin) user
  * Used for authorization security tests
  */
-export async function loginAsUser(page: Page, email: string, password: string): Promise<void> {
+export async function loginAsUser(page: Page, dni: string, password: string): Promise<void> {
   await page.goto('/admin/login');
   
   // Wait for the form to be ready
-  await page.waitForSelector('input[type="email"]', { timeout: 10000 });
+  await page.waitForSelector('input[id="dni"]', { timeout: 10000 });
   
   // Fill in credentials
-  await page.fill('input[type="email"]', email);
-  await page.fill('input[type="password"]', password);
+  await page.fill('input[id="dni"]', dni);
+  await page.fill('input[id="password"]', password);
   
   // Submit the form
   await page.click('button[type="submit"]');
@@ -74,34 +74,33 @@ export async function loginAsUser(page: Page, email: string, password: string): 
  * Create a non-admin test user via Better Auth sign-up API
  * Returns the credentials of the created user
  */
-export async function createTestUser(): Promise<{ email: string; password: string }> {
+export async function createTestUser(): Promise<{ dni: string; password: string }> {
   const timestamp = Date.now();
-  const email = `testuser${timestamp}@test.com`;
+  const dni = `test${timestamp}`.slice(-8); // 8 digit DNI
   const password = 'TestUser123!';
   
   // Using Better Auth's sign-up endpoint
-  // Note: This may need adjustment based on actual Better Auth API
   const response = await fetch('http://localhost:3000/api/auth/sign-up', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      email,
+      dni,
       password,
       name: 'Test User',
     }),
   });
   
   if (!response.ok) {
-    // If user already exists, try with a different email
+    // If user already exists, try with a different dni
     if (response.status === 400) {
       return createTestUser();
     }
     throw new Error(`Failed to create test user: ${response.status}`);
   }
   
-  return { email, password };
+  return { dni, password };
 }
 
 /**

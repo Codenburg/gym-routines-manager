@@ -4,7 +4,7 @@
 
 - [x] 1.1 Create `tests/utils/` directory if not exists
 - [x] 1.2 Create `tests/utils/security-helpers.ts` with helper functions:
-  - `loginAsUser(page, email, password)` - login as regular user
+  - `loginAsUser(page, dni, password)` - login as regular user
   - `createTestUser()` - create non-admin test user via Better Auth API
   - `setExpiredCookie(page)` - simulate expired session
 - [x] 1.3 Verify existing `loginAsAdmin()` helper works (import from existing test files)

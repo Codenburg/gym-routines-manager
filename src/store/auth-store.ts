@@ -9,7 +9,7 @@ import { useShallow } from "zustand/react/shallow";
 export interface Session {
   user: {
     id: string;
-    email: string;
+    dni: string;
     name: string | null;
     image: string | null;
   };

@@ -40,9 +40,13 @@ export async function createRutina(
   formData: FormData
 ): Promise<FormState<{ id: string }>> {
   // Verify admin access
-  const authCheck = await verifyAdmin(await headers());
-  if (!authCheck.authorized) {
-    return { success: false, message: authCheck.message };
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
+    return { success: false, message: "Debes iniciar sesión" };
+  }
+  const user = session.user as { admin?: boolean; name?: string } | undefined;
+  if (!user?.admin) {
+    return { success: false, message: "No tienes permisos de administrador" };
   }
 
   // Validate form data
@@ -59,7 +63,10 @@ export async function createRutina(
 
   try {
     const rutina = await prisma.rutina.create({
-      data: parsed.data,
+      data: {
+        ...parsed.data,
+        creador: user.name ?? null,
+      },
     });
 
     revalidatePath("/admin/dashboard");
@@ -325,9 +332,13 @@ export async function createRutinaCompleta(
   formData: FormData
 ): Promise<FormState<{ id: string }>> {
   // Verify admin access
-  const authCheck = await verifyAdmin(await headers());
-  if (!authCheck.authorized) {
-    return { success: false, message: authCheck.message };
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
+    return { success: false, message: "Debes iniciar sesión" };
+  }
+  const user = session.user as { admin?: boolean; name?: string } | undefined;
+  if (!user?.admin) {
+    return { success: false, message: "No tienes permisos de administrador" };
   }
 
   // Parse nested FormData
@@ -354,6 +365,7 @@ export async function createRutinaCompleta(
           nombre: data.nombre,
           tipo: data.tipo,
           descripcion: data.descripcion,
+          creador: user.name ?? null,
         },
       });
 

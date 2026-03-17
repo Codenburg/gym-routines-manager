@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 
 // Test admin credentials
-const ADMIN_EMAIL = 'admin@championgym.com';
+const ADMIN_DNI = '12345678';
 const ADMIN_PASSWORD = 'admin123';
 
 // Helper function to login as admin
@@ -9,11 +9,11 @@ async function loginAsAdmin(page: Page) {
   await page.goto('/admin/login');
   
   // Wait for the form to be ready
-  await page.waitForSelector('input[type="email"]', { timeout: 10000 });
+  await page.waitForSelector('input[id="dni"]', { timeout: 10000 });
   
   // Fill in credentials
-  await page.fill('input[type="email"]', ADMIN_EMAIL);
-  await page.fill('input[type="password"]', ADMIN_PASSWORD);
+  await page.fill('input[id="dni"]', ADMIN_DNI);
+  await page.fill('input[id="password"]', ADMIN_PASSWORD);
   
   // Submit the form
   await page.click('button[type="submit"]');
@@ -36,9 +36,9 @@ async function getFirstRoutineId(page: Page): Promise<string | null> {
 test.describe('Admin Login', () => {
   test('8.1.1 - Successful login redirects to admin dashboard', async ({ page }) => {
     await page.goto('/admin/login');
-    await page.waitForSelector('input[type="email"]', { timeout: 10000 });
+    await page.waitForSelector('input[id="dni"]', { timeout: 10000 });
     
-    await page.fill('input[type="email"]', ADMIN_EMAIL);
+    await page.fill('input[id="dni"]', ADMIN_DNI);
     await page.fill('input[type="password"]', ADMIN_PASSWORD);
     await page.click('button[type="submit"]');
     
@@ -51,9 +51,9 @@ test.describe('Admin Login', () => {
 
   test('8.1.2 - Invalid credentials show error message', async ({ page }) => {
     await page.goto('/admin/login');
-    await page.waitForSelector('input[type="email"]', { timeout: 10000 });
+    await page.waitForSelector('input[id="dni"]', { timeout: 10000 });
     
-    await page.fill('input[type="email"]', 'wrong@email.com');
+    await page.fill('input[id="dni"]', 'wrongdni');
     await page.fill('input[type="password"]', 'wrongpassword');
     await page.click('button[type="submit"]');
     
@@ -69,8 +69,8 @@ test.describe('Admin Login', () => {
     await page.click('button[type="submit"]');
     
     // Browser should show validation (required attribute)
-    const emailInput = page.locator('input[type="email"]');
-    await expect(emailInput).toHaveAttribute('required', '');
+    const dniInput = page.locator('input[id="dni"]');
+    await expect(dniInput).toHaveAttribute('required', '');
   });
 });
 

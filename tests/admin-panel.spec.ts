@@ -41,10 +41,10 @@ test.describe('Admin Auth Flow', () => {
     await page.waitForTimeout(2000);
   });
 
-  test('7.1.4 - Login page contains email input', async ({ page }) => {
+  test('7.1.4 - Login page contains DNI input', async ({ page }) => {
     await page.goto('/admin/login');
-    await page.waitForSelector('input[type="email"]', { timeout: 10000 });
-    await expect(page.locator('input[type="email"]')).toBeVisible();
+    await page.waitForSelector('input[id="dni"]', { timeout: 10000 });
+    await expect(page.locator('input[id="dni"]')).toBeVisible();
   });
 
   test('7.1.5 - Login page contains password input', async ({ page }) => {
