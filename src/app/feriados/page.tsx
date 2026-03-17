@@ -65,7 +65,7 @@ async function FeriadosWrapper({
   if (feriados.length === 0) {
     return (
       <div className="bg-[var(--button-secondary-bg)] border border-[var(--card-border)] rounded-xl p-8 text-center">
-        <p className="text-[var(--muted)] text-lg">No hay feriados programados</p>
+        <p className="text-[var(--muted-foreground)] text-lg">No hay feriados programados</p>
       </div>
     );
   }
@@ -78,7 +78,7 @@ async function FeriadosWrapper({
             key={feriado.id}
             className="flex items-center gap-3 p-3 bg-[var(--background)] rounded-lg"
           >
-            <Calendar className="w-5 h-5 text-[var(--muted)] flex-shrink-0" />
+            <Calendar className="w-5 h-5 text-[var(--muted-foreground)] flex-shrink-0" />
             <span className="text-[var(--foreground)]">{formatDate(feriado.fecha)}</span>
           </li>
         ))}

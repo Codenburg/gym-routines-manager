@@ -23,13 +23,13 @@ export default async function AdminFeriadosPage() {
         <div className="flex items-center gap-4">
           <Link
             href="/admin"
-            className="p-2 hover:bg-[var(--button-secondary-bg)] rounded-lg text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+            className="p-2 hover:bg-[var(--button-secondary-bg)] rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-[var(--foreground)]">Feriados</h1>
-            <p className="text-[var(--muted)] mt-1">Administra los días feriados</p>
+            <p className="text-[var(--muted-foreground)] mt-1">Administra los días feriados</p>
           </div>
         </div>
 

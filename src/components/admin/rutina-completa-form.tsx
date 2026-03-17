@@ -192,7 +192,7 @@ export function RutinaCompletaForm() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-[var(--foreground)] text-lg font-medium">Días de entrenamiento</h2>
-          <span className="text-[var(--muted)] text-xs">Al menos 1 día</span>
+          <span className="text-[var(--muted-foreground)] text-xs">Al menos 1 día</span>
         </div>
 
         {state?.errors?.dias && (

@@ -77,14 +77,14 @@ export function DiaSection({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <label className="text-[var(--foreground)] text-sm font-medium">Ejercicios *</label>
-          <span className="text-[var(--muted)] text-xs">Al menos 1 ejercicio</span>
+          <span className="text-[var(--muted-foreground)] text-xs">Al menos 1 ejercicio</span>
         </div>
 
         {/* Exercise headers */}
         <div className="grid gap-3 pr-16" style={{ gridTemplateColumns: "1fr 80px 80px 36px" }}>
-          <span className="text-[var(--muted)] text-xs px-3">Nombre</span>
-          <span className="text-[var(--muted)] text-xs text-center">Series</span>
-          <span className="text-[var(--muted)] text-xs text-center">Repes</span>
+          <span className="text-[var(--muted-foreground)] text-xs px-3">Nombre</span>
+          <span className="text-[var(--muted-foreground)] text-xs text-center">Series</span>
+          <span className="text-[var(--muted-foreground)] text-xs text-center">Repes</span>
           <span></span>
         </div>
 

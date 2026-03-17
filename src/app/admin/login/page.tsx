@@ -63,7 +63,7 @@ export default function AdminLoginPage() {
         {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold text-[var(--foreground)]">Champion Gym</h1>
-          <p className="text-[var(--muted)]">Panel de Administración</p>
+          <p className="text-[var(--muted-foreground)]">Panel de Administración</p>
         </div>
 
         {/* Login Form */}
@@ -133,7 +133,7 @@ export default function AdminLoginPage() {
         <div className="text-center">
           <Link
             href="/"
-            className="text-[var(--muted)] hover:text-[var(--foreground)] text-sm transition-colors"
+            className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] text-sm transition-colors"
           >
             ← Volver al inicio
           </Link>

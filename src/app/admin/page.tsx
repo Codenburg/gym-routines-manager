@@ -43,13 +43,13 @@ export default async function AdminDashboardPage() {
         <div className="flex items-center gap-4">
           <Link
             href="/"
-            className="p-2 hover:bg-[var(--button-secondary-bg)] rounded-lg text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+            className="p-2 hover:bg-[var(--button-secondary-bg)] rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
             <h1 className="text-2xl font-bold text-[var(--foreground)]">Bienvenido al Panel de Administración</h1>
-            <p className="text-[var(--muted)] mt-1">Gestiona tus rutinas, días y ejercicios desde aquí</p>
+            <p className="text-[var(--muted-foreground)] mt-1">Gestiona tus rutinas, días y ejercicios desde aquí</p>
           </div>
         </div>
         <ThemeToggle />
@@ -63,7 +63,7 @@ export default async function AdminDashboardPage() {
               <FileText className="w-6 h-6 text-red-500" />
             </div>
             <div>
-              <p className="text-[var(--muted)] text-sm">Total Rutinas</p>
+              <p className="text-[var(--muted-foreground)] text-sm">Total Rutinas</p>
               <p className="text-2xl font-bold text-[var(--foreground)]">{stats.rutinasCount}</p>
             </div>
           </div>
@@ -75,7 +75,7 @@ export default async function AdminDashboardPage() {
               <Calendar className="w-6 h-6 text-blue-500" />
             </div>
             <div>
-              <p className="text-[var(--muted)] text-sm">Total Días</p>
+              <p className="text-[var(--muted-foreground)] text-sm">Total Días</p>
               <p className="text-2xl font-bold text-[var(--foreground)]">{stats.diasCount}</p>
             </div>
           </div>
@@ -87,7 +87,7 @@ export default async function AdminDashboardPage() {
               <TrendingUp className="w-6 h-6 text-green-500" />
             </div>
             <div>
-              <p className="text-[var(--muted)] text-sm">Total Ejercicios</p>
+              <p className="text-[var(--muted-foreground)] text-sm">Total Ejercicios</p>
               <p className="text-2xl font-bold text-[var(--foreground)]">{stats.ejerciciosCount}</p>
             </div>
           </div>
@@ -136,9 +136,9 @@ export default async function AdminDashboardPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <h3 className="text-[var(--foreground)] font-medium">{rutina.nombre}</h3>
-                    <p className="text-[var(--muted)] text-sm mt-1 capitalize">{rutina.tipo}</p>
+                    <p className="text-[var(--muted-foreground)] text-sm mt-1 capitalize">{rutina.tipo}</p>
                   </div>
-                  <span className="px-2 py-1 bg-[var(--button-secondary-bg)] rounded text-xs text-[var(--muted)]">
+                  <span className="px-2 py-1 bg-[var(--button-secondary-bg)] rounded text-xs text-[var(--muted-foreground)]">
                     {rutina.diasCount || 0} días
                   </span>
                 </div>
@@ -147,7 +147,7 @@ export default async function AdminDashboardPage() {
           </div>
         ) : (
           <div className="text-center py-12 bg-[var(--button-secondary-bg)]/50 rounded-xl border border-[var(--card-border)]">
-            <p className="text-[var(--muted)]">No hay rutinas creadas aún</p>
+            <p className="text-[var(--muted-foreground)]">No hay rutinas creadas aún</p>
             <Link
               href="/admin/rutinas/new"
               className="text-red-500 hover:text-red-400 text-sm mt-2 inline-block"

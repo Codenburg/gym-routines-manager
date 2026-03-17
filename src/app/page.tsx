@@ -69,7 +69,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
             </div>
             <ThemeToggle />
           </div>
-          <div className="flex flex-col sm:flex-row items-start gap-3">
+          <div className="flex flex-col sm:flex-row items-center gap-3">
             <div className="w-full sm:max-w-md">
               <SearchBar defaultValue={search ?? ""} />
             </div>

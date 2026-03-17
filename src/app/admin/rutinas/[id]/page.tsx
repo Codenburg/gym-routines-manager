@@ -40,13 +40,13 @@ export default async function EditRutinaPage({ params }: EditRutinaPageProps) {
         <div className="flex items-center gap-4">
           <Link
             href="/admin/rutinas"
-            className="p-2 hover:bg-[var(--button-secondary-bg)] rounded-lg text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+            className="p-2 hover:bg-[var(--button-secondary-bg)] rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
             <h1 className="text-2xl font-bold text-[var(--foreground)]">Editar Rutina</h1>
-            <p className="text-[var(--muted)] mt-1">Modifica los detalles de la rutina</p>
+            <p className="text-[var(--muted-foreground)] mt-1">Modifica los detalles de la rutina</p>
           </div>
         </div>
         <DeleteRutinaPageButton rutinaId={rutina.id} />

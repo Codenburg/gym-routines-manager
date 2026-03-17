@@ -43,20 +43,20 @@ export function DayCard({ dia, rutinaId }: DayCardProps) {
                 <div key={ejercicio.id} className="flex items-center justify-between text-sm">
                   <span className="text-[var(--foreground)]/80 truncate">{ejercicio.nombre}</span>
                   {ejercicio.series && ejercicio.repes && (
-                    <span className="text-xs text-[var(--muted)] shrink-0 ml-2">
+                    <span className="text-xs text-[var(--muted-foreground)] shrink-0 ml-2">
                       {ejercicio.series} x {ejercicio.repes}
                     </span>
                   )}
                 </div>
               ))}
               {dia.ejercicios.length > 3 && (
-                <p className="text-xs text-[var(--muted)] pt-1">
+                <p className="text-xs text-[var(--muted-foreground)] pt-1">
                   +{dia.ejercicios.length - 3} más
                 </p>
               )}
             </div>
           ) : (
-            <p className="text-sm text-[var(--muted)] italic">Sin ejercicios</p>
+            <p className="text-sm text-[var(--muted-foreground)] italic">Sin ejercicios</p>
           )}
         </CardContent>
       </Card>

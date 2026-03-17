@@ -20,7 +20,7 @@ export function RoutineCard({ rutina }: RoutineCardProps) {
 
   return (
     <Link href={`/rutinas/${rutina.id}`}>
-      <Card className="group cursor-pointer transition-all duration-200 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/10 h-full">
+      <Card className="group cursor-pointer transition-all duration-200 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/10 h-full flex flex-col">
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
             <CardTitle className="text-lg group-hover:text-red-400 transition-colors text-[var(--foreground)]">
@@ -31,18 +31,18 @@ export function RoutineCard({ rutina }: RoutineCardProps) {
             </span>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1">
           {rutina.descripcion && (
-            <p className="text-sm text-[var(--muted)] line-clamp-2">{rutina.descripcion}</p>
+            <p className="text-sm text-[var(--muted-foreground)] line-clamp-2">{rutina.descripcion}</p>
           )}
           {rutina.creador && (
-            <p className="text-xs text-[var(--muted)] mt-2">
+            <p className="text-xs text-[var(--muted-foreground)] mt-2">
               Creado por <span className="text-[var(--foreground)]">{rutina.creador}</span>
             </p>
           )}
         </CardContent>
-        <CardFooter>
-          <span className="text-xs text-[var(--muted)] flex items-center gap-1">
+        <CardFooter className="mt-auto">
+          <span className="text-xs text-[var(--muted-foreground)] flex items-center gap-1">
             <Dumbbell className="w-3.5 h-3.5" />
             {diasLabel}
           </span>

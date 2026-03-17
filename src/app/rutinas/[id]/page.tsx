@@ -83,14 +83,14 @@ export default async function RoutineDetailPage({
                   {rutina.tipo}
                 </span>
                 {rutina.creador && (
-                  <span className="text-sm text-[var(--muted)]">
+                  <span className="text-sm text-[var(--muted-foreground)]">
                     Creado por <span className="text-[var(--foreground)] font-medium">{rutina.creador}</span>
                   </span>
                 )}
               </div>
             </div>
             {rutina.descripcion && (
-              <p className="text-[var(--muted)] mt-2">{rutina.descripcion}</p>
+              <p className="text-[var(--muted-foreground)] mt-2">{rutina.descripcion}</p>
             )}
           </div>
         </div>
@@ -103,7 +103,7 @@ export default async function RoutineDetailPage({
 
           {rutina.dias.length === 0 ? (
             <Card>
-              <CardContent className="py-8 text-center text-[var(--muted)]">
+              <CardContent className="py-8 text-center text-[var(--muted-foreground)]">
                 No hay días configurados en esta rutina
               </CardContent>
             </Card>
@@ -126,7 +126,7 @@ export default async function RoutineDetailPage({
                         </CardTitle>
                         <div className="flex items-center gap-4">
                           {dia.musculosEnfocados && (
-                            <span className="text-sm text-[var(--muted)]">
+                            <span className="text-sm text-[var(--muted-foreground)]">
                               {dia.musculosEnfocados}
                             </span>
                           )}
@@ -140,7 +140,7 @@ export default async function RoutineDetailPage({
                     </CardHeader>
                       <CardContent>
                         {dia.ejercicios.length === 0 ? (
-                          <p className="text-[var(--muted)] text-sm">
+                          <p className="text-[var(--muted-foreground)] text-sm">
                             No hay ejercicios configurados
                           </p>
                         ) : (
@@ -151,7 +151,7 @@ export default async function RoutineDetailPage({
                                 className="flex items-center justify-between text-[var(--foreground)]"
                               >
                                 <div className="flex items-center gap-3">
-                                  <span className="text-[var(--muted)] text-sm w-6">
+                                  <span className="text-[var(--muted-foreground)] text-sm w-6">
                                     {ejIndex + 1}.
                                   </span>
                                   {ejercicio.nombre}

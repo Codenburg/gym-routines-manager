@@ -52,21 +52,21 @@ export default async function InformacionPage() {
           <section className="bg-[var(--button-secondary-bg)] border border-[var(--card-border)] rounded-xl p-5 sm:p-6">
             <h2 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)] mb-4">Precio</h2>
             <p className="text-3xl font-bold text-[var(--foreground)]">$45.000</p>
-            <p className="text-[var(--muted)] mt-2">Abono mensual</p>
+            <p className="text-[var(--muted-foreground)] mt-2">Abono mensual</p>
           </section>
 
           {/* Hours Section */}
           <section className="bg-[var(--button-secondary-bg)] border border-[var(--card-border)] rounded-xl p-5 sm:p-6">
             <h2 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)] mb-4">Horarios</h2>
             <p className="text-lg text-[var(--foreground)]">8:00 a 22:00</p>
-            <p className="text-[var(--muted)] mt-2">Lunes a viernes</p>
+            <p className="text-[var(--muted-foreground)] mt-2">Lunes a viernes</p>
           </section>
 
           {/* Address Section */}
           <section className="bg-[var(--button-secondary-bg)] border border-[var(--card-border)] rounded-xl p-5 sm:p-6">
             <h2 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)] mb-4">Dirección</h2>
             <p className="text-lg text-[var(--foreground)]">Sargento Cabral 545</p>
-            <p className="text-[var(--muted)] mt-2">Esquina Corrientes</p>
+            <p className="text-[var(--muted-foreground)] mt-2">Esquina Corrientes</p>
             <a
               href="https://maps.app.goo.gl/oxcpqAWFmFKpfpMU9"
               target="_blank"
@@ -83,7 +83,7 @@ export default async function InformacionPage() {
               <h2 className="text-xl sm:text-2xl font-semibold text-[var(--foreground)]">Feriados</h2>
               <Link
                 href="/feriados"
-                className="text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+                className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
               >
                 Ver todos →
               </Link>
@@ -107,7 +107,7 @@ async function HolidaysPreviewWrapper({
 
   if (feriados.length === 0) {
     return (
-      <p className="text-[var(--muted)]">No hay feriados programados</p>
+      <p className="text-[var(--muted-foreground)]">No hay feriados programados</p>
     );
   }
 
@@ -119,7 +119,7 @@ async function HolidaysPreviewWrapper({
         </li>
       ))}
       {feriados.length > 3 && (
-        <li className="text-[var(--muted)] text-sm">
+        <li className="text-[var(--muted-foreground)] text-sm">
           +{feriados.length - 3} más...
         </li>
       )}

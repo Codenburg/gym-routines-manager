@@ -84,7 +84,7 @@ export default async function DayDetailPage({
 
           {dia.ejercicios.length === 0 ? (
             <Card>
-              <CardContent className="py-8 text-center text-[var(--muted)]">
+              <CardContent className="py-8 text-center text-[var(--muted-foreground)]">
                 No hay ejercicios configurados para este día
               </CardContent>
             </Card>
