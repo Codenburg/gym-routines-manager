@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { rankSearchResults } from "@/lib/search-utils";
 
 interface RutinaQueryResult {
   id: string;
@@ -31,10 +32,15 @@ interface RutinaQueryResult {
  * Returns a list of routines with optional search filter
  *
  * Query Parameters:
- * - search (optional): Filter by nombre (case-insensitive)
+ * - search (optional): Filter by nombre only (case-insensitive)
+ * - trainers (optional): Filter by multiple creators (comma-separated)
+ * - creador (optional): Filter by specific creator (for backwards compatibility)
+ * - page (optional, default: 1): Page number for pagination
+ * - limit (optional, default: 12): Results per page
  *
  * Response 200:
- * - Array of Rutina objects with id, nombre, tipo, descripcion, createdAt, updatedAt, diasCount
+ * - data: Array of Rutina objects with id, nombre, tipo, descripcion, createdAt, updatedAt, diasCount
+ * - pagination: { total, page, limit, totalPages }
  *
  * Response 500:
  * - Error message indicating service unavailability
@@ -42,18 +48,49 @@ interface RutinaQueryResult {
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
   const search = searchParams.get("search") ?? "";
+  const trainersParam = searchParams.get("trainers") ?? "";
+  const creador = searchParams.get("creador") ?? "";
+  const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
+  const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") ?? "12", 10)));
+  const skip = (page - 1) * limit;
 
   try {
     // Build the where clause for filtering
-    const where =
-      search.trim().length > 0
-        ? {
-            nombre: {
-              contains: search.trim(),
-              mode: "insensitive" as const,
-            },
-          }
-        : {};
+    const where: Record<string, unknown> = {};
+
+    // Search: filter by nombre ONLY (not creator)
+    if (search.trim().length > 0) {
+      where.nombre = {
+        contains: search.trim(),
+        mode: "insensitive" as const,
+      };
+    }
+
+    // Filter by multiple trainers (comma-separated)
+    if (trainersParam.trim().length > 0) {
+      const trainersList = trainersParam
+        .split(",")
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0);
+
+      if (trainersList.length > 0) {
+        where.creador = {
+          in: trainersList,
+          mode: "insensitive" as const,
+        };
+      }
+    }
+
+    // Filter by specific creator (for backwards compatibility)
+    if (creador.trim().length > 0 && trainersParam.trim().length === 0) {
+      where.creador = {
+        equals: creador.trim(),
+        mode: "insensitive" as const,
+      };
+    }
+
+    // Get total count for pagination
+    const total = await prisma.rutina.count({ where });
 
     // Query with proper TypeScript typing
     const rutinas: RutinaQueryResult[] = await prisma.rutina.findMany({
@@ -94,13 +131,31 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           },
         },
       },
+      skip,
+      take: limit,
       orderBy: {
         createdAt: "desc",
       },
     });
 
+    // Apply ranking if there's a search query
+    let rankedRutinas = rutinas;
+    if (search.trim().length > 0) {
+      rankedRutinas = rankSearchResults(
+        rutinas.map((r) => ({
+          id: r.id,
+          nombre: r.nombre,
+          creador: r.creador,
+        })),
+        search
+      ).map((r) => {
+        const original = rutinas.find((orig) => orig.id === r.id);
+        return original!;
+      });
+    }
+
     // Transform the response to match the expected format
-    const response = rutinas.map((rutina) => ({
+    const response = rankedRutinas.map((rutina) => ({
       id: rutina.id,
       nombre: rutina.nombre,
       tipo: rutina.tipo,
@@ -123,7 +178,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       })),
     }));
 
-    return NextResponse.json(response);
+    const totalPages = Math.ceil(total / limit);
+
+    return NextResponse.json({
+      data: response,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages,
+      },
+    });
   } catch (error) {
     console.error("Failed to fetch rutinas:", error);
 

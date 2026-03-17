@@ -10,7 +10,8 @@ const ADMIN_PASSWORD = 'admin123';
 
 async function getRoutineIds(page: Page) {
   const response = await page.request.get('/api/rutinas');
-  const rutinas = await response.json();
+  const result = await response.json();
+  const rutinas = result.data || result;
   return {
     fullBody: rutinas.find((r: any) => r.nombre === 'Full Body'),
     upperBody: rutinas.find((r: any) => r.nombre === 'Upper Body'),
@@ -80,8 +81,10 @@ test.describe('Admin CRUD Operations', () => {
   test('7.2.3 - API endpoint for rutinas exists', async ({ page }) => {
     const response = await page.request.get('/api/rutinas');
     expect(response.status()).toBe(200);
-    const data = await response.json();
-    expect(Array.isArray(data)).toBe(true);
+    const result = await response.json();
+    // API returns { data: [], pagination: {...} }
+    expect(result).toHaveProperty('data');
+    expect(Array.isArray(result.data)).toBe(true);
   });
 });
 
@@ -113,7 +116,8 @@ test.describe('Admin Pages Load', () => {
 
   test('7.3.5 - Public API /api/rutinas/[id] works with valid id', async ({ page }) => {
     const response = await page.request.get('/api/rutinas');
-    const rutinas = await response.json();
+    const result = await response.json();
+    const rutinas = result.data || result;
     
     if (rutinas.length > 0) {
       const routineResponse = await page.request.get(`/api/rutinas/${rutinas[0].id}`);
@@ -134,7 +138,8 @@ test.describe('Admin Integration Tests', () => {
 
   test('7.4.2 - Public routine detail pages work', async ({ page }) => {
     const response = await page.request.get('/api/rutinas');
-    const rutinas = await response.json();
+    const result = await response.json();
+    const rutinas = result.data || result;
     
     if (rutinas.length > 0) {
       await page.goto(`/rutinas/${rutinas[0].id}`);
@@ -145,7 +150,8 @@ test.describe('Admin Integration Tests', () => {
 
   test('7.4.3 - API returns proper structure', async ({ page }) => {
     const response = await page.request.get('/api/rutinas');
-    const data = await response.json();
+    const result = await response.json();
+    const data = result.data || result;
     
     if (data.length > 0) {
       expect(data[0]).toHaveProperty('id');
@@ -174,7 +180,8 @@ test.describe('Admin Edge Cases', () => {
 
   test('7.5.3 - Empty search returns all routines', async ({ page }) => {
     const response = await page.request.get('/api/rutinas');
-    const data = await response.json();
+    const result = await response.json();
+    const data = result.data || result;
     expect(data.length).toBeGreaterThan(0);
   });
 });
