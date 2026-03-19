@@ -18,7 +18,8 @@ test.describe('Public Homepage', () => {
     
     // Check if routines are displayed
     const response = await page.request.get('/api/rutinas');
-    const rutinas = await response.json();
+    const result = await response.json();
+    const rutinas = result.data;
     
     if (rutinas.length > 0) {
       // Should see some routine content
@@ -62,7 +63,8 @@ test.describe('Public Homepage', () => {
 test.describe('Public Routine Detail', () => {
   async function getFirstRoutineId(page: Page): Promise<string | null> {
     const response = await page.request.get('/api/rutinas');
-    const rutinas = await response.json();
+    const result = await response.json();
+    const rutinas = result.data;
     return rutinas.length > 0 ? rutinas[0].id : null;
   }
 
@@ -158,7 +160,8 @@ test.describe('Public Routine Detail', () => {
 test.describe('Public Day Detail', () => {
   async function getFirstDayId(page: Page): Promise<{ rutinaId: string; diaId: string } | null> {
     const response = await page.request.get('/api/rutinas');
-    const rutinas = await response.json();
+    const result = await response.json();
+    const rutinas = result.data;
     
     if (rutinas.length === 0 || !rutinas[0].dias || rutinas[0].dias.length === 0) {
       return null;
@@ -254,7 +257,8 @@ test.describe('Public API Endpoints', () => {
   test('9.4.2 - GET /api/rutinas/[id] returns routine', async ({ page }) => {
     // First get a routine ID
     const listResponse = await page.request.get('/api/rutinas');
-    const rutinas = await listResponse.json();
+    const result = await listResponse.json();
+    const rutinas = result.data;
     
     if (rutinas.length > 0) {
       const response = await page.request.get(`/api/rutinas/${rutinas[0].id}`);
@@ -269,7 +273,8 @@ test.describe('Public API Endpoints', () => {
   test('9.4.3 - GET /api/rutinas/[id]/dias/[diaId] returns day', async ({ page }) => {
     // First get a day ID
     const listResponse = await page.request.get('/api/rutinas');
-    const rutinas = await listResponse.json();
+    const result = await listResponse.json();
+    const rutinas = result.data;
     
     if (rutinas.length > 0 && rutinas[0].dias && rutinas[0].dias.length > 0) {
       const dia = rutinas[0].dias[0];

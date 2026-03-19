@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { revalidateRutinasCache } from "@/lib/rutinas";
 import {
   rutinaSchema,
   rutinaUpdateSchema,
@@ -69,6 +70,9 @@ export async function createRutina(
       },
     });
 
+    // Invalidate rutinas cache so homepage reflects changes immediately
+    await revalidateRutinasCache();
+
     revalidatePath("/admin/dashboard");
     revalidatePath("/admin/rutinas");
 
@@ -128,6 +132,9 @@ export async function updateRutina(
       data: parsed.data,
     });
 
+    // Invalidate rutinas cache so homepage reflects changes immediately
+    await revalidateRutinasCache();
+
     revalidatePath("/admin/dashboard");
     revalidatePath("/admin/rutinas");
     revalidatePath(`/admin/rutinas/${idParsed.data}`);
@@ -174,6 +181,9 @@ export async function deleteRutina(
     await prisma.rutina.delete({
       where: { id: parsed.data },
     });
+
+    // Invalidate rutinas cache so homepage reflects changes immediately
+    await revalidateRutinasCache();
 
     revalidatePath("/admin/dashboard");
     revalidatePath("/admin/rutinas");
@@ -400,6 +410,9 @@ export async function createRutinaCompleta(
 
       return createdRutina;
     });
+
+    // Invalidate rutinas cache so homepage reflects changes immediately
+    await revalidateRutinasCache();
 
     revalidatePath("/admin/dashboard");
     revalidatePath("/admin/rutinas");

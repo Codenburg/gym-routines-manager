@@ -7,16 +7,18 @@ import { test, expect, Page } from '@playwright/test';
 async function getRoutineIds(page: Page) {
   // Use page.request which works without navigating to a page first
   const response = await page.request.get('/api/rutinas');
-  const rutinas = await response.json();
+  const result = await response.json();
+  const rutinas = result.data;
   
-  const fullBody = rutinas.find((r: any) => r.nombre === 'Full Body');
-  const upperBody = rutinas.find((r: any) => r.nombre === 'Upper Body');
+  // Find two different routines that exist in the seed
+  const fullBody = rutinas.find((r: any) => r.nombre.includes('Full Body') && r.creador === 'Santi');
+  const resistencia = rutinas.find((r: any) => r.nombre.includes('Resistencia') && r.creador === 'Leo');
   
   if (!fullBody?.id) {
-    throw new Error('Seed data missing: "Full Body" routine not found. Please run seed script.');
+    throw new Error('Seed data missing: "Full Body - Santi" routine not found. Please run seed script.');
   }
-  if (!upperBody?.id) {
-    throw new Error('Seed data missing: "Upper Body" routine not found. Please run seed script.');
+  if (!resistencia?.id) {
+    throw new Error('Seed data missing: "Resistencia - Leo" routine not found. Please run seed script.');
   }
   
   let dia1Id = '';
@@ -40,7 +42,7 @@ async function getRoutineIds(page: Page) {
   
   return {
     rutinaFullBodyId: fullBody.id,
-    rutinaUpperBodyId: upperBody.id,
+    rutinaResistenciaId: resistencia.id,
     dia1Id,
     dia1Nombre,
     musculosEnfocados,
@@ -88,7 +90,7 @@ test.describe('API - GET /api/rutinas/[id]/dias/[diaId]', () => {
   test('6.3 - returns 404 for day belonging to different routine', async ({ page }) => {
     const ids = await getRoutineIds(page);
     
-    const upperBodyResponse = await page.request.get(`/api/rutinas/${ids.rutinaUpperBodyId}`);
+    const upperBodyResponse = await page.request.get(`/api/rutinas/${ids.rutinaResistenciaId}`);
     const upperBody = await upperBodyResponse.json();
     const upperBodyDayId = upperBody.dias[0]?.id;
     
@@ -136,9 +138,8 @@ test.describe('Day Detail Page UI', () => {
     // Verify exercise count is displayed
     await expect(page.getByText(new RegExp(`Ejercicios \\(${ids.ejercicioCount}\\)`))).toBeVisible();
     
-    // Verify at least one exercise name is visible
-    const exerciseCards = page.locator('[class*="bg-neutral-900"]');
-    await expect(exerciseCards.first()).toBeVisible();
+    // Verify at least one exercise is visible by looking for "Ejercicio" text
+    await expect(page.getByText(/Ejercicio \d+/).first()).toBeVisible();
   });
 
   test('6.8 - has working back button', async ({ page }) => {

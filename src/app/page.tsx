@@ -3,28 +3,15 @@ import Link from "next/link";
 import { Info, Calendar } from "lucide-react";
 import { SearchSection } from "@/components/search/search-section";
 import { RoutineList } from "@/components/routines/routine-list";
+import { RoutineListSkeleton } from "@/components/routines/routine-card-skeleton";
 import { TrainerSidebarClient } from "@/components/search/trainer-sidebar-client";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { DataResult, ok, err } from "@/lib/data-result";
-import Loading from "./loading";
+import { getCachedRutinas } from "@/lib/rutinas";
+import type { DataResult } from "@/lib/data-result";
 
 interface SearchParams {
   search?: string;
   trainers?: string;
-}
-
-interface Ejercicio {
-  id: string;
-  nombre: string;
-  series: string | null;
-  repes: string | null;
-}
-
-interface Dia {
-  id: string;
-  nombre: string;
-  musculosEnfocados: string | null;
-  ejercicios: Ejercicio[];
 }
 
 interface Rutina {
@@ -34,7 +21,6 @@ interface Rutina {
   descripcion: string | null;
   creador: string | null;
   diasCount: number;
-  dias?: Dia[];
 }
 
 interface Trainer {
@@ -60,41 +46,13 @@ function extractTrainers(rutinas: Rutina[]): Trainer[] {
     .sort((a, b) => a.nombre.localeCompare(b.nombre));
 }
 
-async function getRutinas(search?: string, trainers?: string): Promise<DataResult<Rutina[]>> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const url = new URL(`${baseUrl}/api/rutinas`);
-  if (search) {
-    url.searchParams.set("search", search);
-  }
-  if (trainers) {
-    url.searchParams.set("trainers", trainers);
-  }
-
-  try {
-    const response = await fetch(url.toString(), {
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      console.error("[getRutinas] API returned non-OK status:", response.status);
-      return err([]);
-    }
-
-    const result = await response.json();
-    const data = result.data ?? result;
-    return ok(data);
-  } catch (error) {
-    console.error("[getRutinas] Failed to fetch rutinas:", error);
-    return err([]);
-  }
-}
-
 export default async function Home({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams;
   const search = params?.search;
   const trainers = params?.trainers;
 
-  const rutinasResult = await getRutinas(search, trainers);
+  // Use cached function - avoids repeated DB queries within revalidation period
+  const rutinasResult: DataResult<Rutina[]> = await getCachedRutinas(search, trainers);
 
   // Derive trainers from rutinas data - single source of truth
   const trainersData = extractTrainers(rutinasResult.data);
@@ -147,8 +105,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
                 <SearchSection defaultValue={search ?? ""} />
               </div>
 
-              {/* Cards Grid */}
-              <Suspense fallback={<Loading />}>
+              {/* Cards Grid - streaming with skeleton fallback */}
+              <Suspense fallback={<RoutineListSkeleton count={6} />}>
                 <RoutineListWrapper rutinasResult={rutinasResult} />
               </Suspense>
             </div>

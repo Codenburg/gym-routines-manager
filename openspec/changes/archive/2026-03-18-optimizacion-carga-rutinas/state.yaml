@@ -1,0 +1,24 @@
+change: optimizacion-carga-rutinas
+status: completed
+created: 2026-03-18T00:00:00Z
+archived: 2026-03-18T00:00:00Z
+
+artifacts:
+  proposal: proposal.md
+  specs:
+    - specs/performance/spec.md
+  design: design.md
+  tasks: tasks.md
+  verify-report: verify-report.md
+
+verification:
+  typescript: passed
+  lint: passed_with_warnings
+  build: not_run
+
+acceptance_criteria:
+  ac1_caching_implemented: passed
+  ac2_streaming_with_suspense: passed
+  ac3_skeleton_prevents_layout_shift: passed
+  ac4_error_state_preserved: passed
+  ac5_empty_state_preserved: passed

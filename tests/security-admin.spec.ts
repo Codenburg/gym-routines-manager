@@ -4,9 +4,9 @@ import { test, expect, Page } from '@playwright/test';
 // Security Tests - Auth Bypass (Phase 2)
 // ============================================
 
-// Test credentials
-const ADMIN_DNI = '12345678';
-const ADMIN_PASSWORD = 'admin123';
+// Test credentials (from seed)
+const ADMIN_DNI = '11111111';
+const ADMIN_PASSWORD = 'nando123';
 
 // Helper to create nonadmin user
 async function createNonAdminUser(): Promise<{ dni: string; password: string }> {
@@ -641,7 +641,8 @@ test.describe('Authorization - Cross-User Access Prevention', () => {
     
     // Get list of rutinas
     const listResponse = await page.request.get('/api/rutinas');
-    const rutinas: Array<{ id: string; nombre: string }> = await listResponse.json();
+    const result = await listResponse.json();
+    const rutinas: Array<{ id: string; nombre: string }> = result.data;
     
     if (rutinas.length > 0) {
       // Try to access someone else's routine by guessing UUID

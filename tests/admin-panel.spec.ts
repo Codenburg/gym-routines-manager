@@ -4,9 +4,9 @@ import { test, expect, Page } from '@playwright/test';
 // Admin Auth Helper Functions
 // ============================================
 
-// Test admin credentials - these need to be created in the database
-const ADMIN_EMAIL = 'admin@championgym.com';
-const ADMIN_PASSWORD = 'admin123';
+// Test admin credentials (from seed)
+const ADMIN_DNI = '11111111';
+const ADMIN_PASSWORD = 'nando123';
 
 async function getRoutineIds(page: Page) {
   const response = await page.request.get('/api/rutinas');
