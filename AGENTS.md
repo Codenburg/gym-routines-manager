@@ -10,5 +10,6 @@ When working with Frontend design, read `~/.agents/skills/frontend-design/SKILL.
 When workinkg with postgreSQL, read `~/.agents/skills/postgresql-best-practices/SKILL.md` first.
 When writting API, read  `~/.agents/skills/api-testing-patterns/SKILL.md` first.
 When working with authentication, read `~/.agents/skills/better-auth-best-practices/SKILL.md` first.
+When implementing server-side auth with Next.js App Router (flicker-free), read `.agents/skills/nextjs-auth-server-side/SKILL.md` first.
 When working with username/DNI login, read `~/.agents/skills/better-auth-username/SKILL.md` first.
 When Working with Forms, read `~/.agents/skills/react-hook-form/SKILL.md` first.
