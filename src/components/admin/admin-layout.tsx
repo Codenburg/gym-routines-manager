@@ -1,18 +1,22 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { signOut, useSession } from "@/lib/auth-client";
+import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { LogOut, User, ChevronDown, Sun, Moon, House } from "lucide-react";
 import { useThemeStore } from "@/store/theme-store";
 
-export function AdminLayout({ children }: { children: React.ReactNode }) {
+interface AdminLayoutProps {
+  children: React.ReactNode;
+  username: string; // Recibido del Server Layout - ya validado
+}
+
+export function AdminLayout({ children, username }: AdminLayoutProps) {
   const router = useRouter();
-  const { data: session } = useSession();
   const { theme, toggleTheme } = useThemeStore();
-  const userName = session?.user?.name || "Admin";
+  const userName = username; // Ya viene validado del server
 
   const handleSignOut = async () => {
     // Store current name to avoid flash during redirect

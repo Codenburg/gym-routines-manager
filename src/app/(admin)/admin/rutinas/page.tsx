@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { getRutinas, deleteRutina } from "@/app/actions/rutinas";
-import { AuthGuard } from "@/components/auth-guard";
 import { DeleteRutinaButton } from "@/components/admin/delete-rutina-button";
 import { ArrowLeft, Plus, Pencil, FileText } from "lucide-react";
 
@@ -11,8 +10,7 @@ export default async function AdminRutinasPage() {
   const rutinas = await getRutinas();
 
   return (
-    <AuthGuard>
-      <div className="space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link
@@ -100,6 +98,5 @@ export default async function AdminRutinasPage() {
         </div>
       )}
     </div>
-    </AuthGuard>
   );
 }

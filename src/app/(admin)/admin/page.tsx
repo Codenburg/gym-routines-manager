@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getRutinas } from "@/app/actions/rutinas";
 import prisma from "@/lib/prisma";
-import { AuthGuard } from "@/components/auth-guard";
 import { GymPriceEditor } from "@/components/admin/GymPriceEditor";
 import { DataResult, ok, err } from "@/lib/data-result";
 import { FileText, Calendar, TrendingUp, Plus, AlertCircle } from "lucide-react";
@@ -60,8 +59,7 @@ export default async function AdminDashboardPage() {
   const hasError = statsResult.error || gymPriceResult.error;
 
   return (
-    <AuthGuard>
-      <div className="space-y-8">
+    <div className="space-y-8">
       {/* Gym Price Editor */}
       <div>
         <h2 className="text-xl font-bold text-[var(--foreground)] mb-4">Panel de administrador</h2>
@@ -186,7 +184,5 @@ export default async function AdminDashboardPage() {
         )}
       </div>
     </div>
-    </AuthGuard>
   );
 }
-

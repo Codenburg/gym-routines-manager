@@ -1,11 +1,8 @@
-import { redirect, notFound } from "next/navigation";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { notFound } from "next/navigation";
 import { getRutina } from "@/app/actions/rutinas";
 import { RutinaForm } from "@/components/admin/rutina-form";
 import { DiaManager } from "@/components/admin/dia-manager";
 import Link from "next/link";
-import { AuthGuard } from "@/components/auth-guard";
 import { DeleteRutinaPageButton } from "@/components/admin/delete-rutina-page-button";
 import { ArrowLeft } from "lucide-react";
 
@@ -17,14 +14,6 @@ interface EditRutinaPageProps {
 }
 
 export default async function EditRutinaPage({ params }: EditRutinaPageProps) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    redirect("/admin/login");
-  }
-
   const { id } = await params;
   const rutina = await getRutina(id);
 
@@ -33,8 +22,7 @@ export default async function EditRutinaPage({ params }: EditRutinaPageProps) {
   }
 
   return (
-    <AuthGuard>
-      <div className="space-y-8">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
@@ -70,6 +58,5 @@ export default async function EditRutinaPage({ params }: EditRutinaPageProps) {
         <DiaManager rutinaId={rutina.id} dias={rutina.dias} />
       </div>
     </div>
-    </AuthGuard>
   );
 }

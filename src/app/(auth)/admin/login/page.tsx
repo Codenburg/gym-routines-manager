@@ -16,7 +16,7 @@ interface LoginFormData {
 export default function AdminLoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const {
     register,
     handleSubmit,
@@ -31,7 +31,6 @@ export default function AdminLoginPage() {
     setIsLoading(true);
 
     try {
-      // Usar signIn.username para autenticar con DNI
       await authClient.signIn.username(
         {
           username: data.dni,
