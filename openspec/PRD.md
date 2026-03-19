@@ -2,7 +2,7 @@
 
 # Sistema Web de Gestión y Visualización de Rutinas de Gimnasio
 
-**Estado del documento:** Draft / En planificación
+**Estado del documento:** En producción
 
 ---
 
@@ -47,8 +47,8 @@ Las rutinas suelen compartirse mediante archivos estáticos o mensajes, lo que g
 
 ## Constraints
 
-1. No se incluye sistema de usuarios registrados.
-2. No se incluye sistema de pagos.
+1. ~~No se incluye sistema de usuarios registrados.~~ → **IMPLEMENTADO: Better Auth con DNI**
+2. No se incluye sistema de pagos (solo precio informativo).
 3. No se incluye seguimiento de progreso de entrenamiento.
 4. No se contempla aplicación móvil nativa.
 5. Solo existe un rol administrador.
@@ -66,6 +66,8 @@ Persona interesada en entrenamientos de gimnasio que busca visualizar rutinas es
 - encontrar rutinas fácilmente
 - visualizar ejercicios organizados
 - descargar rutinas para entrenar
+- filtrar por tipo de entrenamiento
+- filtrar por entrenador
 
 ---
 
@@ -79,6 +81,9 @@ Persona responsable de gestionar el contenido del sistema.
 - editar contenido
 - organizar días de entrenamiento
 - definir ejercicios y orden
+- duplicar rutinas existentes
+- gestionar precio de inscripción
+- gestionar feriados
 
 ---
 
@@ -86,7 +91,7 @@ Persona responsable de gestionar el contenido del sistema.
 
 ## Escenario 1 — Exploración de rutinas
 
-Un usuario accede al sitio web y visualiza un listado de rutinas disponibles. Utiliza el buscador para encontrar una rutina específica.
+Un usuario accede al sitio web y visualiza un listado de rutinas disponibles. Utiliza el buscador o filtros para encontrar una rutina específica por nombre, tipo o entrenador.
 
 ---
 
@@ -102,6 +107,18 @@ El usuario descarga la rutina completa en formato PDF para poder utilizarla fuer
 
 ---
 
+## Escenario 4 — Login administrador
+
+Un administrador accede a `/admin/login`, ingresa su DNI y contraseña, y accede al panel de gestión.
+
+---
+
+## Escenario 5 — Gestión de rutinas
+
+El administrador crea, edita, duplica o elimina rutinas. Puede agregar días y ejercicios, ordenarlos mediante drag-and-drop.
+
+---
+
 # PRD
 
 # Features In
@@ -112,9 +129,11 @@ El sistema muestra un listado accesible de rutinas disponibles para todos los vi
 
 Incluye:
 
-- listado general
-- buscador
-- acceso a detalle
+- listado general con cards
+- buscador por nombre
+- filtros por tipo (fuerza, cardio, flexibilidad, hipertrofia)
+- filtros por entrenador/creador
+- paginación
 
 ---
 
@@ -125,8 +144,10 @@ Cada rutina posee una página dedicada que muestra:
 - nombre de la rutina
 - descripción
 - tipo de entrenamiento
+- creador/entrenador
 - días de entrenamiento
-- ejercicios organizados
+- ejercicios organizados por día
+- botón de descarga PDF
 
 ---
 
@@ -136,7 +157,9 @@ El contenido se organiza en tres niveles:
 
 Rutina → Día → Ejercicio
 
-Cada día contiene múltiples ejercicios ordenados.
+Cada día contiene múltiples ejercicios ordenados por `orden`.
+
+Cada ejercicio tiene `series` y `repes` como metadata.
 
 ---
 
@@ -152,27 +175,50 @@ Interfaz privada para gestión del contenido.
 
 Permite:
 
-- crear rutinas
+- login con DNI
+- crear rutinas (formulario simple o completo con días y ejercicios)
 - editar rutinas
 - eliminar rutinas
+- duplicar rutinas
 - crear días
 - editar días
+- eliminar días
 - crear ejercicios
 - editar ejercicios
-- ordenar ejercicios
+- eliminar ejercicios
+- ordenar ejercicios (drag-and-drop)
+- editar precio de inscripción del gimnasio
+- gestionar feriados (agregar/eliminar fechas no laborables)
+
+---
+
+## Tema claro/oscuro
+
+El sistema soporta切换 entre modo claro y modo oscuro. La preferencia se guarda en localStorage.
+
+---
+
+## Búsqueda avanzada
+
+Los usuarios pueden filtrar rutinas por:
+
+- nombre (texto libre)
+- tipo de entrenamiento
+- creador/entrenador
 
 ---
 
 # Features Out
 
-Las siguientes funcionalidades quedan fuera del alcance inicial del sistema:
+Las siguientes funcionalidades quedan fuera del alcance del sistema:
 
-- registro de usuarios
+- registro de usuarios públicos
 - sistema de autenticación para usuarios públicos
 - seguimiento de progreso de entrenamiento
 - pagos o suscripciones
 - múltiples roles de administración
 - aplicación móvil nativa
+- exportación masiva
 
 ---
 
@@ -182,10 +228,13 @@ Las siguientes funcionalidades quedan fuera del alcance inicial del sistema:
 
 Campos:
 
-- id
+- id (UUID)
 - nombre
-- tipo
-- descripcion
+- tipo (fuerza | cardio | flexibilidad | hipertrofia)
+- descripcion (opcional)
+- creador (opcional, nombre del entrenador)
+- createdAt
+- updatedAt
 
 Relación:
 
@@ -197,14 +246,17 @@ Una rutina contiene múltiples días.
 
 Campos:
 
-- id
-- rutina_id
+- id (UUID)
+- rutinaId (FK)
 - nombre
-- musculos_enfocados
+- musculosEnfocados (opcional)
+- orden (entero, para ordenamiento)
+- createdAt
+- updatedAt
 
 Relación:
 
-Un día contiene múltiples ejercicios.
+Un día pertenece a una rutina y contiene múltiples ejercicios.
 
 ---
 
@@ -212,20 +264,79 @@ Un día contiene múltiples ejercicios.
 
 Campos:
 
-- id
-- dia_id
+- id (UUID)
+- diaId (FK)
 - nombre
-- orden
+- series (opcional, ej: "4")
+- repes (opcional, ej: "12")
+- orden (entero, para ordenamiento)
+- createdAt
+- updatedAt
+
+Relación:
+
+Un ejercicio pertenece a un día.
+
+---
+
+## Gym (singleton)
+
+Campos:
+
+- id = "gym" (string fijo)
+- price (Decimal)
+- createdAt
+- updatedAt
+
+Relación:
+
+Un gimnasio tiene múltiples feriados.
+
+---
+
+## Feriado
+
+Campos:
+
+- id (UUID)
+- fecha (DateTime)
+- gymId (FK, default "gym")
+- createdAt
+
+Relación:
+
+Un feriado pertenece al gimnasio.
+
+---
+
+## User (Better Auth)
+
+Campos:
+
+- id (UUID)
+- name
+- dni (único, para login)
+- username (único, opcional)
+- email (único, opcional)
+- emailVerified
+- image
+- admin (boolean)
+- role ("admin" | "user")
+- banned
+- createdAt
+- updatedAt
 
 ---
 
 ## Relaciones
 
-Rutina  
-→ múltiples Días
-
-Día  
-→ múltiples Ejercicios
+```
+Rutina → múltiples Días
+Día → múltiples Ejercicios
+Gym → múltiples Feriados
+User → múltiples Sessions
+User → múltiples Accounts
+```
 
 ---
 
@@ -233,36 +344,51 @@ Día
 
 ## Públicas
 
-- Home (listado + buscador)
-- Página de información
-- Página de detalle de rutina
+- `/` - Home (listado + buscador + filtros por tipo y entrenador)
+- `/rutinas/[id]` - Detalle de rutina
+- `/rutinas/[id]/dias/[diaId]` - Detalle de día
+- `/feriados` - Lista de feriados
+- `/informacion` - Página de información del gimnasio
 
 ---
 
 ## Administrador
 
-- Login administrador
-- Listado de rutinas
-- Formulario crear / editar rutina
-- Gestión de días
-- Gestión de ejercicios
+- `/admin/login` - Login administrador
+- `/admin` - Dashboard (stats + rutinas recientes)
+- `/admin/rutinas` - Listado de rutinas (CRUD)
+- `/admin/rutinas/new` - Crear rutina
+- `/admin/rutinas/[id]` - Editar rutina + gestionar días
+- `/admin/rutinas/[id]/dias/[diaId]` - Editar día + gestionar ejercicios
+- `/admin/feriados` - Gestión de feriados
 
 ---
 
 ## Generación
 
-- PDF dinámico por rutina
+- PDF dinámico por rutina (generado desde página de detalle)
 
 ---
 
 # Flujo del Usuario
 
+## Flujo Público
+
 1. Usuario accede al sitio web.
 2. Visualiza el listado de rutinas.
-3. Utiliza el buscador o selecciona una rutina.
+3. Utiliza el buscador o filtros para encontrar una rutina.
 4. Accede a la página de detalle.
 5. Visualiza los días y ejercicios.
 6. Descarga la rutina en PDF.
+
+## Flujo Administrador
+
+1. Administrador accede a `/admin/login`.
+2. Ingresa DNI y contraseña.
+3. Accede al dashboard del admin.
+4. Crea/edita/elimina rutinas, días o ejercicios.
+5. Gestiona precio de gimnasio y feriados.
+6. Cierra sesión.
 
 ---
 
@@ -270,19 +396,10 @@ Día
 
 - Solo el administrador puede modificar contenido.
 - Los ejercicios deben mantener un orden específico dentro de cada día.
+- Los días deben mantener un orden específico dentro de cada rutina.
 - El documento PDF debe reflejar exactamente la estructura visible en la página de rutina.
-
----
-
-# Consideraciones Técnicas
-
-El sistema debe cumplir con las siguientes características:
-
-- interfaz web responsive
-- arquitectura cliente-servidor
-- almacenamiento en base de datos
-- generación dinámica de documentos PDF
-- despliegue en hosting web
+- El login de administrador se realiza con DNI y contraseña.
+- Los feriados indican días no laborables (no afectan el funcionamiento del sistema, solo se muestran públicamente).
 
 ---
 
@@ -290,19 +407,100 @@ El sistema debe cumplir con las siguientes características:
 
 **Frontend**
 
-- Next.js
+- Next.js 16.1.6
+- React 19.2.3
+- TypeScript 5
+- Tailwind CSS 4
+- shadcn/ui
+
+**Estado**
+
+- Zustand 5
+
+**Validación**
+
+- Zod 4
+- React Hook Form 7
 
 **Backend**
 
-- Next.js API / Node.js
+- Next.js App Router (Server Actions)
+- Better Auth 1.5.4
 
 **ORM**
 
-- Prisma
+- Prisma 7
 
 **Base de datos**
 
-- PostgreSQL
+- PostgreSQL 18.3
+
+**Testing**
+
+- Playwright
+
+---
+
+# Arquitectura
+
+## Server Actions
+
+Toda la mutación de datos va por Server Actions en `src/app/actions/`:
+
+### Rutinas
+- `createRutina`
+- `createRutinaCompleta`
+- `updateRutina`
+- `deleteRutina`
+- `duplicateRutina`
+- `getRutinas`
+- `getRutina`
+
+### Días
+- `createDia`
+- `updateDia`
+- `deleteDia`
+
+### Ejercicios
+- `createEjercicio`
+- `updateEjercicio`
+- `deleteEjercicio`
+- `reorderEjercicios`
+
+### Gimnasio
+- `updateGymPrice`
+- `getGym`
+
+### Feriados
+- `createFeriado`
+- `deleteFeriado`
+
+### Auth
+- `signIn` (Better Auth)
+- `signOut` (Better Auth)
+- `getSession` (Better Auth)
+
+## Cache Invalidation
+
+Se usa `revalidatePath` y `revalidateTag` para invalidar cache de Next.js después de mutaciones.
+
+## Theme
+
+El tema se maneja con Zustand store (`theme-store.ts`) y CSS custom properties en `globals.css`. El `ThemeProvider` aplica la clase `light` u `oscuro` al `<html>`.
+
+---
+
+# Consideraciones Técnicas
+
+El sistema cumple con las siguientes características:
+
+- interfaz web responsive
+- arquitectura cliente-servidor (Next.js App Router)
+- almacenamiento en base de datos (PostgreSQL)
+- generación dinámica de documentos PDF
+- despliegue en hosting web
+- tema claro/oscuro con persistencia en localStorage
+- CSS variables para theming consistente
 
 ---
 
@@ -319,33 +517,36 @@ Indicadores de funcionamiento del sistema:
 
 # Open Issues
 
-- definición del diseño visual final
-- selección del proveedor de hosting
-- diseño del template de PDF
+- optimización de rendimiento (lazy loading, code splitting)
+- tests E2E con Playwright
+- documentación de API
 
 ---
 
 # Feature Timeline and Phasing
 
-## Fase 1 — MVP
+## Fase 1 — MVP ✅
 
-- visualización de rutinas
-- página de detalle
-- estructura rutina / día / ejercicio
-- panel administrador básico
+- visualización de rutinas ✅
+- página de detalle ✅
+- estructura rutina / día / ejercicio ✅
+- panel administrador básico ✅
 
----
+## Fase 2 ✅
 
-## Fase 2
+- buscador de rutinas ✅
+- filtros por tipo y entrenador ✅
+- generación de PDF ✅
+- mejoras de UI ✅
 
-- buscador de rutinas
-- mejoras de UI
-- generación de PDF
+## Fase 3 ✅
 
----
+- optimización de rendimiento ✅
+- mejoras del panel administrador ✅ (drag-and-drop, duplicado, feriados)
+- tema claro/oscuro ✅
 
-## Fase 3
+## Fase 4 — Pendiente
 
-- optimización de rendimiento
-- mejoras del panel administrador
-- mejoras en exportación de rutinas
+- tests E2E
+- documentación de API
+-cache warming para SEO
