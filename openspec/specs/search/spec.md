@@ -6,10 +6,45 @@ This spec describes the search and filtering functionality, including a separate
 
 ## ADDED Requirements
 
+### Requirement: Stable Trainer List for Chip Display
+
+The trainer sidebar chips MUST always display all trainers from the complete dataset, regardless of the current filter state.
+
+The implementation MUST:
+- Derive trainer list from ALL rutinas (unfiltered) before applying any trainer filter
+- Use two separate database queries: one for trainers (unfiltered), one for rutinas (filtered)
+- Never filter the trainer list based on the active filter state
+- Maintain stable counts based on total routines per trainer
+
+#### Scenario: Chips remain visible when filter is active
+
+- GIVEN multiple trainers exist in the database (e.g., "Nando", "Maxi", "Santi")
+- WHEN the user selects "Nando" filter
+- THEN all chips (Nando, Maxi, Santi) remain visible
+- AND only routines from "Nando" are displayed
+
+#### Scenario: Multiple trainer selection
+
+- GIVEN multiple trainers exist
+- WHEN the user selects "Nando" and "Maxi"
+- THEN all chips remain visible
+- AND routines from both "Nando" and "Maxi" are displayed
+
+#### Scenario: Toggle trainer filter off
+
+- GIVEN "Nando" is selected and other chips are visible
+- WHEN the user clicks "Nando" again to deselect
+- THEN all chips remain visible
+- AND all routines are displayed
+
 ### Requirement: Trainer Sidebar as Source of Truth
 
 The trainer sidebar checkbox selection MUST be the only source of truth for filter state.
 No additional chips or tags should appear below the search bar.
+
+**IMPORTANT**: The trainer list displayed in the sidebar is derived from ALL rutinas (unfiltered),
+ensuring all chips remain visible regardless of filter state. The filtered routines display
+is derived separately and does not affect the trainer list.
 
 The sidebar MUST:
 - Display each unique trainer name from the database

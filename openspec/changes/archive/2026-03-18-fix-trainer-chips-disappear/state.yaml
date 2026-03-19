@@ -1,0 +1,23 @@
+change: fix-trainer-chips-disappear
+created: 2026-03-18
+status: completed
+phase: archive
+
+artifacts:
+  proposal: proposal.md
+  design: design.md
+  tasks: tasks.md
+  specs:
+    - specs/search/spec.md
+
+summary: >
+  Fixed trainer chips disappearing bug by separating trainer list derivation
+  from filtered rutinas. Now uses two queries: one for stable trainer data,
+  one for filtered routines display.
+
+verification:
+  build: passed
+  typescript: passed
+  chip_visibility: verified
+  multiple_selection: verified
+  toggle_behavior: verified
