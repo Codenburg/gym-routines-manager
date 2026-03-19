@@ -114,8 +114,8 @@ export function RutinaCompletaForm() {
     <form ref={formRef} action={action} className="space-y-6">
       {/* Error Message */}
       {state && !state.success && state.message && (
-        <div className="p-4 bg-red-900/30 border border-red-700/50 rounded-lg">
-          <p className="text-red-400 text-sm">{state.message}</p>
+        <div className="p-4 bg-[var(--destructive)]/10 border border-[var(--destructive)]/30 rounded-lg">
+          <p className="text-[var(--destructive)] text-sm">{state.message}</p>
         </div>
       )}
 
@@ -136,7 +136,7 @@ export function RutinaCompletaForm() {
               className="bg-[var(--input-bg)]"
             />
             {state?.errors?.nombre && (
-              <p className="text-red-500 text-xs">{state.errors.nombre[0]}</p>
+              <p className="text-[var(--destructive)] text-xs">{state.errors.nombre[0]}</p>
             )}
           </div>
 
@@ -150,7 +150,7 @@ export function RutinaCompletaForm() {
               name="tipo"
               required
               defaultValue=""
-              className="flex h-10 w-full rounded-lg border bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--input-foreground)] placeholder:[var(--input-placeholder)] border-[var(--input-border)] focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="flex h-10 w-full rounded-lg border bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--input-foreground)] placeholder:[var(--input-placeholder)] border-[var(--input-border)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent"
             >
               <option value="" disabled>
                 Seleccionar tipo
@@ -162,7 +162,7 @@ export function RutinaCompletaForm() {
               ))}
             </select>
             {state?.errors?.tipo && (
-              <p className="text-red-500 text-xs">{state.errors.tipo[0]}</p>
+              <p className="text-[var(--destructive)] text-xs">{state.errors.tipo[0]}</p>
             )}
           </div>
         </div>
@@ -180,7 +180,7 @@ export function RutinaCompletaForm() {
             className="bg-[var(--input-bg)]"
           />
           {state?.errors?.descripcion && (
-            <p className="text-red-500 text-xs">{state.errors.descripcion[0]}</p>
+            <p className="text-[var(--destructive)] text-xs">{state.errors.descripcion[0]}</p>
           )}
         </div>
       </div>
@@ -196,7 +196,7 @@ export function RutinaCompletaForm() {
         </div>
 
         {state?.errors?.dias && (
-          <p className="text-red-500 text-sm">{state.errors.dias[0]}</p>
+          <p className="text-[var(--destructive)] text-sm">{state.errors.dias[0]}</p>
         )}
 
         <div className="space-y-4">

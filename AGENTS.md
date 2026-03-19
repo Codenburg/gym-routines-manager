@@ -2,7 +2,7 @@
 When working with React, read `~/.agents/skills/react-19/SKILL.md` first.
 When working with Next.js, read `~/.agents/skills/nextjs-best-practices/SKILL.md` first.
 When working with TypeScript, read `~/.agents/skills/typescript/SKILL.md` first.
-When working with Tailwind CSS, read `~/.agents/skills/tailwind-4/SKILL.md` first.
+When working with Tailwind CSS, read `~/.agents/skills/tailwind-design-system/SKILL.md` first.
 When working with Prisma, read `~/.agents/skills/prisma/SKILL.md` first.
 When working with zod, read `~/.agents/skills/zod-4/SKILL.md` first.
 When Working with zustand, read `~/.agents/skills/zustand-5/SKILL.md` first.
@@ -13,3 +13,4 @@ When working with authentication, read `~/.agents/skills/better-auth-best-practi
 When implementing server-side auth with Next.js App Router (flicker-free), read `.agents/skills/nextjs-auth-server-side/SKILL.md` first.
 When working with username/DNI login, read `~/.agents/skills/better-auth-username/SKILL.md` first.
 When Working with Forms, read `~/.agents/skills/react-hook-form/SKILL.md` first.
+When Workin with Shadcn UI, read `~/.agents/skills/shadcn/SKILL.md` first.

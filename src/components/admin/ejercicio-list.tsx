@@ -51,8 +51,8 @@ export function EjercicioList({ diaId, diaNombre, rutinaId, ejercicios }: Ejerci
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-white">{diaNombre}</h2>
-          <p className="text-white/60 text-sm">Administra los ejercicios del día</p>
+          <h2 className="text-xl font-semibold text-[var(--foreground)]">{diaNombre}</h2>
+          <p className="text-[var(--muted-foreground)] text-sm">Administra los ejercicios del día</p>
         </div>
         <Button onClick={() => setIsAdding(true)} disabled={isAdding}>
           <Plus className="w-5 h-5 mr-2" />
@@ -82,7 +82,7 @@ export function EjercicioList({ diaId, diaNombre, rutinaId, ejercicios }: Ejerci
           <Card key={ejercicio.id} className="relative group">
             {/* Drag Handle */}
             <div className="absolute top-1/2 left-2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-move">
-              <GripVertical className="w-5 h-5 text-white/50" />
+              <GripVertical className="w-5 h-5 text-[var(--muted-foreground)]" />
             </div>
 
             <CardContent className="flex items-center justify-between py-4 pl-10">
@@ -103,10 +103,10 @@ export function EjercicioList({ diaId, diaNombre, rutinaId, ejercicios }: Ejerci
               ) : (
                 <>
                   <div className="flex items-center gap-4 flex-1">
-                    <span className="text-white/40 text-sm font-mono">#{index + 1}</span>
+                    <span className="text-[var(--muted-foreground)] text-sm font-mono opacity-60">#{index + 1}</span>
                     <div>
-                      <h3 className="text-white font-medium">{ejercicio.nombre}</h3>
-                      <div className="flex gap-3 text-white/50 text-sm">
+                      <h3 className="text-[var(--foreground)] font-medium">{ejercicio.nombre}</h3>
+                      <div className="flex gap-3 text-[var(--muted-foreground)] text-sm">
                         {ejercicio.series && <span>Series: {ejercicio.series}</span>}
                         {ejercicio.repes && <span>Repes: {ejercicio.repes}</span>}
                       </div>
@@ -116,13 +116,13 @@ export function EjercicioList({ diaId, diaNombre, rutinaId, ejercicios }: Ejerci
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => setEditingId(editingId === ejercicio.id ? null : ejercicio.id)}
-                      className="p-1.5 rounded hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+                      className="p-1.5 rounded hover:bg-[var(--button-secondary-bg)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
                     >
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(ejercicio.id)}
-                      className="p-1.5 rounded hover:bg-red-900/30 text-white/60 hover:text-red-400 transition-colors"
+                      className="p-1.5 rounded hover:bg-[var(--destructive)]/10 text-[var(--muted-foreground)] hover:text-[var(--destructive)] transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -135,8 +135,8 @@ export function EjercicioList({ diaId, diaNombre, rutinaId, ejercicios }: Ejerci
 
         {ejercicios.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-white/50">No hay ejercicios en este día</p>
-            <p className="text-white/40 text-sm mt-1">Agrega un ejercicio para empezar</p>
+            <p className="text-[var(--muted-foreground)]">No hay ejercicios en este día</p>
+            <p className="text-[var(--muted-foreground)] text-sm mt-1 opacity-60">Agrega un ejercicio para empezar</p>
           </div>
         )}
       </div>

@@ -34,7 +34,7 @@ export function DeleteRutinaButton({ rutinaId }: DeleteRutinaButtonProps) {
       type="button"
       onClick={handleDelete}
       disabled={isDeleting}
-      className="p-2 hover:bg-red-900/30 rounded-lg text-white/60 hover:text-red-400 transition-colors disabled:opacity-50"
+      className="p-2 hover:bg-[var(--destructive)] rounded-lg text-[var(--muted-foreground)] hover:text-[var(--destructive-foreground)] transition-colors disabled:opacity-50"
       title="Eliminar"
     >
       <Trash2 className="w-5 h-5" />

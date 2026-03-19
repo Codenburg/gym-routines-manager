@@ -42,7 +42,7 @@ export function DiaSection({
           variant="ghost"
           size="sm"
           onClick={() => onRemove(diaId)}
-          className="text-red-400 hover:text-red-300 hover:bg-red-900/30"
+          className="text-[var(--destructive)] hover:text-[var(--destructive)] hover:bg-[var(--destructive)]/10"
           title="Eliminar día"
         >
           Eliminar día
@@ -59,7 +59,7 @@ export function DiaSection({
           className="bg-[var(--input-bg)] max-w-md"
         />
         {errors?.[`${baseName}.nombre`] && (
-          <p className="text-red-500 text-xs">{errors[`${baseName}.nombre`][0]}</p>
+          <p className="text-[var(--destructive)] text-xs">{errors[`${baseName}.nombre`][0]}</p>
         )}
       </div>
 
@@ -105,7 +105,7 @@ export function DiaSection({
 
         {/* Error for empty ejercicios */}
         {errors?.[`${baseName}.ejercicios`] && (
-          <p className="text-red-500 text-xs">{errors[`${baseName}.ejercicios`][0]}</p>
+          <p className="text-[var(--destructive)] text-xs">{errors[`${baseName}.ejercicios`][0]}</p>
         )}
 
         {/* Add exercise button */}

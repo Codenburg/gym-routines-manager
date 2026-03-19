@@ -33,7 +33,7 @@ export function EjercicioRow({
           className="bg-[var(--input-bg)]"
         />
         {errors?.[`${baseName}.nombre`] && (
-          <p className="text-red-500 text-xs mt-1">{errors[`${baseName}.nombre`][0]}</p>
+          <p className="text-[var(--destructive)] text-xs mt-1">{errors[`${baseName}.nombre`][0]}</p>
         )}
       </div>
 
@@ -61,7 +61,7 @@ export function EjercicioRow({
         variant="ghost"
         size="sm"
         onClick={onRemove}
-        className="text-red-400 hover:text-red-300 hover:bg-red-900/30 shrink-0"
+        className="text-[var(--destructive)] hover:text-[var(--destructive)] hover:bg-[var(--destructive)]/10 shrink-0"
         title="Eliminar ejercicio"
       >
         ✕

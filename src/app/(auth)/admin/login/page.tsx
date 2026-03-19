@@ -89,11 +89,11 @@ export default function AdminLoginPage() {
                   e.target.value = e.target.value.replace(/\D/g, "").slice(0, 8);
                 },
               })}
-              className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-md text-[var(--input-foreground)] placeholder:[var(--input-placeholder)] focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors disabled:opacity-50"
+              className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-md text-[var(--input-foreground)] placeholder:[var(--input-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent transition-colors disabled:opacity-50"
               placeholder="12345678"
             />
             {errors.dni && (
-              <p className="text-red-400 text-sm">{errors.dni.message}</p>
+              <p className="text-[var(--destructive)] text-sm">{errors.dni.message}</p>
             )}
           </div>
 
@@ -109,11 +109,11 @@ export default function AdminLoginPage() {
               {...register("password", {
                 required: "La contraseña es requerida",
               })}
-              className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-md text-[var(--input-foreground)] placeholder:[var(--input-placeholder)] focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors disabled:opacity-50"
+              className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-md text-[var(--input-foreground)] placeholder:[var(--input-placeholder)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent transition-colors disabled:opacity-50"
               placeholder="••••••••"
             />
             {errors.password && (
-              <p className="text-red-400 text-sm">{errors.password.message}</p>
+              <p className="text-[var(--destructive)] text-sm">{errors.password.message}</p>
             )}
           </div>
 

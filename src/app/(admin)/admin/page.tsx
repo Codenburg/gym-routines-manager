@@ -148,7 +148,7 @@ export default async function AdminDashboardPage() {
         {hasError && (
           <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-xl flex items-center gap-3">
             <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0" />
-            <p className="text-sm text-destructive">部分数据无法完全加载。显示的是缓存值。</p>
+            <p className="text-sm text-destructive">No se pudieron cargar algunos datos. Se muestran valores en caché.</p>
           </div>
         )}
         {rutinas.length > 0 ? (
@@ -176,7 +176,7 @@ export default async function AdminDashboardPage() {
             <p className="text-[var(--muted-foreground)]">No hay rutinas creadas aún</p>
             <Link
               href="/admin/rutinas/new"
-              className="text-red-500 hover:text-red-400 text-sm mt-2 inline-block"
+              className="text-[var(--destructive)] hover:text-[var(--destructive-foreground)] text-sm mt-2 inline-block"
             >
               Crear tu primera rutina →
             </Link>

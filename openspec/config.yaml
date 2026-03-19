@@ -4,6 +4,9 @@
 
 schema: spec-driven
 
+artifact_store:
+  mode: hybrid  # Persist to both Engram and OpenSpec
+
 context: |
   Tech stack: Next.js 16.1.6 + React 19 + TypeScript 5 + Tailwind CSS 4 + Prisma 7 + PostgreSQL 18.3
   Architecture: Next.js App Router

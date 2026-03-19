@@ -93,6 +93,11 @@ function ProfileButton({ userName, onSignOut, theme, onToggleTheme }: ProfileBut
     };
   }, []);
 
+  // Cerrar dropdown cuando cambia el tema
+  useEffect(() => {
+    setIsOpen(false);
+  }, [theme]);
+
   return (
     <div ref={dropdownRef} className="relative">
       <button

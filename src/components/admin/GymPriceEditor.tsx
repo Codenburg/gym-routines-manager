@@ -155,21 +155,21 @@ export function GymPriceEditor({ initialPrice }: GymPriceEditorProps) {
                 onChange={(e) => setEditValue(e.target.value)}
                 onKeyDown={handleKeyDown}
                 disabled={isSaving}
-                className="w-full pl-7 pr-4 py-2 bg-[var(--background)] border border-[var(--card-border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+                className="w-full pl-7 pr-4 py-2 bg-[var(--background)] border border-[var(--card-border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)] disabled:opacity-50"
                 placeholder="45000"
                 min="0"
                 step="100"
               />
             </div>
             {isError && errorMessage && (
-              <p className="text-red-500 text-sm mt-2">{errorMessage}</p>
+              <p className="text-[var(--destructive)] text-sm mt-2">{errorMessage}</p>
             )}
           </div>
           <div className="flex gap-2">
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-[var(--success)] hover:opacity-90 disabled:opacity-50 text-[var(--success-foreground)] rounded-lg transition-colors flex items-center gap-2"
             >
               {isSaving ? (
                 <>

@@ -67,8 +67,8 @@ export function DiaManager({ rutinaId, dias }: DiaManagerProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-white">Días de la Rutina</h2>
-          <p className="text-white/60 text-sm">Administra los días de entrenamiento</p>
+          <h2 className="text-xl font-semibold text-[var(--foreground)]">Días de la Rutina</h2>
+          <p className="text-[var(--muted-foreground)] text-sm">Administra los días de entrenamiento</p>
         </div>
         <Button onClick={() => setIsAdding(true)} disabled={isAdding}>
           <Plus className="w-5 h-5 mr-2" />
@@ -94,14 +94,14 @@ export function DiaManager({ rutinaId, dias }: DiaManagerProps) {
               <input type="hidden" name="rutinaId" value={rutinaId} />
 
               {createState && !createState.success && createState.message && (
-                <div className="p-3 bg-red-900/30 border border-red-700/50 rounded-lg">
-                  <p className="text-red-400 text-sm">{createState.message}</p>
+                <div className="p-3 bg-[var(--destructive)]/10 border border-[var(--destructive)]/30 rounded-lg">
+                  <p className="text-[var(--destructive)] text-sm">{createState.message}</p>
                 </div>
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-white text-sm font-medium">Nombre *</label>
+                  <label className="text-[var(--foreground)] text-sm font-medium">Nombre *</label>
                   <Input
                     name="nombre"
                     required
@@ -109,11 +109,11 @@ export function DiaManager({ rutinaId, dias }: DiaManagerProps) {
                     error={!!createState?.errors?.nombre}
                   />
                   {createState?.errors?.nombre && (
-                    <p className="text-red-500 text-xs">{createState.errors.nombre[0]}</p>
+                    <p className="text-[var(--destructive)] text-xs">{createState.errors.nombre[0]}</p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <label className="text-white text-sm font-medium">Músculos Enfocados</label>
+                  <label className="text-[var(--foreground)] text-sm font-medium">Músculos Enfocados</label>
                   <Input
                     name="musculosEnfocados"
                     placeholder="Ej: Pecho, tríceps"
@@ -140,32 +140,32 @@ export function DiaManager({ rutinaId, dias }: DiaManagerProps) {
           <Card key={dia.id} className="relative group">
             {/* Drag Handle */}
             <div className="absolute top-4 left-2 opacity-0 group-hover:opacity-100 transition-opacity cursor-move">
-              <GripVertical className="w-5 h-5 text-white/50" />
+              <GripVertical className="w-5 h-5 text-[var(--muted-foreground)]" />
             </div>
 
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-white/40 text-sm font-mono">#{index + 1}</span>
+                  <span className="text-[var(--muted-foreground)] text-sm font-mono opacity-60">#{index + 1}</span>
                   <CardTitle className="text-lg">{dia.nombre}</CardTitle>
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => setEditingId(editingId === dia.id ? null : dia.id)}
-                    className="p-1.5 rounded hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+                    className="p-1.5 rounded hover:bg-[var(--button-secondary-bg)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(dia.id)}
-                    className="p-1.5 rounded hover:bg-red-900/30 text-white/60 hover:text-red-400 transition-colors"
+                    className="p-1.5 rounded hover:bg-[var(--destructive)]/10 text-[var(--muted-foreground)] hover:text-[var(--destructive)] transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
               {dia.musculosEnfocados && (
-                <p className="text-white/50 text-sm">{dia.musculosEnfocados}</p>
+                <p className="text-[var(--muted-foreground)] text-sm opacity-70">{dia.musculosEnfocados}</p>
               )}
             </CardHeader>
 
@@ -209,13 +209,13 @@ export function DiaManager({ rutinaId, dias }: DiaManagerProps) {
               ) : (
                 <Link
                   href={`/admin/rutinas/${rutinaId}/dias/${dia.id}`}
-                  className="block p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                  className="block p-3 rounded-lg bg-[var(--button-secondary-bg)] hover:opacity-80 transition-colors"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-white/70 text-sm">
+                    <span className="text-[var(--muted-foreground)] text-sm opacity-80">
                       {dia.ejercicios.length} ejercicio{dia.ejercicios.length !== 1 ? "s" : ""}
                     </span>
-                    <ChevronRight className="w-4 h-4 text-white/40" />
+                    <ChevronRight className="w-4 h-4 text-[var(--muted-foreground)] opacity-60" />
                   </div>
                 </Link>
               )}
@@ -225,8 +225,8 @@ export function DiaManager({ rutinaId, dias }: DiaManagerProps) {
 
         {dias.length === 0 && (
           <div className="col-span-full text-center py-12">
-            <p className="text-white/50">No hay días en esta rutina</p>
-            <p className="text-white/40 text-sm mt-1">Agrega un día para empezar</p>
+            <p className="text-[var(--muted-foreground)]">No hay días en esta rutina</p>
+            <p className="text-[var(--muted-foreground)] text-sm mt-1 opacity-60">Agrega un día para empezar</p>
           </div>
         )}
       </div>

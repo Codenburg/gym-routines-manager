@@ -44,39 +44,39 @@ export default async function EjerciciosPage({ params }: EjerciciosPageProps) {
       <div className="flex items-center gap-2 text-sm">
         <Link
           href="/admin/rutinas"
-          className="text-white/60 hover:text-white transition-colors"
+          className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
         >
           Rutinas
         </Link>
-        <span className="text-white/30">/</span>
+        <span className="text-[var(--muted-foreground)] opacity-50">/</span>
         <Link
           href={`/admin/rutinas/${id}`}
-          className="text-white/60 hover:text-white transition-colors"
+          className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
         >
           {rutina.nombre}
         </Link>
-        <span className="text-white/30">/</span>
-        <span className="text-white">{dia.nombre}</span>
+        <span className="text-[var(--muted-foreground)] opacity-50">/</span>
+        <span className="text-[var(--foreground)]">{dia.nombre}</span>
       </div>
 
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link
           href={`/admin/rutinas/${id}`}
-          className="p-2 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-colors"
+          className="p-2 hover:bg-[var(--button-secondary-bg)] rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-white">{dia.nombre}</h1>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">{dia.nombre}</h1>
           {dia.musculosEnfocados && (
-            <p className="text-white/60 mt-1">{dia.musculosEnfocados}</p>
+            <p className="text-[var(--muted-foreground)] mt-1">{dia.musculosEnfocados}</p>
           )}
         </div>
       </div>
 
       {/* Ejercicios List */}
-      <div className="bg-zinc-900 border border-white/10 rounded-xl p-6">
+      <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl p-6">
         <EjercicioList
           diaId={dia.id}
           diaNombre={dia.nombre}

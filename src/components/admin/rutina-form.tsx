@@ -56,24 +56,24 @@ export function RutinaForm({ initialData, onSuccess }: RutinaFormProps) {
 
       {/* Error Message */}
       {state && !state.success && state.message && (
-        <div className="p-4 bg-red-900/30 border border-red-700/50 rounded-lg">
-          <p className="text-red-400 text-sm">{state.message}</p>
+        <div className="p-4 bg-[var(--destructive)]/10 border border-[var(--destructive)]/30 rounded-lg">
+          <p className="text-[var(--destructive)] text-sm">{state.message}</p>
         </div>
       )}
 
       {/* Success Message */}
       {state?.success && (
-        <div className="p-4 bg-green-900/30 border border-green-700/50 rounded-lg">
-          <p className="text-green-400 text-sm">{state.message}</p>
+        <div className="p-4 bg-[var(--success)] border border-[var(--success)]/30 rounded-lg">
+          <p className="text-[var(--success-foreground)] text-sm">{state.message}</p>
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Nombre */}
-        <div className="space-y-2">
-          <label htmlFor="nombre" className="text-white text-sm font-medium">
-            Nombre *
-          </label>
+      {/* Nombre */}
+      <div className="space-y-2">
+        <label htmlFor="nombre" className="text-[var(--foreground)] text-sm font-medium">
+          Nombre *
+        </label>
           <Input
             id="nombre"
             name="nombre"
@@ -84,22 +84,22 @@ export function RutinaForm({ initialData, onSuccess }: RutinaFormProps) {
             error={!!state?.errors?.nombre}
           />
           {state?.errors?.nombre && (
-            <p className="text-red-500 text-xs">{state.errors.nombre[0]}</p>
+            <p className="text-[var(--destructive)] text-xs">{state.errors.nombre[0]}</p>
           )}
         </div>
 
-        {/* Tipo */}
-        <div className="space-y-2">
-          <label htmlFor="tipo" className="text-white text-sm font-medium">
-            Tipo *
-          </label>
-          <select
-            id="tipo"
-            name="tipo"
-            required
-            defaultValue={initialData?.tipo || ""}
-            className="flex h-10 w-full rounded-lg border bg-black px-3 py-2 text-sm text-white placeholder:text-white/50 border-white/30 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-          >
+      {/* Tipo */}
+      <div className="space-y-2">
+        <label htmlFor="tipo" className="text-[var(--foreground)] text-sm font-medium">
+          Tipo *
+        </label>
+        <select
+          id="tipo"
+          name="tipo"
+          required
+          defaultValue={initialData?.tipo || ""}
+            className="flex h-10 w-full rounded-lg border bg-[var(--card-bg)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] border-[var(--card-border)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent"
+        >
             <option value="">Seleccionar tipo</option>
             {tipos.map((tipo) => (
               <option key={tipo.value} value={tipo.value}>
@@ -108,14 +108,14 @@ export function RutinaForm({ initialData, onSuccess }: RutinaFormProps) {
             ))}
           </select>
           {state?.errors?.tipo && (
-            <p className="text-red-500 text-xs">{state.errors.tipo[0]}</p>
+            <p className="text-[var(--destructive)] text-xs">{state.errors.tipo[0]}</p>
           )}
         </div>
       </div>
 
       {/* Descripcion */}
       <div className="space-y-2">
-        <label htmlFor="descripcion" className="text-white text-sm font-medium">
+        <label htmlFor="descripcion" className="text-[var(--foreground)] text-sm font-medium">
           Descripción
         </label>
         <Textarea
@@ -126,7 +126,7 @@ export function RutinaForm({ initialData, onSuccess }: RutinaFormProps) {
           rows={3}
         />
         {state?.errors?.descripcion && (
-          <p className="text-red-500 text-xs">{state.errors.descripcion[0]}</p>
+            <p className="text-[var(--destructive)] text-xs">{state.errors.descripcion[0]}</p>
         )}
       </div>
 
