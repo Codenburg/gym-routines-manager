@@ -51,15 +51,15 @@ export function EjercicioForm({ diaId, initialData, onSuccess, onCancel }: Ejerc
 
       {/* Error Message */}
       {state && !state.success && state.message && (
-        <div className="p-3 bg-red-900/30 border border-red-700/50 rounded-lg">
-          <p className="text-red-400 text-sm">{state.message}</p>
+        <div className="p-3 bg-[var(--destructive)]/10 border border-[var(--destructive)]/30 rounded-lg">
+          <p className="text-[var(--destructive)] text-sm">{state.message}</p>
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Nombre */}
         <div className="space-y-2 md:col-span-2">
-          <label htmlFor="nombre" className="text-white text-sm font-medium">
+          <label htmlFor="nombre" className="text-[var(--foreground)] text-sm font-medium">
             Nombre *
           </label>
           <Input
@@ -72,15 +72,15 @@ export function EjercicioForm({ diaId, initialData, onSuccess, onCancel }: Ejerc
             error={!!state?.errors?.nombre}
           />
           {state?.errors?.nombre && (
-            <p className="text-red-500 text-xs">{state.errors.nombre[0]}</p>
+            <p className="text-[var(--destructive)] text-xs">{state.errors.nombre[0]}</p>
           )}
         </div>
 
-        {/* Series */}
-        <div className="space-y-2">
-          <label htmlFor="series" className="text-white text-sm font-medium">
-            Series
-          </label>
+      {/* Series */}
+      <div className="space-y-2">
+        <label htmlFor="series" className="text-[var(--foreground)] text-sm font-medium">
+          Series
+        </label>
           <Input
             id="series"
             name="series"
@@ -93,7 +93,7 @@ export function EjercicioForm({ diaId, initialData, onSuccess, onCancel }: Ejerc
 
       {/* Repes */}
       <div className="space-y-2">
-        <label htmlFor="repes" className="text-white text-sm font-medium">
+        <label htmlFor="repes" className="text-[var(--foreground)] text-sm font-medium">
           Repeticiones
         </label>
         <Input

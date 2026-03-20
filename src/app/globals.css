@@ -41,6 +41,10 @@
 
   --muted: #a1a1aa;
 
+  --success: oklch(0.704 0.191 22.216);
+  --success-foreground: oklch(0.985 0 0);
+  --icon-badge-bg: rgba(220, 252, 231, 0.1);
+
   --background: oklch(1 0 0);
 
   --foreground: oklch(0.145 0 0);
@@ -87,7 +91,7 @@
   --secondary: #f4f4f5;
   --secondary-foreground: #18181b;
   --muted: #f4f4f5;
-  --muted-foreground: #71717a;
+  --muted-foreground: #52525b;
   --accent: #f4f4f5;
   --accent-foreground: #18181b;
   --destructive: #fef2f2;
@@ -110,6 +114,10 @@
   --button-secondary-bg: #f4f4f5;
   --button-secondary-foreground: #18181b;
   --button-secondary-border: #d4d4d8;
+
+  --success: #dcfce7;
+  --success-foreground: #166534;
+  --icon-badge-bg: rgba(220, 252, 231, 0.5);
 
   --muted: #71717a;
 }
@@ -146,6 +154,9 @@
   --color-button-secondary-foreground: var(--button-secondary-foreground);
   --color-button-secondary-border: var(--button-secondary-border);
   --color-muted: var(--muted);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-icon-badge-bg: var(--icon-badge-bg);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -243,6 +254,10 @@ html {
   --button-secondary-bg: #27272a;
   --button-secondary-foreground: #fafafa;
   --button-secondary-border: #3f3f46;
+
+  --success: oklch(0.704 0.191 22.216);
+  --success-foreground: oklch(0.985 0 0);
+  --icon-badge-bg: rgba(220, 252, 231, 0.1);
 }
 
 @layer base {
@@ -255,4 +270,10 @@ html {
   html {
     @apply font-sans;
   }
+}
+
+/* Dumbbell spinner animation */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }

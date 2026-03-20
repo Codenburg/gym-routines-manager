@@ -1,0 +1,24 @@
+change: error-handling-graceful-degradation
+status: completed
+created: 2026-03-18T00:00:00Z
+archived: 2026-03-18T00:00:00Z
+
+artifacts:
+  proposal: proposal.md
+  specs:
+    - specs/error-handling/spec.md
+  design: design.md
+  tasks: tasks.md
+  verify-report: verify-report.md
+
+verification:
+  typescript: passed
+  lint: not_run
+  build: not_run
+
+acceptance_criteria:
+  ac1_no_fake_data: passed
+  ac2_honest_price: passed
+  ac3_consistent_state: passed
+  ac4_error_boundary_reserved: passed
+  ac5_type_safety: passed

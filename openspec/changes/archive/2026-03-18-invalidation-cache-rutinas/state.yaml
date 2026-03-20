@@ -1,0 +1,31 @@
+status: completed
+created: 2026-03-18
+archived: 2026-03-19
+
+executive_summary: |
+  Implemented cache invalidation for rutinas by connecting revalidateRutinasCache() 
+  to all mutation actions. After mutations, UI now reflects changes immediately instead
+  of waiting for 60-second cache timeout.
+
+artifacts:
+  - proposal.md
+  - specs/auth/spec.md (updated - Better Auth username plugin)
+  - specs/database/spec.md (updated - Account/Session models)
+
+completion:
+  - tasks.md: created
+  - verify-report.md: not created
+  - archived: yes
+
+key_changes:
+  - src/app/actions/rutinas.ts: Added revalidateRutinasCache() to createRutina, updateRutina, deleteRutina, createRutinaCompleta
+  - src/app/actions/dias.ts: Added revalidateRutinasCache() to createDia, updateDia, deleteDia, reorderDias
+
+test_results:
+  - cache-invalidation tests: ~24 passed
+  - homepage tests: ~17 passed
+  - public-e2e tests: ~35 passed
+
+next_steps:
+  - Archive this change
+  - Continue with remaining test fixes

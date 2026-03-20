@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { SearchInput } from "./search-input";
-import { ActiveFilters } from "./active-filters";
 import { useUnifiedSearch } from "@/hooks/use-unified-search";
 
 interface SearchBarProps {
@@ -15,9 +14,6 @@ export function SearchBar({ defaultValue = "" }: SearchBarProps) {
   const {
     query,
     setQuery,
-    activeFilters,
-    removeFilter,
-    clearFilters,
   } = useUnifiedSearch();
 
   // Initialize from URL
@@ -29,16 +25,11 @@ export function SearchBar({ defaultValue = "" }: SearchBarProps) {
   }, [searchParams, query, setQuery]);
 
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full">
       <SearchInput
         value={query}
         onChange={setQuery}
         placeholder="Buscar rutinas..."
-      />
-      <ActiveFilters
-        filters={activeFilters}
-        onRemove={removeFilter}
-        onClearAll={clearFilters}
       />
     </div>
   );

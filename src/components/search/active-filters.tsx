@@ -19,17 +19,16 @@ export function ActiveFilters({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 mt-2">
-      <span className="text-sm text-muted-foreground">Filtros:</span>
+    <div className="flex flex-wrap items-center gap-2 mt-3">
       {filters.map((filter) => (
         <div
           key={`${filter.type}-${filter.value}`}
-          className="inline-flex items-center gap-1 px-2 py-1 text-sm bg-secondary text-secondary-foreground rounded-md"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs border border-border/50 bg-background/80 text-muted-foreground rounded-md"
         >
           <span className="truncate max-w-[150px]">{filter.label}</span>
           <button
             onClick={() => onRemove(filter)}
-            className="p-0.5 hover:bg-secondary/80 rounded transition-colors"
+            className="p-0.5 hover:bg-muted/50 rounded transition-colors"
             aria-label={`Remover filtro ${filter.label}`}
           >
             <X className="w-3 h-3" />
@@ -39,7 +38,7 @@ export function ActiveFilters({
       {filters.length > 1 && (
         <button
           onClick={onClearAll}
-          className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
+          className="text-xs text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors"
         >
           Limpiar todo
         </button>

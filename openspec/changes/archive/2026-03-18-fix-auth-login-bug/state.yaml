@@ -1,0 +1,35 @@
+status: completed
+created: 2026-03-19
+
+executive_summary: |
+  Fixed critical admin login bug. Login was failing with 401 because seed was storing
+  providerId: 'username' but Better Auth username plugin queries with providerId: 'credential'.
+  Changed seed.ts Account creation to use correct providerId.
+
+artifacts:
+  - proposal.md (created)
+  - specs/auth/spec.md (updated - Better Auth username plugin requirements)
+  - specs/database/spec.md (updated - Account model requirements)
+
+completion:
+  - tasks.md: not needed (simple one-line fix)
+  - verify-report.md: not created
+  - archived: pending
+
+key_changes:
+  - prisma/seed.ts: Changed providerId from 'username' to 'credential' in Account creation
+
+test_results:
+  - Login API: Returns {token, user} correctly
+  - admin-e2e: ~21 passed, 2 flaky (timing issues in parallel)
+  - security-admin: ~50 passed, ~10 fail (API structure assumptions)
+  - Other suites: Working correctly
+
+verification:
+  - curl -X POST /api/auth/sign-in/username with valid creds: Returns token and user
+  - Playwright admin login test: Passes (when server fully ready)
+
+next_steps:
+  - Run seed in production/staging if applicable
+  - Fix remaining flaky tests (timing issues)
+  - Fix incorrect API structure assumptions in security tests

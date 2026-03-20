@@ -6,15 +6,52 @@ This spec describes the search and filtering functionality, including a separate
 
 ## ADDED Requirements
 
-### Requirement: Trainer Sidebar Filter Panel
+### Requirement: Stable Trainer List for Chip Display
 
-The system MUST display a sidebar panel containing a scrollable list of trainer names as filter options.
+The trainer sidebar chips MUST always display all trainers from the complete dataset, regardless of the current filter state.
+
+The implementation MUST:
+- Derive trainer list from ALL rutinas (unfiltered) before applying any trainer filter
+- Use two separate database queries: one for trainers (unfiltered), one for rutinas (filtered)
+- Never filter the trainer list based on the active filter state
+- Maintain stable counts based on total routines per trainer
+
+#### Scenario: Chips remain visible when filter is active
+
+- GIVEN multiple trainers exist in the database (e.g., "Nando", "Maxi", "Santi")
+- WHEN the user selects "Nando" filter
+- THEN all chips (Nando, Maxi, Santi) remain visible
+- AND only routines from "Nando" are displayed
+
+#### Scenario: Multiple trainer selection
+
+- GIVEN multiple trainers exist
+- WHEN the user selects "Nando" and "Maxi"
+- THEN all chips remain visible
+- AND routines from both "Nando" and "Maxi" are displayed
+
+#### Scenario: Toggle trainer filter off
+
+- GIVEN "Nando" is selected and other chips are visible
+- WHEN the user clicks "Nando" again to deselect
+- THEN all chips remain visible
+- AND all routines are displayed
+
+### Requirement: Trainer Sidebar as Source of Truth
+
+The trainer sidebar checkbox selection MUST be the only source of truth for filter state.
+No additional chips or tags should appear below the search bar.
+
+**IMPORTANT**: The trainer list displayed in the sidebar is derived from ALL rutinas (unfiltered),
+ensuring all chips remain visible regardless of filter state. The filtered routines display
+is derived separately and does not affect the trainer list.
 
 The sidebar MUST:
 - Display each unique trainer name from the database
 - Show a count of routines per trainer next to each name
 - Provide checkboxes for multiple trainer selection
 - Include an "Todos" option to clear all trainer filters
+- Visually indicate selected trainers (checkbox + highlight)
 
 #### Scenario: Display trainer list in sidebar
 
@@ -28,14 +65,14 @@ The sidebar MUST:
 - GIVEN the trainer sidebar is visible
 - WHEN the user checks a trainer checkbox
 - THEN the results filter to show only routines from that trainer
-- AND an active filter chip appears above the results
+- AND no chip appears (sidebar checkbox indicates selection)
 
 #### Scenario: Select multiple trainers
 
 - GIVEN the trainer sidebar is visible
 - WHEN the user checks multiple trainer checkboxes
 - THEN the results filter to show routines from ANY selected trainer
-- AND each selected trainer appears as a chip above results
+- AND no chips appear (sidebar checkboxes indicate selection)
 
 #### Scenario: Deselect all trainers (Todos)
 
@@ -65,61 +102,6 @@ The input MUST:
 - WHEN the user clicks the clear button (X)
 - THEN the input clears
 - AND all routines are displayed (respecting any trainer filters)
-
-### Requirement: Active Filter Chips
-
-The system MUST display chips above the results showing active filters.
-
-Each chip MUST:
-- Display the filter label (e.g., "Entrenador: Juan")
-- Be removable by clicking an X button
-- Allow clearing all filters with a "Limpiar todo" option
-
-#### Scenario: Display active trainer filter chip
-
-- GIVEN a trainer checkbox is selected
-- WHEN the results update
-- THEN a chip appears showing "Entrenador: {name}"
-- AND clicking the X removes that filter
-
-### Requirement: API Endpoint for Trainer List
-
-The system MUST provide an API endpoint to fetch trainers with routine counts.
-
-#### Scenario: Fetch trainer list with counts
-
-- GIVEN the system has routines with creators
-- WHEN a GET request is made to `/api/trainers`
-- THEN the response returns an array of objects with:
-  - `nombre`: trainer name
-  - `count`: number of routines by that trainer
-
-### Requirement: GET /api/rutinas Query Parameters
-
-The existing `/api/rutinas` endpoint MUST accept a new parameter for trainer filtering.
-
-The endpoint MUST:
-- Accept `trainers` parameter as comma-separated string of trainer names
-- Filter results to include routines where `creador` matches ANY of the specified trainers
-- Maintain backward compatibility (empty `trainers` returns all routines)
-
-#### Scenario: Filter by single trainer
-
-- GIVEN there are routines from multiple trainers
-- WHEN a request is made to `/api/rutinas?trainers=Juan`
-- THEN only routines where `creador = 'Juan'` are returned
-
-#### Scenario: Filter by multiple trainers
-
-- GIVEN there are routines from multiple trainers
-- WHEN a request is made to `/api/rutinas?trainers=Juan,Maria`
-- THEN routines where `creador = 'Juan'` OR `creador = 'Maria'` are returned
-
-#### Scenario: Combined search and trainer filter
-
-- GIVEN there are routines with various names and trainers
-- WHEN a request is made to `/api/rutinas?search=full&trainers=Juan`
-- THEN routines matching BOTH conditions are returned
 
 ### Requirement: Search Autocomplete
 

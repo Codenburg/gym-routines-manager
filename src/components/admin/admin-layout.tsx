@@ -1,122 +1,149 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useState, useRef, useEffect } from "react";
 import { signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { LayoutGrid, FileText, Zap, ChevronLeft, LogOut } from "lucide-react";
+import { LogOut, User, ChevronDown, Sun, Moon, House } from "lucide-react";
+import { useThemeStore } from "@/store/theme-store";
 
-interface NavItem {
-  href: string;
-  label: string;
-  icon: React.ReactNode;
+interface AdminLayoutProps {
+  children: React.ReactNode;
+  username: string; // Recibido del Server Layout - ya validado
 }
 
-const navItems: NavItem[] = [
-  {
-    href: "/admin/dashboard",
-    label: "Dashboard",
-    icon: <LayoutGrid className="w-5 h-5" />,
-  },
-  {
-    href: "/admin/rutinas",
-    label: "Rutinas",
-    icon: <FileText className="w-5 h-5" />,
-  },
-];
-
-export function AdminLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+export function AdminLayout({ children, username }: AdminLayoutProps) {
   const router = useRouter();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const { theme, toggleTheme } = useThemeStore();
+  const userName = username; // Ya viene validado del server
 
   const handleSignOut = async () => {
-    await signOut();
-    router.push("/admin/login");
-    router.refresh();
+    // Store current name to avoid flash during redirect
+    const currentName = userName;
+    // Redirect immediately 
+    await Promise.all([
+      signOut(),
+      router.push("/admin/login"),
+      router.refresh()
+    ]);
   };
 
   return (
-    <div className="min-h-screen bg-black flex">
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          "fixed left-0 top-0 h-full bg-zinc-950 border-r border-white/10 transition-all duration-300 z-50",
-          isSidebarOpen ? "w-64" : "w-20"
-        )}
-      >
-        {/* Logo */}
-        <div className="h-16 flex items-center px-4 border-b border-white/10">
-          <Link href="/admin/dashboard" className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
-              <Zap className="w-6 h-6 text-white" />
-            </div>
-            {isSidebarOpen && (
-              <span className="text-white font-bold text-lg tracking-tight">CHAMPION</span>
-            )}
+    <div className="min-h-screen bg-[var(--background)] flex flex-col items-center">
+      {/* Header */}
+      <header className="w-full max-w-4xl h-14 border-b border-[var(--card-border)] flex items-center justify-between px-4 bg-[var(--background)] sticky top-0 z-40">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            className="p-2 hover:bg-[var(--button-secondary-bg)] rounded-lg text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+          >
+            <House className="w-5 h-5" />
           </Link>
         </div>
 
-        {/* Navigation */}
-        <nav className="p-4 space-y-2">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
-                  isActive
-                    ? "bg-red-600 text-white"
-                    : "text-white/70 hover:bg-white/10 hover:text-white"
-                )}
-              >
-                {item.icon}
-                {isSidebarOpen && <span className="font-medium">{item.label}</span>}
-              </Link>
-            );
-          })}
-        </nav>
+        <h1 className="text-[var(--foreground)] font-bold text-lg tracking-tight">Champion Gym</h1>
 
-        {/* Sidebar Toggle */}
-        <button
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="absolute bottom-4 right-4 p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-colors"
-        >
-          <ChevronLeft className={cn("w-5 h-5 transition-transform", !isSidebarOpen && "rotate-180")} />
-        </button>
-      </aside>
+        <div className="flex items-center gap-2">
+          <ProfileButton 
+            userName={userName} 
+            onSignOut={handleSignOut}
+            theme={theme}
+            onToggleTheme={toggleTheme}
+          />
+        </div>
+      </header>
 
-      {/* Main Content */}
-      <main
-        className={cn(
-          "flex-1 transition-all duration-300",
-          isSidebarOpen ? "ml-64" : "ml-20"
-        )}
+      {/* Content */}
+      <div className="w-full max-w-4xl p-4">{children}</div>
+    </div>
+  );
+}
+
+interface ProfileButtonProps {
+  userName: string;
+  onSignOut: () => Promise<void>;
+  theme: string;
+  onToggleTheme: () => void;
+}
+
+function ProfileButton({ userName, onSignOut, theme, onToggleTheme }: ProfileButtonProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  // Cerrar dropdown cuando cambia el tema
+  useEffect(() => {
+    setIsOpen(false);
+  }, [theme]);
+
+  return (
+    <div ref={dropdownRef} className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
+        aria-label="Menú de perfil"
+        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--button-secondary-bg)] hover:opacity-80 text-[var(--button-secondary-foreground)] transition-colors"
       >
-        {/* Header */}
-        <header className="h-16 border-b border-white/10 flex items-center justify-between px-6 bg-zinc-950/50 backdrop-blur-sm sticky top-0 z-40">
-          <div className="flex items-center gap-4">
-            <h1 className="text-white font-semibold text-lg">
-              {navItems.find((item) => pathname === item.href || pathname.startsWith(item.href + "/"))?.label || "Admin"}
-            </h1>
-          </div>
+        <User className="w-5 h-5" />
+        <span className="font-medium text-sm">{userName}</span>
+        <ChevronDown className={cn("w-4 h-4 transition-transform", isOpen && "rotate-180")} />
+      </button>
 
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="w-5 h-5 mr-2" />
-              Cerrar sesión
-            </Button>
-          </div>
-        </header>
-
-        {/* Content */}
-        <div className="p-6">{children}</div>
-      </main>
+      {isOpen && (
+        <div
+          role="menu"
+          className="absolute right-0 mt-2 w-48 bg-[var(--background)] border border-[var(--card-border)] rounded-lg shadow-lg overflow-hidden"
+        >
+          <button
+            role="menuitem"
+            onClick={onToggleTheme}
+            className="w-full flex items-center gap-2 px-4 py-3 text-[var(--foreground)] hover:bg-[var(--button-secondary-bg)] transition-colors"
+          >
+            {theme === "dark" ? (
+              <>
+                <Sun className="w-5 h-5" />
+                Modo Claro
+              </>
+            ) : (
+              <>
+                <Moon className="w-5 h-5" />
+                Modo Oscuro
+              </>
+            )}
+          </button>
+          <button
+            role="menuitem"
+            onClick={onSignOut}
+            className="w-full flex items-center gap-2 px-4 py-3 text-[var(--foreground)] hover:bg-[var(--button-secondary-bg)] transition-colors"
+          >
+            <LogOut className="w-5 h-5" />
+            Cerrar sesión
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,0 +1,12 @@
+change: admin-theme-css-variables
+phase: proposal
+artifact_store: hybrid
+artifacts:
+  proposal: true
+  specs: false
+  design: false
+  tasks: false
+tasks_progress:
+  completed: []
+  pending: []
+last_updated: 2026-03-19

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { revalidateRutinasCache } from "@/lib/rutinas";
 import {
   rutinaSchema,
   rutinaUpdateSchema,
@@ -69,6 +70,9 @@ export async function createRutina(
       },
     });
 
+    // Invalidate rutinas cache so homepage reflects changes immediately
+    await revalidateRutinasCache();
+
     revalidatePath("/admin/dashboard");
     revalidatePath("/admin/rutinas");
 
@@ -128,6 +132,9 @@ export async function updateRutina(
       data: parsed.data,
     });
 
+    // Invalidate rutinas cache so homepage reflects changes immediately
+    await revalidateRutinasCache();
+
     revalidatePath("/admin/dashboard");
     revalidatePath("/admin/rutinas");
     revalidatePath(`/admin/rutinas/${idParsed.data}`);
@@ -142,6 +149,111 @@ export async function updateRutina(
     return {
       success: false,
       message: "Error al actualizar la rutina",
+    };
+  }
+}
+
+/**
+ * Duplicate a Rutina with all its Dias and Ejercicios
+ */
+export async function duplicateRutina(
+  prevState: FormState,
+  formData: FormData
+): Promise<FormState<{ id: string }>> {
+  // Verify admin access
+  const authCheck = await verifyAdmin(await headers());
+  if (!authCheck.authorized) {
+    return { success: false, message: authCheck.message };
+  }
+
+  const id = formData.get("id") as string;
+
+  // Validate UUID format
+  const parsed = idSchema.safeParse(id);
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "ID de rutina inválido",
+    };
+  }
+
+  try {
+    // Fetch the original rutina with all related data
+    const original = await prisma.rutina.findUnique({
+      where: { id: parsed.data },
+      include: {
+        dias: {
+          include: {
+            ejercicios: true,
+          },
+          orderBy: { orden: "asc" },
+        },
+      },
+    });
+
+    if (!original) {
+      return {
+        success: false,
+        message: "Rutina no encontrada",
+      };
+    }
+
+    // Duplicate within a transaction
+    const duplicated = await prisma.$transaction(async (tx) => {
+      // Create the duplicated Rutina with " (Copia)" suffix
+      const newRutina = await tx.rutina.create({
+        data: {
+          nombre: `${original.nombre} (Copia)`,
+          tipo: original.tipo,
+          descripcion: original.descripcion,
+          creador: original.creador,
+        },
+      });
+
+      // Deep-copy each Dia with new UUID and copy of ejercicios
+      for (const dia of original.dias) {
+        const newDia = await tx.dia.create({
+          data: {
+            rutinaId: newRutina.id,
+            nombre: dia.nombre,
+            musculosEnfocados: dia.musculosEnfocados,
+            orden: dia.orden,
+          },
+        });
+
+        // Copy all ejercicios for this dia
+        for (const ejercicio of dia.ejercicios) {
+          await tx.ejercicio.create({
+            data: {
+              diaId: newDia.id,
+              nombre: ejercicio.nombre,
+              series: ejercicio.series,
+              repes: ejercicio.repes,
+              orden: ejercicio.orden,
+            },
+          });
+        }
+      }
+
+      return newRutina;
+    });
+
+    // Invalidate rutinas cache so homepage reflects changes immediately
+    await revalidateRutinasCache();
+
+    revalidatePath("/admin/dashboard");
+    revalidatePath("/admin/rutinas");
+
+    return {
+      success: true,
+      data: { id: duplicated.id },
+      message: "Rutina duplicada exitosamente",
+    };
+  } catch (error) {
+    console.error("Error duplicating rutina:", error);
+    return {
+      success: false,
+      message: "Error al duplicar la rutina",
     };
   }
 }
@@ -174,6 +286,9 @@ export async function deleteRutina(
     await prisma.rutina.delete({
       where: { id: parsed.data },
     });
+
+    // Invalidate rutinas cache so homepage reflects changes immediately
+    await revalidateRutinasCache();
 
     revalidatePath("/admin/dashboard");
     revalidatePath("/admin/rutinas");
@@ -400,6 +515,9 @@ export async function createRutinaCompleta(
 
       return createdRutina;
     });
+
+    // Invalidate rutinas cache so homepage reflects changes immediately
+    await revalidateRutinasCache();
 
     revalidatePath("/admin/dashboard");
     revalidatePath("/admin/rutinas");

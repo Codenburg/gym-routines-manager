@@ -16,15 +16,30 @@
       "sourceType": "github",
       "computedHash": "516bd2154eb843a8240e43d5b285229129853114ad7075a5e141e1c08e408c84"
     },
+    "nextjs-best-practices": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "f57b0625e5e9e64dc9f3d7333c81e73f445fd9c65fe7cd0fd99a779a2e78dffd"
+    },
     "postgresql-best-practices": {
       "source": "wimolivier/postgresql-best-practices",
       "sourceType": "github",
       "computedHash": "3559d6abf65d968f475378e998544b59759636af6ff33a34fb5b82e94d410b3d"
     },
+    "react-hook-form": {
+      "source": "pproenca/dot-skills",
+      "sourceType": "github",
+      "computedHash": "4e32884be8612b5ce12dd328812f68970e38ef81d6809a0d59225e84e57b17ea"
+    },
     "shadcn": {
       "source": "shadcn/ui",
       "sourceType": "github",
       "computedHash": "1d61d915437a447176ad9f1d7141f22b163265e64f9fac50267264674068099f"
+    },
+    "tailwind-design-system": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "0fc7b79d08ee5168d46c6887014cbe5bd02f2c5e458858470e20fc8ecedefb46"
     }
   }
 }

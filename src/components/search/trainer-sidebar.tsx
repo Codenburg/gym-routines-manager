@@ -29,13 +29,13 @@ export function TrainerSidebar({
   }
 
   return (
-    <aside className="w-full lg:w-64 flex-shrink-0">
-      <div className="bg-card border rounded-lg p-4">
+    <aside className="w-full lg:w-64 flex-shrink-0 mt-0">
+      <div className="bg-card border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-muted-foreground" />
-            <h3 className="font-semibold text-sm">Entrenadores</h3>
+            <h3 className="font-semibold text-sm text-foreground">Entrenadores</h3>
           </div>
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -54,8 +54,8 @@ export function TrainerSidebar({
             className={cn(
               "w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors",
               selectedTrainers.length === 0
-                ? "bg-primary text-primary-foreground"
-                : "hover:bg-accent text-muted-foreground"
+                ? "bg-blue-500 text-white"
+                : "hover:bg-slate-100 dark:hover:bg-slate-800 text-muted-foreground"
             )}
           >
             <span className="font-medium">Todos</span>
@@ -78,21 +78,21 @@ export function TrainerSidebar({
                   className={cn(
                     "w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors",
                     isSelected
-                      ? "bg-primary/10 text-primary"
-                      : "hover:bg-accent"
+                      ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                      : "hover:bg-slate-100 dark:hover:bg-slate-800"
                   )}
                 >
                   <div
                     className={cn(
                       "w-4 h-4 rounded border flex items-center justify-center transition-colors",
                       isSelected
-                        ? "bg-primary border-primary text-primary-foreground"
-                        : "border-muted-foreground"
+                        ? "bg-blue-500 border-blue-500 text-white"
+                        : "border-slate-400 dark:border-slate-500"
                     )}
                   >
                     {isSelected && <Check className="w-3 h-3" />}
                   </div>
-                  <span className="truncate">{trainer.nombre}</span>
+                  <span className="truncate text-foreground">{trainer.nombre}</span>
                   <span className="ml-auto text-xs text-muted-foreground">
                     {trainer.count}
                   </span>

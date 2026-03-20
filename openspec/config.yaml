@@ -4,6 +4,9 @@
 
 schema: spec-driven
 
+artifact_store:
+  mode: hybrid  # Persist to both Engram and OpenSpec
+
 context: |
   Tech stack: Next.js 16.1.6 + React 19 + TypeScript 5 + Tailwind CSS 4 + Prisma 7 + PostgreSQL 18.3
   Architecture: Next.js App Router
@@ -184,3 +187,53 @@ documentation:
     - Public functions MUST include JSDoc with @param and @returns
     - Complex modules SHOULD include a README.md explaining purpose and usage
     - Non-obvious logic MUST include inline comments explaining the why, not the what
+
+    # ERROR HANDLING
+
+error_handling:
+  principles:
+    - Infrastructure failures (database, network, external APIs) MUST NOT throw exceptions
+    - Infrastructure failures MUST return a standardized fallback response
+    - Fallback responses MUST follow the shape: { data, error }
+    - UI layer MUST differentiate between empty state and error state
+    - Error boundaries (error.tsx, global-error.tsx) MUST ONLY handle unexpected errors (bugs, render failures)
+    - Logs MUST be recorded server-side and MUST NOT be exposed to the client
+
+  data_layer:
+    rules:
+      - All data fetching functions MUST use try/catch
+      - On failure, MUST return a fallback object instead of throwing
+      - MUST NOT leak internal error details to the caller
+
+  ui_layer:
+    rules:
+      - MUST handle three states: success, empty, error
+      - MUST NOT assume empty data implies an error
+      - MUST render a user-friendly error state when error=true
+
+  forbidden:
+    - Throwing exceptions for recoverable errors (DB down, fetch failed)
+    - Using error.tsx to handle infrastructure failures
+
+ui_state_management:
+  principles:
+    - There MUST be a single source of truth for data state ({ data, error })
+    - All components in the same segment MUST consume the same state source
+    - UI MUST NOT derive or simulate data independently of the source of truth
+    - Error state MUST override any previously available or fallback data
+
+  propagation:
+    - Parent components MUST fetch and own data state
+    - Child components MUST receive state via props, NOT fetch independently
+    - Shared data MUST NOT be recomputed inconsistently across components
+
+  rendering:
+    - UI MUST handle three explicit states: loading, error, success
+    - UI MUST NOT display partial or stale data when error=true
+    - Numeric values (counts, prices, totals) MUST only be shown when derived from valid data
+    - Placeholders MUST be used instead of fake or estimated values
+
+  forbidden:
+    - Hardcoded fallback values that mimic real data (e.g. counts, prices)
+    - Multiple independent data fetches for the same resource in the same view
+    - Mixing error state with visible valid-looking data

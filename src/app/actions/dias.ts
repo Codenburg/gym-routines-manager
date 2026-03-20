@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { revalidateRutinasCache } from "@/lib/rutinas";
 import { diaSchema, diaUpdateSchema, type FormState } from "@/lib/schemas";
 
 /**
@@ -66,6 +67,9 @@ export async function createDia(
       },
     });
 
+    // Invalidate rutinas cache since diasCount may have changed
+    await revalidateRutinasCache();
+
     revalidatePath("/admin/dashboard");
     revalidatePath(`/admin/rutinas/${parsed.data.rutinaId}`);
 
@@ -124,6 +128,9 @@ export async function updateDia(
       data: parsed.data,
     });
 
+    // Invalidate rutinas cache since content may have changed
+    await revalidateRutinasCache();
+
     revalidatePath("/admin/dashboard");
     revalidatePath(`/admin/rutinas/${rutinaId || dia.rutinaId}`);
 
@@ -168,6 +175,9 @@ export async function deleteDia(
     await prisma.dia.delete({
       where: { id },
     });
+
+    // Invalidate rutinas cache since diasCount changed
+    await revalidateRutinasCache();
 
     revalidatePath("/admin/dashboard");
     revalidatePath(`/admin/rutinas/${rutinaId}`);
@@ -229,6 +239,9 @@ export async function reorderDias(
         })
       )
     );
+
+    // Invalidate rutinas cache since order changed
+    await revalidateRutinasCache();
 
     revalidatePath(`/admin/rutinas/${rutinaId}`);
 
