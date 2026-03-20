@@ -23,17 +23,17 @@ export function EjercicioRow({
   const baseName = `dias[${diaIndex}].ejercicios[${ejercicioIndex}]`;
 
   return (
-    <div className="flex gap-3 items-start p-3 bg-[var(--button-secondary-bg)] rounded-lg border border-[var(--card-border)]">
+    <div className="flex gap-3 items-start p-3 bg-secondary rounded-lg border border-border">
       {/* Nombre */}
       <div className="flex-1 min-w-0">
         <Input
           name={`${baseName}.nombre`}
           placeholder="Nombre del ejercicio"
           required
-          className="bg-[var(--input-bg)]"
+          className="bg-input"
         />
         {errors?.[`${baseName}.nombre`] && (
-          <p className="text-[var(--destructive)] text-xs mt-1">{errors[`${baseName}.nombre`][0]}</p>
+          <p className="text-destructive text-xs mt-1">{errors[`${baseName}.nombre`][0]}</p>
         )}
       </div>
 
@@ -42,7 +42,7 @@ export function EjercicioRow({
         <Input
           name={`${baseName}.series`}
           placeholder="Series"
-          className="bg-[var(--input-bg)] text-center"
+          className="bg-input text-center"
         />
       </div>
 
@@ -51,7 +51,7 @@ export function EjercicioRow({
         <Input
           name={`${baseName}.repes`}
           placeholder="Repes"
-          className="bg-[var(--input-bg)] text-center"
+          className="bg-input text-center"
         />
       </div>
 
@@ -61,7 +61,7 @@ export function EjercicioRow({
         variant="ghost"
         size="sm"
         onClick={onRemove}
-        className="text-[var(--destructive)] hover:text-[var(--destructive)] hover:bg-[var(--destructive)]/10 shrink-0"
+        className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
         title="Eliminar ejercicio"
       >
         ✕

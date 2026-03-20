@@ -5,6 +5,8 @@ import { createRutina, updateRutina } from "@/app/actions/rutinas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select } from "@/components/ui/select";
+import { AdminFormField } from "@/components/admin/admin-form-field";
 import type { FormState } from "@/lib/schemas";
 import { useEffect, useRef } from "react";
 
@@ -56,24 +58,21 @@ export function RutinaForm({ initialData, onSuccess }: RutinaFormProps) {
 
       {/* Error Message */}
       {state && !state.success && state.message && (
-        <div className="p-4 bg-[var(--destructive)]/10 border border-[var(--destructive)]/30 rounded-lg">
-          <p className="text-[var(--destructive)] text-sm">{state.message}</p>
+        <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
+          <p className="text-destructive text-sm">{state.message}</p>
         </div>
       )}
 
       {/* Success Message */}
       {state?.success && (
-        <div className="p-4 bg-[var(--success)] border border-[var(--success)]/30 rounded-lg">
-          <p className="text-[var(--success-foreground)] text-sm">{state.message}</p>
+        <div className="p-4 bg-secondary border border-secondary-foreground/20 rounded-lg">
+          <p className="text-secondary-foreground text-sm">{state.message}</p>
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {/* Nombre */}
-      <div className="space-y-2">
-        <label htmlFor="nombre" className="text-[var(--foreground)] text-sm font-medium">
-          Nombre *
-        </label>
+        {/* Nombre */}
+        <AdminFormField variant="default" label="Nombre *" error={state?.errors?.nombre?.[0]}>
           <Input
             id="nombre"
             name="nombre"
@@ -83,41 +82,23 @@ export function RutinaForm({ initialData, onSuccess }: RutinaFormProps) {
             placeholder="Ej: Rutina Full Body"
             error={!!state?.errors?.nombre}
           />
-          {state?.errors?.nombre && (
-            <p className="text-[var(--destructive)] text-xs">{state.errors.nombre[0]}</p>
-          )}
-        </div>
+        </AdminFormField>
 
-      {/* Tipo */}
-      <div className="space-y-2">
-        <label htmlFor="tipo" className="text-[var(--foreground)] text-sm font-medium">
-          Tipo *
-        </label>
-        <select
-          id="tipo"
-          name="tipo"
-          required
-          defaultValue={initialData?.tipo || ""}
-            className="flex h-10 w-full rounded-lg border bg-[var(--card-bg)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] border-[var(--card-border)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent"
-        >
+        {/* Tipo */}
+        <AdminFormField variant="default" label="Tipo *" error={state?.errors?.tipo?.[0]}>
+          <Select name="tipo" required defaultValue={initialData?.tipo || ""}>
             <option value="">Seleccionar tipo</option>
             {tipos.map((tipo) => (
               <option key={tipo.value} value={tipo.value}>
                 {tipo.label}
               </option>
             ))}
-          </select>
-          {state?.errors?.tipo && (
-            <p className="text-[var(--destructive)] text-xs">{state.errors.tipo[0]}</p>
-          )}
-        </div>
+          </Select>
+        </AdminFormField>
       </div>
 
       {/* Descripcion */}
-      <div className="space-y-2">
-        <label htmlFor="descripcion" className="text-[var(--foreground)] text-sm font-medium">
-          Descripción
-        </label>
+      <AdminFormField variant="default" label="Descripción" error={state?.errors?.descripcion?.[0]}>
         <Textarea
           id="descripcion"
           name="descripcion"
@@ -125,10 +106,7 @@ export function RutinaForm({ initialData, onSuccess }: RutinaFormProps) {
           placeholder="Describe los objetivos de esta rutina..."
           rows={3}
         />
-        {state?.errors?.descripcion && (
-            <p className="text-[var(--destructive)] text-xs">{state.errors.descripcion[0]}</p>
-        )}
-      </div>
+      </AdminFormField>
 
       {/* Submit */}
       <div className="flex justify-end gap-3">

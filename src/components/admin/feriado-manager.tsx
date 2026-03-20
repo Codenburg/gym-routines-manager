@@ -6,6 +6,9 @@ import { createFeriado, deleteFeriado } from "@/app/actions/feriados";
 import type { FormState } from "@/lib/schemas";
 import { Plus, Calendar, Trash2 } from "lucide-react";
 import { useConfirm } from "@/hooks/use-confirm";
+import { AdminCard } from "@/components/admin/admin-card";
+import { AdminFormField } from "@/components/admin/admin-form-field";
+import { Button } from "@/components/ui/button";
 
 interface Feriado {
   id: string;
@@ -21,7 +24,6 @@ export function FeriadoManager({ initialFeriados }: FeriadoManagerProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const { confirm, Dialog } = useConfirm();
 
   const handleAdd = async () => {
@@ -31,7 +33,6 @@ export function FeriadoManager({ initialFeriados }: FeriadoManagerProps) {
     }
 
     setError(null);
-    setSuccess(null);
     setIsAdding(true);
 
     try {
@@ -100,74 +101,63 @@ export function FeriadoManager({ initialFeriados }: FeriadoManagerProps) {
   return (
     <div className="space-y-6">
       {/* Add Holiday Form */}
-      <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-[var(--foreground)] mb-4">Agregar Feriado</h3>
+      <AdminCard variant="standard">
+        <h3 className="text-lg font-semibold text-foreground mb-4">Agregar Feriado</h3>
         
         {error && (
-          <div className="mb-4 p-3 bg-[var(--destructive)]/10 border border-[var(--destructive)]/30 rounded-lg text-[var(--destructive)] text-sm">
+          <div className="mb-4 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-destructive text-sm">
             {error}
-          </div>
-        )}
-        
-        {success && (
-          <div className="mb-4 p-3 bg-[var(--success)]/10 border border-[var(--success)]/30 rounded-lg text-[var(--success)] text-sm">
-            {success}
           </div>
         )}
 
         <div className="flex gap-4 items-end">
           <div className="flex-1">
-            <label htmlFor="fecha" className="block text-sm font-medium text-[var(--foreground)] mb-2">
-              Fecha del feriado
-            </label>
-            <input
-              type="date"
-              id="fecha"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full px-4 py-2 bg-[var(--input-bg)] border border-[var(--input-border)] rounded-lg text-[var(--input-foreground)] placeholder:[var(--input-placeholder)] focus:outline-none focus:border-[var(--ring)]"
-            />
+            <AdminFormField variant="default" label="Fecha del feriado">
+              <input
+                type="date"
+                id="fecha"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring"
+              />
+            </AdminFormField>
           </div>
-          <button
-            onClick={handleAdd}
-            disabled={isAdding}
-            className="px-4 py-2 bg-[var(--button-primary-bg)] hover:opacity-90 disabled:opacity-50 text-[var(--button-primary-foreground)] rounded-lg transition-colors flex items-center gap-2"
-          >
-            <Plus className="w-5 h-5" />
+          <Button onClick={handleAdd} disabled={isAdding}>
+            <Plus className="w-5 h-5 mr-2" />
             {isAdding ? "Agregando..." : "Agregar"}
-          </button>
+          </Button>
         </div>
-      </div>
+      </AdminCard>
 
       {/* Holidays List */}
-      <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-[var(--card-border)]">
-          <h3 className="text-lg font-semibold text-[var(--foreground)]">
+      <AdminCard variant="standard">
+        <div className="px-6 py-4 border-b border-border">
+          <h3 className="text-lg font-semibold text-foreground">
             Feriados Existentes ({feriados.length})
           </h3>
         </div>
         
         {feriados.length > 0 ? (
-          <div className="divide-y divide-[var(--border)]">
+          <div className="divide-y divide-border">
             {feriados.map((feriado) => (
               <div
                 key={feriado.id}
-                className="flex items-center justify-between px-6 py-4 hover:bg-[var(--accent)] transition-colors"
+                className="flex items-center justify-between px-6 py-4 hover:bg-muted transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-[var(--destructive)]/10 rounded-lg flex items-center justify-center">
-                    <Calendar className="w-5 h-5 text-[var(--destructive)]" />
+                  <div className="w-10 h-10 bg-destructive/10 rounded-lg flex items-center justify-center">
+                    <Calendar className="w-5 h-5 text-destructive" />
                   </div>
                   <div>
-                    <p className="text-[var(--foreground)] font-medium">{formatDate(feriado.fecha)}</p>
-                    <p className="text-[var(--muted-foreground)] text-sm">
+                    <p className="text-foreground font-medium">{formatDate(feriado.fecha)}</p>
+                    <p className="text-muted-foreground text-sm">
                       {new Date(feriado.fecha).toLocaleDateString("es-AR")}
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => handleDelete(feriado.id)}
-                  className="p-2 hover:bg-[var(--destructive)]/10 rounded-lg text-[var(--muted-foreground)] hover:text-[var(--destructive)] transition-colors"
+                  className="p-2 hover:bg-destructive/10 rounded-lg text-muted-foreground hover:text-destructive transition-colors"
                   title="Eliminar"
                 >
                   <Trash2 className="w-5 h-5" />
@@ -177,12 +167,12 @@ export function FeriadoManager({ initialFeriados }: FeriadoManagerProps) {
           </div>
         ) : (
           <div className="text-center py-12 px-6">
-            <Calendar className="w-16 h-16 text-[var(--muted-foreground)] mx-auto mb-4 opacity-20" />
-            <p className="text-[var(--muted-foreground)] text-lg">No hay feriados agregados</p>
-            <p className="text-[var(--muted-foreground)] text-sm mt-2 opacity-60">Agrega un feriado usando el formulario de arriba</p>
+            <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-20" />
+            <p className="text-muted-foreground text-lg">No hay feriados agregados</p>
+            <p className="text-muted-foreground text-sm mt-2 opacity-60">Agrega un feriado usando el formulario de arriba</p>
           </div>
         )}
-      </div>
+      </AdminCard>
       {Dialog}
     </div>
   );
