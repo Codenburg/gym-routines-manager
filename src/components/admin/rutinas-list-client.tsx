@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Pencil, FileText, Copy } from "lucide-react";
+import { toast } from "sonner";
 import { DeleteRutinaButton } from "@/components/admin/delete-rutina-button";
-import { duplicateRutina } from "@/app/actions/rutinas";
+import { duplicateRutina, deleteRutinas } from "@/app/actions/rutinas";
 import { useConfirm } from "@/hooks/use-confirm";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface RutinaWithCount {
   id: string;
@@ -27,6 +29,56 @@ export function RutinasListClient({ rutinas }: RutinasListClientProps) {
   const router = useRouter();
   const { confirm, Dialog } = useConfirm();
 
+  // Selection state for multi-select
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const filteredRutinas = rutinas.filter((rutina) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      rutina.nombre.toLowerCase().includes(term) ||
+      rutina.tipo.toLowerCase().includes(term) ||
+      rutina.descripcion?.toLowerCase().includes(term)
+    );
+  });
+
+  // Selection helper functions (defined after filteredRutinas)
+  const toggleSelection = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => setSelectedIds(new Set(filteredRutinas.map((r) => r.id)));
+  const deselectAll = () => setSelectedIds(new Set());
+  const isAllSelected = filteredRutinas.length > 0 && selectedIds.size === filteredRutinas.length;
+  const isSelected = (id: string) => selectedIds.has(id);
+
+  // Bulk delete handler
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`¿Eliminar ${selectedIds.size} rutinas?\nEsta acción no se puede deshacer.`)) {
+      return;
+    }
+
+    const formData = new FormData();
+    formData.set("ids", JSON.stringify(Array.from(selectedIds)));
+
+    // Pass promise DIRECTLY - NO async wrapper
+    const promise = deleteRutinas({ success: false }, formData);
+    toast.promise(promise, {
+      loading: "Eliminando rutinas...",
+      success: (result) => {
+        const data = result as { success: true; data: { deletedCount: number } };
+        setSelectedIds(new Set()); // CRITICAL: clean BEFORE refresh
+        router.refresh();
+        return `${data.data.deletedCount} rutinas eliminadas`;
+      },
+      error: (err: { message?: string }) => err.message || "Error al eliminar rutinas",
+    });
+  };
+
   const handleDuplicate = async (rutinaId: string) => {
     const confirmed = await confirm({
       title: "¿Duplicar rutina?",
@@ -43,24 +95,15 @@ export function RutinasListClient({ rutinas }: RutinasListClientProps) {
       if (result.success) {
         router.refresh();
       } else {
-        alert(result.message || "Error al duplicar la rutina");
+        toast.error(result.message || "Error al duplicar la rutina");
       }
     } catch (error) {
       console.error("Error duplicating:", error);
-      alert("Error al duplicar la rutina");
+      toast.error("Error al duplicar la rutina");
     } finally {
       setIsDuplicating(null);
     }
   };
-
-  const filteredRutinas = rutinas.filter((rutina) => {
-    const term = searchTerm.toLowerCase();
-    return (
-      rutina.nombre.toLowerCase().includes(term) ||
-      rutina.tipo.toLowerCase().includes(term) ||
-      rutina.descripcion?.toLowerCase().includes(term)
-    );
-  });
 
   return (
     <div className="space-y-4">
@@ -75,12 +118,46 @@ export function RutinasListClient({ rutinas }: RutinasListClientProps) {
         />
       </div>
 
+      {/* Bulk Delete UI */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-2 p-3 bg-[var(--destructive)]/10 border border-[var(--destructive)]/20 rounded-lg">
+          <span className="text-sm text-[var(--destructive)] font-medium">
+            {selectedIds.size} seleccionada{selectedIds.size !== 1 ? "s" : ""}
+          </span>
+          <button
+            type="button"
+            onClick={handleBulkDelete}
+            className="ml-auto px-3 py-1.5 bg-[var(--destructive)] text-[var(--destructive-foreground)] text-sm font-medium rounded-md hover:bg-[var(--destructive)]/90 transition-colors"
+          >
+            Eliminar seleccionadas
+          </button>
+          <button
+            type="button"
+            onClick={deselectAll}
+            className="px-3 py-1.5 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+          >
+            Cancelar
+          </button>
+        </div>
+      )}
+
       {/* Table or Empty State */}
       {filteredRutinas.length > 0 ? (
         <div className="bg-[var(--button-secondary-bg)] border border-[var(--card-border)] rounded-xl overflow-hidden">
           <table className="w-full">
             <thead>
               <tr className="border-b border-[var(--card-border)]">
+                <th className="w-12 px-6 py-4">
+                  <Checkbox
+                    checked={isAllSelected}
+                    indeterminate={selectedIds.size > 0 && !isAllSelected}
+                    onCheckedChange={(checked) => {
+                      if (checked === true) selectAll();
+                      else deselectAll();
+                    }}
+                    aria-label="Seleccionar todas"
+                  />
+                </th>
                 <th className="text-left px-6 py-4 text-[var(--muted-foreground)] font-medium text-sm">Nombre</th>
                 <th className="text-left px-6 py-4 text-[var(--muted-foreground)] font-medium text-sm">Tipo</th>
                 <th className="text-left px-6 py-4 text-[var(--muted-foreground)] font-medium text-sm">Creador</th>
@@ -92,6 +169,13 @@ export function RutinasListClient({ rutinas }: RutinasListClientProps) {
             <tbody>
               {filteredRutinas.map((rutina) => (
                 <tr key={rutina.id} className="border-b border-[var(--card-border)] hover:bg-[var(--background)] transition-colors">
+                  <td className="w-12 px-6 py-4">
+                    <Checkbox
+                      checked={isSelected(rutina.id)}
+                      onCheckedChange={() => toggleSelection(rutina.id)}
+                      aria-label={`Seleccionar ${rutina.nombre}`}
+                    />
+                  </td>
                   <td className="px-6 py-4">
                     <span className="text-[var(--foreground)] font-medium">{rutina.nombre}</span>
                   </td>

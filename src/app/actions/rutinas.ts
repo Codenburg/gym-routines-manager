@@ -307,6 +307,60 @@ export async function deleteRutina(
 }
 
 /**
+ * Delete multiple Rutinas (bulk delete)
+ */
+export async function deleteRutinas(
+  prevState: FormState,
+  formData: FormData
+): Promise<FormState<{ deletedCount: number }>> {
+  // Verify admin access
+  const authCheck = await verifyAdmin(await headers());
+  if (!authCheck.authorized) {
+    return { success: false, message: authCheck.message };
+  }
+
+  const idsJson = formData.get("ids");
+  if (!idsJson || typeof idsJson !== "string") {
+    return { success: false, message: "IDs inválidos" };
+  }
+
+  let ids: string[];
+  try {
+    ids = JSON.parse(idsJson) as string[];
+  } catch {
+    return { success: false, message: "Formato de IDs inválido" };
+  }
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { success: false, message: "No hay rutinas seleccionadas" };
+  }
+
+  try {
+    // SINGLE atomic operation - NO loops, NO forEach
+    const result = await prisma.rutina.deleteMany({
+      where: { id: { in: ids } },
+    });
+
+    // Invalidate rutinas cache so homepage reflects changes immediately
+    await revalidateRutinasCache();
+
+    revalidatePath("/admin/dashboard");
+    revalidatePath("/admin/rutinas");
+
+    return {
+      success: true,
+      data: { deletedCount: result.count },
+    };
+  } catch (error) {
+    console.error("Error bulk deleting rutinas:", error);
+    return {
+      success: false,
+      message: "Error al eliminar las rutinas",
+    };
+  }
+}
+
+/**
  * Get all Rutinas (for server components)
  */
 export async function getRutinas() {
