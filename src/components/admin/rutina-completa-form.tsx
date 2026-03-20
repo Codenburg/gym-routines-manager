@@ -6,6 +6,8 @@ import { createRutinaCompleta } from "@/app/actions/rutinas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select } from "@/components/ui/select";
+import { AdminFormField } from "@/components/admin/admin-form-field";
 import { DiaSection } from "./dia-section";
 import type { FormState } from "@/lib/schemas";
 
@@ -114,8 +116,8 @@ export function RutinaCompletaForm() {
     <form ref={formRef} action={action} className="space-y-6">
       {/* Error Message */}
       {state && !state.success && state.message && (
-        <div className="p-4 bg-[var(--destructive)]/10 border border-[var(--destructive)]/30 rounded-lg">
-          <p className="text-[var(--destructive)] text-sm">{state.message}</p>
+        <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
+          <p className="text-destructive text-sm">{state.message}</p>
         </div>
       )}
 
@@ -123,35 +125,19 @@ export function RutinaCompletaForm() {
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Nombre */}
-          <div className="space-y-2">
-            <label htmlFor="nombre" className="text-[var(--foreground)] text-sm font-medium">
-              Nombre de la rutina *
-            </label>
+          <AdminFormField variant="default" label="Nombre de la rutina *" error={state?.errors?.nombre?.[0]}>
             <Input
               id="nombre"
               name="nombre"
               type="text"
               required
               placeholder="Ej: Rutina Full Body"
-              className="bg-[var(--input-bg)]"
             />
-            {state?.errors?.nombre && (
-              <p className="text-[var(--destructive)] text-xs">{state.errors.nombre[0]}</p>
-            )}
-          </div>
+          </AdminFormField>
 
           {/* Tipo */}
-          <div className="space-y-2">
-            <label htmlFor="tipo" className="text-[var(--foreground)] text-sm font-medium">
-              Tipo *
-            </label>
-            <select
-              id="tipo"
-              name="tipo"
-              required
-              defaultValue=""
-              className="flex h-10 w-full rounded-lg border bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--input-foreground)] placeholder:[var(--input-placeholder)] border-[var(--input-border)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent"
-            >
+          <AdminFormField variant="default" label="Tipo *" error={state?.errors?.tipo?.[0]}>
+            <Select name="tipo" required defaultValue="">
               <option value="" disabled>
                 Seleccionar tipo
               </option>
@@ -160,43 +146,33 @@ export function RutinaCompletaForm() {
                   {tipo.label}
                 </option>
               ))}
-            </select>
-            {state?.errors?.tipo && (
-              <p className="text-[var(--destructive)] text-xs">{state.errors.tipo[0]}</p>
-            )}
-          </div>
+            </Select>
+          </AdminFormField>
         </div>
 
         {/* Descripcion */}
-        <div className="space-y-2">
-          <label htmlFor="descripcion" className="text-[var(--foreground)] text-sm font-medium">
-            Descripción
-          </label>
+        <AdminFormField variant="default" label="Descripción" error={state?.errors?.descripcion?.[0]}>
           <Textarea
             id="descripcion"
             name="descripcion"
             placeholder="Describe los objetivos de esta rutina..."
             rows={3}
-            className="bg-[var(--input-bg)]"
           />
-          {state?.errors?.descripcion && (
-            <p className="text-[var(--destructive)] text-xs">{state.errors.descripcion[0]}</p>
-          )}
-        </div>
+        </AdminFormField>
       </div>
 
       {/* Separator */}
-      <div className="border-t border-[var(--card-border)] my-6" />
+      <div className="border-t border-border my-6" />
 
       {/* Dias Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-[var(--foreground)] text-lg font-medium">Días de entrenamiento</h2>
-          <span className="text-[var(--muted-foreground)] text-xs">Al menos 1 día</span>
+          <h2 className="text-foreground text-lg font-medium">Días de entrenamiento</h2>
+          <span className="text-muted-foreground text-xs">Al menos 1 día</span>
         </div>
 
         {state?.errors?.dias && (
-          <p className="text-[var(--destructive)] text-sm">{state.errors.dias[0]}</p>
+          <p className="text-destructive text-sm">{state.errors.dias[0]}</p>
         )}
 
         <div className="space-y-4">
@@ -221,7 +197,7 @@ export function RutinaCompletaForm() {
       </div>
 
       {/* Separator */}
-      <div className="border-t border-[var(--card-border)] my-6" />
+      <div className="border-t border-border my-6" />
 
       {/* Submit */}
       <div className="flex justify-end gap-3">
