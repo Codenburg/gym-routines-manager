@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
+import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { type FormState } from "@/lib/schemas";
 
 /**
  * Helper function to verify admin access
@@ -42,22 +44,43 @@ export async function getGymConfig() {
 }
 
 /**
+ * Zod schema for price validation
+ * min: 1000 ARS, max: 500000 ARS, max 2 decimal places
+ */
+const priceSchema = z.object({
+  price: z.coerce
+    .number()
+    .min(1, { message: "El precio debe ser positivo" })
+    .min(1000, { message: "El precio mínimo es $1.000" })
+    .max(500000, { message: "El precio máximo es $500.000" })
+    .refine((v) => Number(v.toFixed(2)) === v, {
+      message: "Máximo 2 decimales",
+    }),
+});
+
+/**
  * Update gym price
  */
-export async function updateGymPrice(price: number): Promise<{
-  success: boolean;
-  message: string;
-  data?: { price: number };
-}> {
+export async function updateGymPrice(
+  prevState: FormState<{ price: number }>,
+  formData: FormData
+): Promise<FormState<{ price: number }>> {
   // Verify admin access
   const authCheck = await verifyAdmin(await headers());
   if (!authCheck.authorized) {
     return { success: false, message: authCheck.message || "No autorizado" };
   }
 
-  // Validate price
-  if (typeof price !== "number" || price <= 0) {
-    return { success: false, message: "El precio debe ser un número positivo" };
+  // Validate price with Zod
+  const rawPrice = formData.get("price");
+  const parsed = priceSchema.safeParse({ price: rawPrice });
+
+  if (!parsed.success) {
+    return {
+      success: false,
+      errors: parsed.error.flatten().fieldErrors,
+      message: "Error de validación",
+    };
   }
 
   try {
@@ -72,7 +95,7 @@ export async function updateGymPrice(price: number): Promise<{
 
     const gym = await prisma.gym.update({
       where: { id: "gym" },
-      data: { price },
+      data: { price: parsed.data.price },
     });
 
     // Revalidate paths
@@ -82,8 +105,8 @@ export async function updateGymPrice(price: number): Promise<{
 
     return {
       success: true,
-      message: "Precio actualizado exitosamente",
       data: { price: Number(gym.price) },
+      message: "Precio actualizado exitosamente",
     };
   } catch (error) {
     console.error("Error updating gym price:", error);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { createFeriado, deleteFeriado } from "@/app/actions/feriados";
 import type { FormState } from "@/lib/schemas";
 import { Plus, Calendar, Trash2 } from "lucide-react";
@@ -47,13 +48,13 @@ export function FeriadoManager({ initialFeriados }: FeriadoManagerProps) {
           fecha: new Date(selectedDate),
         };
         setFeriados((prev) => [...prev, newFeriado].sort((a, b) => a.fecha.getTime() - b.fecha.getTime()));
-        setSuccess("Feriado agregado exitosamente");
+        toast.success("Feriado agregado exitosamente");
         setSelectedDate("");
       } else {
-        setError(result.message || "Error al agregar feriado");
+        toast.error(result.message || "Error al agregar feriado");
       }
     } catch (err) {
-      setError("Error al agregar feriado");
+      toast.error("Error al agregar feriados");
       console.error(err);
     } finally {
       setIsAdding(false);
@@ -77,12 +78,12 @@ export function FeriadoManager({ initialFeriados }: FeriadoManagerProps) {
 
       if (result.success) {
         setFeriados((prev) => prev.filter((f) => f.id !== id));
-        setSuccess("Feriado eliminado exitosamente");
+        toast.success("Feriado eliminado exitosamente");
       } else {
-        setError(result.message || "Error al eliminar feriado");
+        toast.error(result.message || "Error al eliminar feriado");
       }
     } catch (err) {
-      setError("Error al eliminar feriado");
+      toast.error("Error al eliminar feriados");
       console.error(err);
     }
   };

@@ -191,9 +191,9 @@ The system MUST implement security best practices.
 
 ---
 
-### Requirement: Gym Price Configuration
+### Requirement: Gym Price Configuration (FormState + useActionState)
 
-Admins MUST be able to view and edit the gym subscription price.
+Admins MUST be able to view and edit the gym subscription price. The server action MUST return `FormState<T>` and the component MUST use `useActionState` (React 19). On successful save, a toast notification MUST be displayed.
 
 #### Scenario: Display current price
 
@@ -206,13 +206,6 @@ Admins MUST be able to view and edit the gym subscription price.
 - GIVEN The admin page is loading
 - WHEN The API request is in flight
 - THEN A loading skeleton or spinner MUST be displayed
-
-#### Scenario: API error handling
-
-- GIVEN The API is unavailable or returns an error
-- WHEN The component attempts to fetch the price
-- THEN An error message MUST be displayed to the user
-- AND The user SHOULD be able to retry
 
 #### Scenario: Enter edit mode
 
@@ -228,20 +221,28 @@ Admins MUST be able to view and edit the gym subscription price.
 - THEN The input MUST be discarded
 - AND The original price MUST be displayed again
 
-#### Scenario: Save new price
+#### Scenario: Save new price with success toast
 
 - GIVEN The user is in edit mode with a valid new price
 - WHEN The user clicks "Guardar"
-- THEN The PATCH /api/gym request MUST be sent with the new price
+- THEN The server action MUST be called with `useActionState`
 - AND On success, the display MUST update with the new price
 - AND The component MUST exit edit mode
+- AND A toast success notification MUST be displayed: "Precio actualizado exitosamente"
 
-#### Scenario: Save with invalid input
+#### Scenario: Save with validation error
 
-- GIVEN The user is in edit mode with invalid input (negative, zero, non-numeric)
+- GIVEN The user is in edit mode with invalid input (less than 1000, more than 500000, or more than 2 decimal places)
 - WHEN The user clicks "Guardar"
-- THEN A validation error message MUST be displayed
-- AND The request MUST NOT be sent to the API
+- THEN A validation error message MUST be displayed below the input
+- AND The request MUST NOT complete
+
+#### Scenario: Save with server error
+
+- GIVEN The user is in edit mode with valid input
+- WHEN The server action returns an error
+- THEN A toast error notification MUST be displayed with the error message
+- AND The component MUST remain in edit mode
 
 #### Scenario: Price formatting
 
@@ -249,51 +250,58 @@ Admins MUST be able to view and edit the gym subscription price.
 - WHEN The price is rendered for display
 - THEN It MUST be displayed as "$45.000" (peso sign, thousand separator)
 
-#### Scenario: Remove hardcoded price from public pages
+#### Scenario: Input sync with server state
 
-- GIVEN The informacion page loads
-- WHEN The page renders the price section
-- THEN The price MUST be fetched from GET /api/gym
-- AND There MUST NOT be any hardcoded "$45.000" in the source
+- GIVEN The user is in edit mode
+- WHEN The server action returns a new price (e.g., after another user edited)
+- THEN The input MUST resync using `key={serverPrice}` to force re-mount
+
+#### Scenario: Second consecutive edit shows toast
+
+- GIVEN The user just completed an edit and the form closed
+- WHEN The user clicks "Editar precio" again and saves
+- THEN A toast MUST be displayed (the useEffect dependency on isPending ensures this fires every time)
 
 ### Component Specification
 
 #### Gym Price Editor Component
 
-**Location**: `src/components/admin/` (new file)
+**Location**: `src/components/admin/GymPriceEditor.tsx`
 
-**States**:
-- `loading`: Display skeleton/spinner while fetching
-- `display`: Show current price with edit button
-- `editing`: Show input field with save/cancel buttons
-- `saving`: Show loading state while PATCH request is in flight
-- `error`: Show error message with retry option
+**Architecture**: Uses React 19 `useActionState` with the `updateGymPrice` server action.
 
-**Props** (if exposed):
-- None required (fetches its own data)
+**State Management**:
+- Server state: `useActionState(updateGymPrice, initialState)` returns `[state, formAction, isPending]`
+- Local UI state: `useState(false)` for `isEditing`
 
-**Internal Data**:
-- `price`: number | null
-- `isEditing`: boolean
-- `inputValue`: string
-- `isLoading`: boolean
-- `isSaving`: boolean
-- `error`: string | null
+**Input Sync Rule**: Inputs consuming server action data MUST use either:
+1. Controlled: `value={state.data?.x}` + `onChange`
+2. Uncontrolled with resync: `defaultValue={state.data?.x}` + `key={state.data?.x}`
+
+**Toast Pattern**:
+```typescript
+useEffect(() => {
+  if (!isPending && state.success) {
+    setIsEditing(false);
+    toast.success("Precio actualizado exitosamente");
+  }
+}, [isPending, state.success]);
+```
+
+**Validation**: Zod schema enforces min 1000, max 500000, max 2 decimal places.
 
 ### Acceptance Criteria
 
 | ID | Criterion |
 |----|-----------|
-| ACGP1 | Admin component fetches price from GET /api/gym on mount |
-| ACGP2 | Admin component displays formatted price (e.g., "$45.000") |
-| ACGP3 | "Editar precio" button activates edit mode |
-| ACGP4 | Numeric input accepts only valid numbers |
-| ACGP5 | Save button sends PATCH request with new price |
-| ACGP6 | Refetch occurs after successful save |
-| ACGP7 | Error states are handled gracefully |
-| ACGP8 | Loading states are displayed appropriately |
-| ACGP9 | informacion/page.tsx no longer contains hardcoded "$45.000" |
-| ACGP10 | No other hardcoded price constants exist in the codebase |
+| ACGP1 | `updateGymPrice` signature is `(prevState: FormState<{ price: number }>, formData: FormData)` |
+| ACGP2 | `updateGymPrice` returns `FormState<{ price: number }>` |
+| ACGP3 | GymPriceEditor uses `useActionState` instead of manual try/catch |
+| ACGP4 | Zod validation rejects prices < 1000, > 500000, or > 2 decimals |
+| ACGP5 | Toast appears on successful save (including second consecutive edit) |
+| ACGP6 | Edit form closes after successful save |
+| ACGP7 | Validation errors display below input without closing form |
+| ACGP8 | Input uses `defaultValue` + `key={serverPrice}` for sync |
 
 ---
 

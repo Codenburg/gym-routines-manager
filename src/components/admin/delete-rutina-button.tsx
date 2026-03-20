@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { deleteRutina } from "@/app/actions/rutinas";
+import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { deleteRutina } from "@/app/actions/rutinas";
 import { useConfirm } from "@/hooks/use-confirm";
 
 interface DeleteRutinaButtonProps {
@@ -11,6 +13,7 @@ interface DeleteRutinaButtonProps {
 
 export function DeleteRutinaButton({ rutinaId }: DeleteRutinaButtonProps) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const router = useRouter();
   const { confirm, Dialog } = useConfirm();
 
   const handleDelete = async () => {
@@ -26,10 +29,17 @@ export function DeleteRutinaButton({ rutinaId }: DeleteRutinaButtonProps) {
     try {
       const formData = new FormData();
       formData.append("id", rutinaId);
-      await deleteRutina({ success: false }, formData);
-      window.location.href = "/admin/rutinas";
+      const result = await deleteRutina({ success: false }, formData);
+      if (result.success) {
+        toast.success("Rutina eliminada exitosamente");
+        router.refresh();
+      } else {
+        toast.error(result.message || "Error al eliminar la rutina");
+        setIsDeleting(false);
+      }
     } catch (error) {
       console.error("Error deleting:", error);
+      toast.error("Error al eliminar la rutina");
       setIsDeleting(false);
     }
   };

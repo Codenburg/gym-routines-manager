@@ -185,5 +185,5 @@ export const getCachedRutinas = unstable_cache(
  */
 export async function revalidateRutinasCache(): Promise<void> {
   const { revalidateTag } = await import("next/cache");
-  revalidateTag(RUTINAS_CACHE_TAG, "dynamic");
+  revalidateTag(RUTINAS_CACHE_TAG, "max");
 }

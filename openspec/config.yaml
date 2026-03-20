@@ -125,6 +125,25 @@ react_rules:
     - MUST NOT be called conditionally or inside loops
     - SHOULD encapsulate a single concern
 
+  server_action_inputs:
+    - description: Inputs consuming data from server actions (useActionState, useFormState, etc.) MUST sync with FormState
+    - rule: |
+        Every input that consumes data from a server action state MUST use one of these strategies:
+        (1) Controlled: value={state.data?.field} + onChange to write to local state
+        (2) Uncontrolled with resync: defaultValue={state.data?.field} + key={state.data?.field}
+        
+        FORBIDDEN: defaultValue without key, or inputs without resync mechanism
+    - example_valid: |
+        {/* Strategy 1: Controlled */}
+        <input value={state.data?.price} onChange={(e) => setPrice(e.target.value)} />
+        
+        {/* Strategy 2: Uncontrolled with key resync */}
+        <input defaultValue={state.data?.price} key={state.data?.price} />
+    - example_invalid: |
+        {/* FORBIDDEN: defaultValue without key — causes DOM state to diverge from source of truth */}
+        <input defaultValue={state.data?.price} />
+    - rationale: Without resync, the DOM holds stale state that diverges from FormState, causing unpredictable behavior
+
 # TAILWIND RULES
 
 tailwind_rules:
