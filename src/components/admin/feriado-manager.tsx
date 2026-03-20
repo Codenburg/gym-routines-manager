@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createFeriado, deleteFeriado } from "@/app/actions/feriados";
 import type { FormState } from "@/lib/schemas";
 import { Plus, Calendar, Trash2 } from "lucide-react";
+import { useConfirm } from "@/hooks/use-confirm";
 
 interface Feriado {
   id: string;
@@ -20,6 +21,7 @@ export function FeriadoManager({ initialFeriados }: FeriadoManagerProps) {
   const [selectedDate, setSelectedDate] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const { confirm, Dialog } = useConfirm();
 
   const handleAdd = async () => {
     if (!selectedDate) {
@@ -59,9 +61,13 @@ export function FeriadoManager({ initialFeriados }: FeriadoManagerProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este feriado?")) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: "¿Eliminar feriado?",
+      description: "Esta acción no se puede deshacer.",
+      variant: "destructive",
+      confirmText: "Eliminar",
+    });
+    if (!confirmed) return;
 
     try {
       const formData = new FormData();
@@ -176,6 +182,7 @@ export function FeriadoManager({ initialFeriados }: FeriadoManagerProps) {
           </div>
         )}
       </div>
+      {Dialog}
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { FormState } from "@/lib/schemas";
 import { EjercicioForm } from "./ejercicio-form";
 import { Plus, GripVertical, Pencil, Trash2 } from "lucide-react";
+import { useConfirm } from "@/hooks/use-confirm";
 
 interface Ejercicio {
   id: string;
@@ -36,11 +37,18 @@ const deleteActionTyped = deleteEjercicio as unknown as (state: EjercicioFormSta
 export function EjercicioList({ diaId, diaNombre, rutinaId, ejercicios }: EjercicioListProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const { confirm, Dialog } = useConfirm();
 
   const [deleteState, deleteActionWrapped, isDeletePending] = useActionState(deleteActionTyped, initialState);
 
   const handleDelete = async (ejercicioId: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este ejercicio?")) return;
+    const confirmed = await confirm({
+      title: "¿Eliminar ejercicio?",
+      description: "Esta acción no se puede deshacer.",
+      variant: "destructive",
+      confirmText: "Eliminar",
+    });
+    if (!confirmed) return;
     const formData = new FormData();
     formData.append("id", ejercicioId);
     await deleteActionTyped(null, formData);
@@ -140,6 +148,7 @@ export function EjercicioList({ diaId, diaNombre, rutinaId, ejercicios }: Ejerci
           </div>
         )}
       </div>
+      {Dialog}
     </div>
   );
 }

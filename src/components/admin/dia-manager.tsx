@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import type { FormState } from "@/lib/schemas";
 import Link from "next/link";
 import { Plus, GripVertical, Pencil, Trash2, ChevronRight } from "lucide-react";
+import { useConfirm } from "@/hooks/use-confirm";
 
 interface Dia {
   id: string;
@@ -43,6 +44,7 @@ const deleteActionTyped = deleteDia as unknown as (state: DiaFormState | null, f
 export function DiaManager({ rutinaId, dias }: DiaManagerProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const { confirm, Dialog } = useConfirm();
 
   const [createState, createActionWrapped, isCreatePending] = useActionState(createActionTyped, initialState);
   const [updateState, updateActionWrapped, isUpdatePending] = useActionState(updateActionTyped, initialState);
@@ -55,7 +57,13 @@ export function DiaManager({ rutinaId, dias }: DiaManagerProps) {
   };
 
   const handleDelete = async (diaId: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este día?")) return;
+    const confirmed = await confirm({
+      title: "¿Eliminar día?",
+      description: "Esta acción no se puede deshacer.",
+      variant: "destructive",
+      confirmText: "Eliminar",
+    });
+    if (!confirmed) return;
     const formData = new FormData();
     formData.append("id", diaId);
     formData.append("rutinaId", rutinaId);
@@ -230,6 +238,7 @@ export function DiaManager({ rutinaId, dias }: DiaManagerProps) {
           </div>
         )}
       </div>
+      {Dialog}
     </div>
   );
 }

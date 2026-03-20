@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Pencil, FileText, Copy } from "lucide-react";
 import { DeleteRutinaButton } from "@/components/admin/delete-rutina-button";
 import { duplicateRutina } from "@/app/actions/rutinas";
+import { useConfirm } from "@/hooks/use-confirm";
 
 interface RutinaWithCount {
   id: string;
@@ -24,11 +25,15 @@ export function RutinasListClient({ rutinas }: RutinasListClientProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDuplicating, setIsDuplicating] = useState<string | null>(null);
   const router = useRouter();
+  const { confirm, Dialog } = useConfirm();
 
   const handleDuplicate = async (rutinaId: string) => {
-    if (!confirm("¿Estás seguro de que quieres duplicar esta rutina?")) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: "¿Duplicar rutina?",
+      variant: "default",
+      confirmText: "Duplicar",
+    });
+    if (!confirmed) return;
 
     setIsDuplicating(rutinaId);
     try {
@@ -153,6 +158,7 @@ export function RutinasListClient({ rutinas }: RutinasListClientProps) {
           </p>
         </div>
       )}
+      {Dialog}
     </div>
   );
 }
