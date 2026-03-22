@@ -1,58 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, AlertCircle, FolderOpen } from "lucide-react";
-import { DataResult, ok, err } from "@/lib/data-result";
-
-interface Ejercicio {
-  id: string;
-  nombre: string;
-  series: string | null;
-  orden: number;
-}
-
-interface Dia {
-  id: string;
-  nombre: string;
-  musculosEnfocados: string | null;
-  orden: number;
-  ejercicios: Ejercicio[];
-}
-
-interface Rutina {
-  id: string;
-  nombre: string;
-  tipo: string;
-  descripcion: string | null;
-  creador: string | null;
-  createdAt: string;
-  updatedAt: string;
-  dias: Dia[];
-}
-
-async function getRutina(id: string): Promise<DataResult<Rutina | null>> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const url = new URL(`${baseUrl}/api/rutinas/${id}`);
-
-  try {
-    const response = await fetch(url.toString(), {
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        return ok(null); // Not found is a valid result, not an error
-      }
-      console.error("[getRutina] API returned non-OK status:", response.status);
-      return err(null);
-    }
-
-    return ok(await response.json());
-  } catch (error) {
-    console.error("[getRutina] Failed to fetch rutina:", error);
-    return err(null);
-  }
-}
+import { ArrowLeft, AlertCircle } from "lucide-react";
+import { getCachedRutinaById } from "@/lib/rutinas";
 
 export default async function RoutineDetailPage({
   params,
@@ -60,10 +10,13 @@ export default async function RoutineDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const rutinaResult = await getRutina(id);
 
-  // Error state - DB or network failure
-  if (rutinaResult.error) {
+  let rutina;
+
+  try {
+    rutina = await getCachedRutinaById(id);
+  } catch (error) {
+    console.error("[RoutineDetailPage] Failed to load rutina:", error);
     return (
       <div className="min-h-screen bg-background">
         <main className="container mx-auto px-6 py-8 max-w-4xl">
@@ -84,10 +37,7 @@ export default async function RoutineDetailPage({
     );
   }
 
-  const rutina = rutinaResult.data;
-
-  // Not found - use Next.js notFound()
-  if (!rutina) {
+  if (rutina === null) {
     notFound();
   }
 

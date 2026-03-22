@@ -2,46 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, AlertCircle } from "lucide-react";
-import { DataResult, ok, err } from "@/lib/data-result";
-
-interface Ejercicio {
-  id: string;
-  nombre: string;
-  series: string | null;
-  orden: number;
-}
-
-interface Dia {
-  id: string;
-  nombre: string;
-  musculosEnfocados: string | null;
-  orden: number;
-  ejercicios: Ejercicio[];
-}
-
-async function getDia(rutinaId: string, diaId: string): Promise<DataResult<Dia | null>> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const url = new URL(`${baseUrl}/api/rutinas/${rutinaId}/dias/${diaId}`);
-
-  try {
-    const response = await fetch(url.toString(), {
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        return ok(null); // Not found is a valid result, not an error
-      }
-      console.error("[getDia] API returned non-OK status:", response.status);
-      return err(null);
-    }
-
-    return ok(await response.json());
-  } catch (error) {
-    console.error("[getDia] Failed to fetch dia:", error);
-    return err(null);
-  }
-}
+import { getCachedRutinaById } from "@/lib/rutinas";
 
 export default async function DayDetailPage({
   params,
@@ -49,10 +10,12 @@ export default async function DayDetailPage({
   params: Promise<{ id: string; diaId: string }>;
 }) {
   const { id: rutinaId, diaId } = await params;
-  const diaResult = await getDia(rutinaId, diaId);
 
-  // Error state - DB or network failure
-  if (diaResult.error) {
+  let rutina;
+  try {
+    rutina = await getCachedRutinaById(rutinaId);
+  } catch (error) {
+    console.error("[DayDetailPage] Failed to load rutina:", error);
     return (
       <div className="min-h-screen bg-background">
         <main className="container mx-auto px-6 py-8 max-w-4xl">
@@ -73,9 +36,15 @@ export default async function DayDetailPage({
     );
   }
 
-  const dia = diaResult.data;
+  // rutina === null means routine not found → notFound()
+  if (rutina === null) {
+    notFound();
+  }
 
-  // Not found - use Next.js notFound()
+  // Resolve day from cached rutina.dias in memory — NO additional fetch
+  const dia = rutina.dias.find((d) => d.id === diaId);
+
+  // Day not found in this routine → notFound()
   if (!dia) {
     notFound();
   }
