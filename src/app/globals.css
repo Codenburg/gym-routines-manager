@@ -60,6 +60,22 @@
   --sidebar-border: oklch(0.922 0 0);
 
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Brand Colors - Light Mode */
+  --color-accent: #48b8c9;
+  --color-accent-hover: #3da4b3;
+  --color-accent-active: #35899f;
+  --color-accent-foreground: #ffffff;
+
+  /* Routine Form Design Tokens - Light Mode */
+  --color-base: #f9fafb;
+  --color-card: #ffffff;
+  --color-border-light: #e5e7eb;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+
+  /* Focus Ring */
+  --focus-ring: 0 0 0 2px var(--color-accent);
 }
 
 .light {
@@ -206,12 +222,97 @@ html {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 6%);
   --sidebar-ring: oklch(1 0 0 / 8%);
+
+  /* Dark Mode Tokens - Routine Form Design */
+  --color-base: #0a0a0a;
+  --color-card: #121212;
+  --color-card-alt: #181818;
+  --color-accent: #48b8c9;
+  --color-accent-foreground: #ffffff;
+  --color-primary-btn: #ffffff;
+  --color-primary-btn-text: #0a0a0a;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #9ca3af;
+  --color-border-light: #2a2a2a;
+  --color-error: #ef4444;
+  --color-placeholder: #6b7280;
+
+  --focus-ring: 0 0 0 2px var(--color-accent);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
+  /* Focus states - subtle by default, component-specific for turquesa emphasis */
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 1px var(--color-accent);
+  }
+
+  button:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  /* Seamless input - light mode default, dark mode override */
+  .seamless-input {
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px;
+    color: #111827;
+    transition: box-shadow 0.15s ease;
+  }
+
+  .dark .seamless-input {
+    background: #1e1e1e !important;
+    border-color: transparent !important;
+    color: #ffffff;
+  }
+
+  .seamless-input::placeholder {
+    color: #9ca3af;
+    opacity: 1;
+  }
+
+  .dark .seamless-input::placeholder {
+    color: #6b7280;
+  }
+
+  .seamless-input:focus {
+    outline: none;
+    border-color: #48b8c9 !important;
+    box-shadow: 0 0 0 1.5px #48b8c9;
+  }
+
+  /* Number inputs - remove spinner arrows for cleaner look */
+  .seamless-input[type="number"]::-webkit-inner-spin-button,
+  .seamless-input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .seamless-input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
+  /* Light mode - placeholder more legible */
+  .light input::placeholder,
+  .light select::placeholder,
+  .light textarea::placeholder {
+    color: #6b7280;
+    opacity: 1;
+  }
+
+  /* Ensure placeholder is visible in light mode for routine form inputs */
+  input:not(.dark)::placeholder,
+  textarea:not(.dark)::placeholder {
+    color: #9ca3af;
+  }
+
   body {
     @apply bg-background text-foreground;
   }
