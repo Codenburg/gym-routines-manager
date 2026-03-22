@@ -26,6 +26,33 @@ export interface Ejercicio {
   repes: string | null;
 }
 
+export interface RutinaDetail {
+  id: string;
+  nombre: string;
+  tipo: string;
+  descripcion: string | null;
+  creador: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  dias: DiaDetail[];
+}
+
+export interface DiaDetail {
+  id: string;
+  nombre: string;
+  musculosEnfocados: string | null;
+  orden: number;
+  ejercicios: EjercicioDetail[];
+}
+
+export interface EjercicioDetail {
+  id: string;
+  nombre: string;
+  series: string | null;
+  repes: string | null;
+  orden: number;
+}
+
 export interface Trainer {
   nombre: string;
   count: number;
@@ -169,6 +196,65 @@ export async function getCachedRutinas(search?: string, trainers?: string) {
   return unstable_cache(
     () => fetchRutinasFromDb(search, trainers),
     ["rutinas", search ?? "", trainers ?? ""],
+    {
+      revalidate: 60,
+      tags: [RUTINAS_CACHE_TAG],
+    }
+  )();
+}
+
+async function fetchRutinaById(id: string): Promise<RutinaDetail | null> {
+  try {
+    const rutina = await prisma.rutina.findUnique({
+      where: { id },
+      include: {
+        dias: {
+          include: {
+            ejercicios: {
+              orderBy: { orden: "asc" },
+            },
+          },
+          orderBy: { orden: "asc" },
+        },
+      },
+    });
+
+    if (!rutina) {
+      return null;
+    }
+
+    return {
+      id: rutina.id,
+      nombre: rutina.nombre,
+      tipo: rutina.tipo,
+      descripcion: rutina.descripcion,
+      creador: rutina.creador,
+      createdAt: rutina.createdAt,
+      updatedAt: rutina.updatedAt,
+      dias: rutina.dias.map((dia) => ({
+        id: dia.id,
+        nombre: dia.nombre,
+        musculosEnfocados: dia.musculosEnfocados,
+        orden: dia.orden,
+        ejercicios: dia.ejercicios.map((ej) => ({
+          id: ej.id,
+          nombre: ej.nombre,
+          series: ej.series,
+          repes: ej.repes,
+          orden: ej.orden,
+        })),
+      })),
+    };
+  } catch (error) {
+    console.error("[fetchRutinaById] DB query failed:", error);
+    throw error;
+  }
+}
+
+export async function getCachedRutinaById(id: string): Promise<RutinaDetail | null> {
+  return unstable_cache(
+    () => fetchRutinaById(id),
+    ["rutina", id],
     {
       revalidate: 60,
       tags: [RUTINAS_CACHE_TAG],
