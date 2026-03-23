@@ -69,6 +69,7 @@ export function EjercicioForm({ diaId, initialData, onSuccess, onCancel }: Ejerc
               defaultValue={initialData?.nombre}
               placeholder="Ej: Press de banca"
               error={!!state?.errors?.nombre}
+              className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
             />
           </AdminFormField>
         </div>
@@ -81,6 +82,7 @@ export function EjercicioForm({ diaId, initialData, onSuccess, onCancel }: Ejerc
             type="text"
             defaultValue={initialData?.series}
             placeholder="Ej: 4"
+            className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
           />
         </AdminFormField>
       </div>
@@ -94,6 +96,7 @@ export function EjercicioForm({ diaId, initialData, onSuccess, onCancel }: Ejerc
             type="text"
             defaultValue={initialData?.repes}
             placeholder="Ej: 10-12"
+            className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
           />
         </AdminFormField>
       </div>
@@ -101,11 +104,20 @@ export function EjercicioForm({ diaId, initialData, onSuccess, onCancel }: Ejerc
       {/* Submit */}
       <div className="flex gap-3 justify-end">
         {onCancel && (
-          <Button type="button" variant="ghost" onClick={onCancel}>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onCancel}
+            className="text-[#6b7280] hover:text-[#ef4444] dark:text-[#9ca3af] dark:hover:text-[#E11D48]"
+          >
             Cancelar
           </Button>
         )}
-        <Button type="submit" disabled={isPending}>
+        <Button
+          type="submit"
+          disabled={isPending}
+          className="bg-[#48b8c9] hover:bg-[#3da4b3] text-white dark:bg-[#E11D48] dark:hover:bg-[#be123c] dark:text-white"
+        >
           {isPending ? "Guardando..." : isEditing ? "Actualizar" : "Agregar"}
         </Button>
       </div>

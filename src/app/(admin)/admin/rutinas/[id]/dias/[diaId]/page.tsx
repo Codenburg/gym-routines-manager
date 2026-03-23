@@ -4,7 +4,6 @@ import { auth } from "@/lib/auth";
 import { getRutina } from "@/app/actions/rutinas";
 import { EjercicioList } from "@/components/admin/ejercicio-list";
 import { PageHeader } from "@/components/admin/page-header";
-import { AdminCard } from "@/components/admin/admin-card";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -48,14 +47,12 @@ export default async function EjerciciosPage({ params }: EjerciciosPageProps) {
       />
 
       {/* Ejercicios List */}
-      <AdminCard variant="standard">
-        <EjercicioList
-          diaId={dia.id}
-          diaNombre={dia.nombre}
-          rutinaId={rutina.id}
-          ejercicios={dia.ejercicios}
-        />
-      </AdminCard>
+      <EjercicioList
+        diaId={dia.id}
+        diaNombre={dia.nombre}
+        rutinaId={rutina.id}
+        ejercicios={dia.ejercicios}
+      />
     </div>
   );
 }

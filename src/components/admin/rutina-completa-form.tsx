@@ -7,8 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { AdminFormField } from "@/components/admin/admin-form-field";
-import { ChipSelector } from "./chip-selector";
+import { SegmentedControl } from "./segmented-control";
 import { DiaSection } from "./dia-section";
+import { useConfirm } from "@/hooks/use-confirm";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { toast } from "sonner";
 import type { FormState } from "@/lib/schemas";
 
 interface Ejercicio {
@@ -43,6 +46,7 @@ export function RutinaCompletaForm() {
   const router = useRouter();
   const [state, action, isPending] = useActionState(createAction, initialState);
   const formRef = useRef<HTMLFormElement>(null);
+  const { confirm, Dialog } = useConfirm();
 
   // Client-side state for routine type (ChipSelector)
   const [tipo, setTipo] = useState("");
@@ -62,10 +66,16 @@ export function RutinaCompletaForm() {
     () => new Set(dias.length > 0 ? [dias[0].id] : [])
   );
 
-  // Handle success - redirect to routine detail
+  // Handle success/error - redirect and show toast
   useEffect(() => {
     if (state?.success && state.data?.id) {
-      router.push(`/admin/rutinas/${state.data.id}`);
+      router.push("/admin");
+      // Show toast after redirect
+      setTimeout(() => {
+        toast.success("¡Rutina creada exitosamente!");
+      }, 100);
+    } else if (state?.success === false && state.message) {
+      toast.error(state.message);
     }
   }, [state, router]);
 
@@ -172,17 +182,16 @@ export function RutinaCompletaForm() {
 
           {/* Tipo */}
           <AdminFormField variant="default" label="Tipo" error={state?.errors?.tipo?.[0]}>
-            <input type="hidden" name="tipo" value={tipo} />
-            <ChipSelector
-              options={[
-                { value: "fuerza", label: "💪 Fuerza" },
-                { value: "cardio", label: "🏃 Cardio" },
-                { value: "flexibilidad", label: "🧘 Flexibilidad" },
-                { value: "hipertrofia", label: "🏋️ Hipertrofia" },
-              ]}
+            <SegmentedControl
+              name="tipo"
               value={tipo}
               onChange={setTipo}
-              name="tipo"
+              options={[
+                { value: "fuerza", label: "Fuerza" },
+                { value: "cardio", label: "Cardio" },
+                { value: "flexibilidad", label: "Flexibilidad" },
+                { value: "hipertrofia", label: "Hipertrofia" },
+              ]}
             />
           </AdminFormField>
         </div>
@@ -256,19 +265,33 @@ export function RutinaCompletaForm() {
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push("/admin/rutinas")}
-          className="border-[#e5e7eb] text-[#6b7280] hover:border-[#ef4444] hover:text-[#ef4444] hover:bg-[#fef2f2] cursor-pointer dark:border-[#2a2a2a] dark:text-[#9ca3af] dark:hover:border-[#ef4444] dark:hover:text-[#ef4444] dark:hover:bg-[#fef2f2]"
+          onClick={() => router.push("/admin")}
+          className="border-[#e5e7eb] text-[#6b7280] hover:border-[#ef4444] hover:text-[#ef4444] hover:bg-[#fef2f2] cursor-pointer dark:border-[#2a2a2a] dark:text-[#9ca3af] dark:hover:border-[#E11D48] dark:hover:text-[#E11D48] dark:hover:bg-[#fef2f2]"
         >
           Cancelar
         </Button>
         <Button
-          type="submit"
+          type="button"
           disabled={isPending}
-          className="rounded-xl bg-[#48b8c9] text-white hover:bg-[#3da4b3] hover:border-2 hover:border-black cursor-pointer font-semibold dark:bg-[#48b8c9] dark:text-white dark:hover:bg-[#3da4b3] dark:hover:border-2 dark:hover:border-white"
+          onClick={() => {
+            // Show confirmation dialog (server will validate on submit)
+            confirm({
+              title: "¿Crear rutina?",
+              description: "Se creará una nueva rutina con los datos ingresados.",
+              variant: "default",
+              confirmText: "Crear",
+            }).then((confirmed) => {
+              if (confirmed) {
+                formRef.current?.requestSubmit();
+              }
+            });
+          }}
+          className="rounded-xl bg-[#48b8c9] text-white hover:bg-[#3da4b3] hover:border-2 hover:border-black cursor-pointer font-semibold dark:bg-[#E11D48] dark:text-white dark:hover:bg-[#c01030] dark:hover:border-2 dark:hover:border-white"
         >
           {isPending ? "Creando..." : "Crear Rutina"}
         </Button>
       </div>
+      {Dialog}
     </form>
   );
 }

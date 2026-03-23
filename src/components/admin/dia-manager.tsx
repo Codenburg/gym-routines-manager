@@ -1,16 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useActionState } from "react";
-import { createDia, updateDia, deleteDia } from "@/app/actions/dias";
+import { createDia } from "@/app/actions/dias";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AdminCard } from "@/components/admin/admin-card";
 import { AdminFormField } from "@/components/admin/admin-form-field";
+import { RoutineDayCard } from "@/components/admin/routine-day-card";
 import type { FormState } from "@/lib/schemas";
-import Link from "next/link";
-import { Plus, GripVertical, Pencil, Trash2, ChevronRight } from "lucide-react";
-import { useConfirm } from "@/hooks/use-confirm";
+
+import { toast } from "sonner";
 
 interface Dia {
   id: string;
@@ -38,56 +37,64 @@ const initialState: DiaFormState = {
 
 // Cast server actions to proper type
 const createActionTyped = createDia as unknown as (state: DiaFormState | null, formData: FormData) => Promise<DiaFormState>;
-const updateActionTyped = updateDia as unknown as (state: DiaFormState | null, formData: FormData) => Promise<DiaFormState>;
-const deleteActionTyped = deleteDia as unknown as (state: DiaFormState | null, formData: FormData) => Promise<DiaFormState>;
+
+const MAX_DAYS = 7;
 
 export function DiaManager({ rutinaId, dias }: DiaManagerProps) {
   const [isAdding, setIsAdding] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const { confirm, Dialog } = useConfirm();
+  const [localDias, setLocalDias] = useState(dias);
 
   const [createState, createActionWrapped, isCreatePending] = useActionState(createActionTyped, initialState);
-  const [updateState, updateActionWrapped, isUpdatePending] = useActionState(updateActionTyped, initialState);
-  const [deleteState, deleteActionWrapped, isDeletePending] = useActionState(deleteActionTyped, initialState);
 
-  // Reset states when they succeed
+  // Sync with props
+  useEffect(() => {
+    setLocalDias(dias);
+  }, [dias]);
+
+  // Handle create success
+  useEffect(() => {
+    if (createState?.success) {
+      setIsAdding(false);
+      toast.success("¡Día agregado exitosamente!");
+    } else if (createState?.success === false && createState.message) {
+      toast.error(createState.message);
+    }
+  }, [createState]);
+
   const handleSuccess = () => {
     setIsAdding(false);
-    setEditingId(null);
   };
 
-  const handleDelete = async (diaId: string) => {
-    const confirmed = await confirm({
-      title: "¿Eliminar día?",
-      description: "Esta acción no se puede deshacer.",
-      variant: "destructive",
-      confirmText: "Eliminar",
-    });
-    if (!confirmed) return;
-    const formData = new FormData();
-    formData.append("id", diaId);
-    formData.append("rutinaId", rutinaId);
-    await deleteActionTyped(null, formData);
+  const handleDayUpdated = () => {
+    toast.success("¡Día actualizado!");
+  };
+
+  const handleDayDeleted = () => {
+    toast.success("¡Día eliminado!");
   };
 
   return (
-    <div className="space-y-6">
+    <div className="bg-white dark:bg-[#121212] rounded-2xl border border-[#e5e7eb] dark:border-[#2a2a2a] p-4 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-foreground">Días de la Rutina</h2>
-          <p className="text-muted-foreground text-sm">Administra los días de entrenamiento</p>
+          <h2 className="text-lg font-medium text-foreground">Días de entrenamiento</h2>
+          <p className="text-muted-foreground text-xs">
+            {localDias.length} día{localDias.length !== 1 ? "s" : ""} • Al menos 1 día
+          </p>
         </div>
-        <Button onClick={() => setIsAdding(true)} disabled={isAdding}>
-          <Plus className="w-5 h-5 mr-2" />
-          Agregar Día
-        </Button>
       </div>
+
+      {/* Max days warning */}
+      {localDias.length >= MAX_DAYS && (
+        <p className="text-center text-[#6b7280] dark:text-[#6b7280] text-sm py-2">
+          Has alcanzado el máximo de {MAX_DAYS} días por rutina
+        </p>
+      )}
 
       {/* Add Day Form */}
       {isAdding && (
-        <AdminCard variant="standard">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Nuevo Día</h3>
+        <div className="p-4 bg-[#f3f4f6] dark:bg-[#1a1a1a] rounded-2xl border border-[#e5e7eb] dark:border-[#2a2a2a] space-y-4">
           <form
             action={async (formData: FormData) => {
               formData.set("rutinaId", rutinaId);
@@ -111,125 +118,70 @@ export function DiaManager({ rutinaId, dias }: DiaManagerProps) {
                   required
                   placeholder="Ej: Día 1 - Pecho"
                   error={!!createState?.errors?.nombre}
+                  autoFocus
+                  className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
                 />
               </AdminFormField>
               <AdminFormField variant="default" label="Músculos Enfocados">
                 <Input
                   name="musculosEnfocados"
                   placeholder="Ej: Pecho, tríceps"
+                  className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
                 />
               </AdminFormField>
             </div>
 
             <div className="flex gap-3 justify-end">
-              <Button type="button" variant="ghost" onClick={() => setIsAdding(false)}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsAdding(false)}
+                className="text-[#6b7280] hover:text-[#ef4444] dark:text-[#9ca3af] dark:hover:text-[#E11D48]"
+              >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isCreatePending}>
+              <Button type="submit" disabled={isCreatePending} className="bg-[#48b8c9] hover:bg-[#3da4b3] text-white dark:bg-[#E11D48] dark:hover:bg-[#be123c]">
                 {isCreatePending ? "Guardando..." : "Crear Día"}
               </Button>
             </div>
           </form>
-        </AdminCard>
+        </div>
       )}
 
-      {/* Days List */}
+      {/* Add day button - gray bar in light mode */}
+      {!isAdding && localDias.length < MAX_DAYS && (
+        <button
+          type="button"
+          onClick={() => setIsAdding(true)}
+          className="w-full py-3 px-4 bg-[#f3f4f6] hover:bg-gray-200 text-[#6b7280] hover:text-[#4b5563] transition-colors rounded-2xl flex items-center justify-center gap-2 text-sm font-medium border border-[#e5e7eb] dark:bg-[#1a1a1a] dark:hover:bg-[#222222] dark:text-[#6b7280] dark:hover:text-[#9ca3af] dark:border-[#2a2a2a]"
+        >
+          <span className="h-4 w-4">+</span>
+          <span>Agregar Día</span>
+        </button>
+      )}
+
+      {/* Days Grid - Responsive: 1 col mobile, 2 col tablet, 3 col desktop */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {dias.map((dia, index) => (
-          <AdminCard key={dia.id} variant="interactive">
-            {/* Drag Handle */}
-            <div className="absolute top-4 left-2 opacity-0 group-hover:opacity-100 transition-opacity cursor-move">
-              <GripVertical className="w-5 h-5 text-muted-foreground" />
-            </div>
-
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground text-sm font-mono opacity-60">#{index + 1}</span>
-                <h3 className="text-foreground font-medium">{dia.nombre}</h3>
-              </div>
-              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => setEditingId(editingId === dia.id ? null : dia.id)}
-                  className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Pencil className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleDelete(dia.id)}
-                  className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-            {dia.musculosEnfocados && (
-              <p className="text-muted-foreground text-sm opacity-70 mb-4">{dia.musculosEnfocados}</p>
-            )}
-
-            {/* Edit Form */}
-            {editingId === dia.id ? (
-              <form
-                action={async (formData: FormData) => {
-                  formData.set("id", dia.id);
-                  formData.set("rutinaId", rutinaId);
-                  const result = await updateActionTyped(null, formData);
-                  if (result.success) setEditingId(null);
-                }}
-                className="space-y-3"
-              >
-                <input type="hidden" name="id" value={dia.id} />
-                <input type="hidden" name="rutinaId" value={rutinaId} />
-
-                <AdminFormField variant="default" label="Nombre">
-                  <Input
-                    name="nombre"
-                    defaultValue={dia.nombre}
-                    required
-                    placeholder="Nombre del día"
-                  />
-                </AdminFormField>
-
-                <AdminFormField variant="default" label="Músculos Enfocados">
-                  <Input
-                    name="musculosEnfocados"
-                    defaultValue={dia.musculosEnfocados || ""}
-                    placeholder="Músculos enfocados"
-                  />
-                </AdminFormField>
-
-                <div className="flex gap-2">
-                  <Button type="submit" size="sm" disabled={isUpdatePending}>
-                    {isUpdatePending ? "Guardando" : "Guardar"}
-                  </Button>
-                  <Button type="button" variant="ghost" size="sm" onClick={() => setEditingId(null)}>
-                    Cancelar
-                  </Button>
-                </div>
-              </form>
-            ) : (
-              <Link
-                href={`/admin/rutinas/${rutinaId}/dias/${dia.id}`}
-                className="block p-3 rounded-lg bg-secondary hover:opacity-80 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground text-sm opacity-80">
-                    {dia.ejercicios.length} ejercicio{dia.ejercicios.length !== 1 ? "s" : ""}
-                  </span>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground opacity-60" />
-                </div>
-              </Link>
-            )}
-          </AdminCard>
+        {localDias.map((dia, index) => (
+          <RoutineDayCard
+            key={dia.id}
+            dia={dia}
+            rutinaId={rutinaId}
+            index={index}
+            onDayUpdated={handleDayUpdated}
+            onDayDeleted={handleDayDeleted}
+          />
         ))}
 
-        {dias.length === 0 && (
-          <div className="col-span-full text-center py-12">
+        {localDias.length === 0 && !isAdding && (
+          <div className="col-span-full md:col-span-2 lg:col-span-3 text-center py-12 border-2 border-dashed border-border rounded-xl">
             <p className="text-muted-foreground">No hay días en esta rutina</p>
-            <p className="text-muted-foreground text-sm mt-1 opacity-60">Agrega un día para empezar</p>
+            <p className="text-muted-foreground text-sm mt-1 opacity-60">
+              Agrega un día para empezar
+            </p>
           </div>
         )}
       </div>
-      {Dialog}
     </div>
   );
 }

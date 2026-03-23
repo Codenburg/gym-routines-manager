@@ -37,7 +37,7 @@ export function DeleteRutinaPageButton({ rutinaId }: DeleteRutinaPageButtonProps
       <button
         type="button"
         onClick={handleDelete}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-destructive text-destructive-foreground hover:opacity-90 rounded-lg transition-colors"
+        className="inline-flex items-center gap-2 px-4 py-2 border border-border text-muted-foreground hover:text-destructive hover:border-destructive/50 hover:bg-destructive/5 rounded-lg transition-colors"
       >
         <Trash2 className="w-5 h-5" />
         Eliminar Rutina

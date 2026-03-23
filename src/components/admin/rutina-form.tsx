@@ -1,14 +1,14 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { createRutina, updateRutina } from "@/app/actions/rutinas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select } from "@/components/ui/select";
 import { AdminFormField } from "@/components/admin/admin-form-field";
+import { SegmentedControl } from "@/components/admin/segmented-control";
 import type { FormState } from "@/lib/schemas";
-import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 
 interface RutinaFormProps {
   initialData?: {
@@ -25,7 +25,7 @@ const tipos = [
   { value: "cardio", label: "Cardio" },
   { value: "flexibilidad", label: "Flexibilidad" },
   { value: "hipertrofia", label: "Hipertrofia" },
-] as const;
+];
 
 type RutinaFormState = FormState<{ id: string }>;
 
@@ -45,28 +45,40 @@ export function RutinaForm({ initialData, onSuccess }: RutinaFormProps) {
   );
   const formRef = useRef<HTMLFormElement>(null);
 
+  // Local state for SegmentedControl value
+  const [tipo, setTipo] = useState(initialData?.tipo || "");
+
+  // Handle success/error - stay on page and show toast
   useEffect(() => {
     if (state?.success) {
-      formRef.current?.reset();
+      // Reset form only if creating new
+      if (!isEditing) {
+        formRef.current?.reset();
+        setTipo("");
+      }
+      toast.success(
+        isEditing
+          ? "¡Rutina actualizada exitosamente!"
+          : "¡Rutina creada exitosamente!"
+      );
       onSuccess?.();
+    } else if (state?.success === false && state.message) {
+      toast.error(state.message);
     }
-  }, [state, onSuccess]);
+  }, [state, isEditing, onSuccess]);
 
   return (
-    <form ref={formRef} action={action} className="space-y-6">
+    <form
+      ref={formRef}
+      action={action}
+      className="bg-white dark:bg-[#121212] rounded-2xl border border-[#e5e7eb] dark:border-[#2a2a2a] p-4 space-y-6"
+    >
       {initialData && <input type="hidden" name="id" value={initialData.id} />}
 
       {/* Error Message */}
       {state && !state.success && state.message && (
         <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
           <p className="text-destructive text-sm">{state.message}</p>
-        </div>
-      )}
-
-      {/* Success Message */}
-      {state?.success && (
-        <div className="p-4 bg-secondary border border-secondary-foreground/20 rounded-lg">
-          <p className="text-secondary-foreground text-sm">{state.message}</p>
         </div>
       )}
 
@@ -81,19 +93,22 @@ export function RutinaForm({ initialData, onSuccess }: RutinaFormProps) {
             defaultValue={initialData?.nombre}
             placeholder="Ej: Rutina Full Body"
             error={!!state?.errors?.nombre}
+            disabled={isPending}
+            className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
           />
         </AdminFormField>
 
-        {/* Tipo */}
+        {/* Tipo - SegmentedControl */}
         <AdminFormField variant="default" label="Tipo *" error={state?.errors?.tipo?.[0]}>
-          <Select name="tipo" required defaultValue={initialData?.tipo || ""}>
-            <option value="">Seleccionar tipo</option>
-            {tipos.map((tipo) => (
-              <option key={tipo.value} value={tipo.value}>
-                {tipo.label}
-              </option>
-            ))}
-          </Select>
+          <input type="hidden" name="tipo" value={tipo} />
+          <SegmentedControl
+            name="tipo"
+            options={tipos}
+            value={tipo}
+            onChange={setTipo}
+            disabled={isPending}
+            error={state?.errors?.tipo?.[0]}
+          />
         </AdminFormField>
       </div>
 
@@ -105,13 +120,25 @@ export function RutinaForm({ initialData, onSuccess }: RutinaFormProps) {
           defaultValue={initialData?.descripcion || ""}
           placeholder="Describe los objetivos de esta rutina..."
           rows={3}
+          disabled={isPending}
+          className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
         />
       </AdminFormField>
 
       {/* Submit */}
       <div className="flex justify-end gap-3">
-        <Button type="submit" disabled={isPending}>
-          {isPending ? "Guardando..." : isEditing ? "Actualizar Rutina" : "Crear Rutina"}
+        <Button
+          type="submit"
+          disabled={isPending}
+          className="bg-[#48b8c9] hover:bg-[#3da4b3] text-white dark:bg-[#E11D48] dark:hover:bg-[#be123c] dark:text-white"
+        >
+          {isPending
+            ? isEditing
+              ? "Actualizando..."
+              : "Guardando..."
+            : isEditing
+            ? "Actualizar Rutina"
+            : "Crear Rutina"}
         </Button>
       </div>
     </form>

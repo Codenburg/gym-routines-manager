@@ -3,11 +3,9 @@
 import { useState } from "react";
 import { useActionState } from "react";
 import { deleteEjercicio } from "@/app/actions/ejercicios";
-import { Button } from "@/components/ui/button";
-import { AdminCard } from "@/components/admin/admin-card";
 import type { FormState } from "@/lib/schemas";
 import { EjercicioForm } from "./ejercicio-form";
-import { Plus, GripVertical, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { useConfirm } from "@/hooks/use-confirm";
 
 interface Ejercicio {
@@ -54,58 +52,63 @@ export function EjercicioList({ diaId, diaNombre, rutinaId, ejercicios }: Ejerci
   };
 
   return (
-    <div className="space-y-6">
+    <div className="bg-white dark:bg-[#121212] rounded-2xl border border-[#e5e7eb] dark:border-[#2a2a2a] p-4 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-foreground">{diaNombre}</h2>
-          <p className="text-muted-foreground text-sm">Administra los ejercicios del día</p>
+          <h2 className="text-lg font-medium text-foreground">Ejercicios del día</h2>
+          <p className="text-muted-foreground text-xs">
+            {ejercicios.length} ejercicio{ejercicios.length !== 1 ? "s" : ""}
+          </p>
         </div>
-        <Button onClick={() => setIsAdding(true)} disabled={isAdding}>
-          <Plus className="w-5 h-5 mr-2" />
-          Agregar Ejercicio
-        </Button>
       </div>
 
       {/* Add Exercise Form */}
       {isAdding && (
-        <AdminCard variant="standard">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Nuevo Ejercicio</h3>
+        <div className="p-4 bg-[#f3f4f6] dark:bg-[#1a1a1a] rounded-2xl border border-[#e5e7eb] dark:border-[#2a2a2a] space-y-4">
           <EjercicioForm
             diaId={diaId}
             onSuccess={() => setIsAdding(false)}
             onCancel={() => setIsAdding(false)}
           />
-        </AdminCard>
+        </div>
+      )}
+
+      {/* Add exercise button - gray bar in light mode */}
+      {!isAdding && (
+        <button
+          type="button"
+          onClick={() => setIsAdding(true)}
+          className="w-full py-3 px-4 bg-[#f3f4f6] hover:bg-gray-200 text-[#6b7280] hover:text-[#4b5563] transition-colors rounded-2xl flex items-center justify-center gap-2 text-sm font-medium border border-[#e5e7eb] dark:bg-[#1a1a1a] dark:hover:bg-[#222222] dark:text-[#6b7280] dark:hover:text-[#9ca3af] dark:border-[#2a2a2a]"
+        >
+          <span className="h-4 w-4">+</span>
+          <span>Agregar Ejercicio</span>
+        </button>
       )}
 
       {/* Exercises List */}
       <div className="space-y-3">
         {ejercicios.map((ejercicio, index) => (
-          <AdminCard key={ejercicio.id} variant="interactive">
-            {/* Drag Handle */}
-            <div className="absolute top-1/2 left-2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-move">
-              <GripVertical className="w-5 h-5 text-muted-foreground" />
-            </div>
-
+          <div
+            key={ejercicio.id}
+            className="group bg-[#fafafa] dark:bg-[#1a1a1a] rounded-xl border border-[#e5e7eb] dark:border-[#27272a] p-4"
+          >
             {editingId === ejercicio.id ? (
-              <div className="pl-8">
-                <EjercicioForm
-                  initialData={{
-                    id: ejercicio.id,
-                    nombre: ejercicio.nombre,
-                    series: ejercicio.series || undefined,
-                    repes: ejercicio.repes || undefined,
-                  }}
-                  diaId={diaId}
-                  onSuccess={() => setEditingId(null)}
-                  onCancel={() => setEditingId(null)}
-                />
-              </div>
+              <EjercicioForm
+                initialData={{
+                  id: ejercicio.id,
+                  nombre: ejercicio.nombre,
+                  series: ejercicio.series || undefined,
+                  repes: ejercicio.repes || undefined,
+                }}
+                diaId={diaId}
+                onSuccess={() => setEditingId(null)}
+                onCancel={() => setEditingId(null)}
+              />
             ) : (
               <>
-                <div className="flex items-center justify-between py-4 pl-8">
-                  <div className="flex items-center gap-4 flex-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 flex-1">
                     <span className="text-muted-foreground text-sm font-mono opacity-60">#{index + 1}</span>
                     <div>
                       <h3 className="text-foreground font-medium">{ejercicio.nombre}</h3>
@@ -133,11 +136,11 @@ export function EjercicioList({ diaId, diaNombre, rutinaId, ejercicios }: Ejerci
                 </div>
               </>
             )}
-          </AdminCard>
+          </div>
         ))}
 
-        {ejercicios.length === 0 && (
-          <div className="text-center py-12">
+        {ejercicios.length === 0 && !isAdding && (
+          <div className="text-center py-12 border-2 border-dashed border-border rounded-xl">
             <p className="text-muted-foreground">No hay ejercicios en este día</p>
             <p className="text-muted-foreground text-sm mt-1 opacity-60">Agrega un ejercicio para empezar</p>
           </div>

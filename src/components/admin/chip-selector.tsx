@@ -93,9 +93,10 @@ export function ChipSelector({
               // Dark mode unselected
               "dark:border-[#2a2a2a] dark:bg-[#1a1a1a] dark:text-[#9ca3af]",
               "dark:hover:border-[#48b8c9] dark:hover:text-[#48b8c9]",
-              // Selected state
-              "data-[selected]:bg-[#48b8c9] data-[selected]:border-[#48b8c9]",
-              "data-[selected]:text-white",
+              // Selected state - light mode
+              "data-[selected=true]:bg-[#48b8c9] data-[selected=true]:border-[#48b8c9] data-[selected=true]:text-white",
+              // Selected state - dark mode
+              "dark:data-[selected=true]:bg-[#48b8c9] dark:data-[selected=true]:border-[#48b8c9] dark:data-[selected=true]:text-white",
               // Focus state
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#48b8c9] focus-visible:ring-offset-2",
               // Disabled state

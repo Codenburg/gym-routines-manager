@@ -76,6 +76,29 @@
 
   /* Focus Ring */
   --focus-ring: 0 0 0 2px var(--color-accent);
+
+  /* Red Accent - Edit Routine Page */
+  --color-accent-red: #E11D48;
+  --color-accent-red-hover: #be123c;
+  --color-accent-red-active: #9f1239;
+  --color-accent-red-foreground: #ffffff;
+
+  /* Focus Ring - Red */
+  --focus-ring-red: 0 0 0 2px #E11D48;
+
+  /* RoutineDayCard - Light Mode */
+  --daycard-bg: #ffffff;
+  --daycard-border: #e2e8f0;
+  --daycard-icon: #E11D48;
+  --daycard-title: #111827;
+  --daycard-subtitle: #6b7280;
+  --daycard-badge-border: #E11D48;
+  --daycard-badge-text: #111827;
+
+  /* Button Red Variants */
+  --btn-primary-bg: #E11D48;
+  --btn-primary-bg-hover: #be123c;
+  --btn-primary-text: #ffffff;
 }
 
 .light {
@@ -238,6 +261,29 @@ html {
   --color-placeholder: #6b7280;
 
   --focus-ring: 0 0 0 2px var(--color-accent);
+
+  /* Red Accent - Dark Mode */
+  --color-accent-red: #E11D48;
+  --color-accent-red-hover: #f43f5e;
+  --color-accent-red-active: #e11d48;
+  --color-accent-red-foreground: #ffffff;
+
+  /* Focus Ring - Red (Dark Mode) */
+  --focus-ring-red: 0 0 0 2px #E11D48;
+
+  /* RoutineDayCard - Dark Mode */
+  --daycard-bg: #18181b;
+  --daycard-border: #27272a;
+  --daycard-icon: #E11D48;
+  --daycard-title: #f8fafc;
+  --daycard-subtitle: #9ca3af;
+  --daycard-badge-border: #E11D48;
+  --daycard-badge-text: #ffffff;
+
+  /* Button Red Variants (Dark Mode) */
+  --btn-primary-bg: #E11D48;
+  --btn-primary-bg-hover: #f43f5e;
+  --btn-primary-text: #ffffff;
 }
 
 @layer base {
@@ -256,6 +302,12 @@ html {
   button:focus-visible {
     outline: none;
     box-shadow: var(--focus-ring);
+  }
+
+  /* Red accent focus states for edit routine page */
+  .focus-ring-red:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring-red);
   }
 
   /* Seamless input - light mode default, dark mode override */

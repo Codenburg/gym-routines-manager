@@ -9,12 +9,13 @@ interface AdminCardProps {
   variant: 'hero' | 'standard' | 'interactive';
   children: React.ReactNode;
   onClick?: () => void;
+  className?: string;
 }
 
-export function AdminCard({ variant, children, onClick }: AdminCardProps) {
+export function AdminCard({ variant, children, onClick, className }: AdminCardProps) {
   return (
     <div
-      className={variantStyles[variant]}
+      className={`${variantStyles[variant]} ${className || ''}`}
       onClick={variant === 'interactive' ? onClick : undefined}
     >
       {children}
