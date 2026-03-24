@@ -79,6 +79,9 @@ export function RutinaCompletaForm() {
   // Ref to track the index of the newly added day that needs auto-expansion
   const newlyAddedDayIndexRef = useRef<number | null>(null);
 
+  // Ref to track submit attempts (for error auto-expand)
+  const submitAttemptRef = useRef(false);
+
   // Watch tipo for segmented control
   const tipo = watch("tipo");
 
@@ -93,6 +96,34 @@ export function RutinaCompletaForm() {
       newlyAddedDayIndexRef.current = null;
     }
   }, [diasFields]);
+
+  // Effect to auto-expand days with validation errors after failed submit
+  useEffect(() => {
+    if (!submitAttemptRef.current) return;
+    if (!errors.dias) return;
+
+    const diasErrors = errors.dias as Record<string, any>;
+    if (!diasErrors) return;
+
+    setExpandedDayIds((prev) => {
+      const next = new Set(prev);
+      let changed = false;
+
+      Object.keys(diasErrors).forEach((key) => {
+        if (isNaN(Number(key))) return; // Skip non-numeric keys like 'root'
+        const index = Number(key);
+        const field = diasFields[index];
+        if (field && !next.has(field.id)) {
+          next.add(field.id);
+          changed = true;
+        }
+      });
+
+      return changed ? next : prev;
+    });
+
+    submitAttemptRef.current = false;
+  }, [errors.dias, diasFields]);
 
   // Toggle day expansion
   const toggleDay = useCallback((diaId: string) => {
@@ -202,9 +233,14 @@ export function RutinaCompletaForm() {
   // Get current dias values for passing to DiaSection
   const diasValues = getValues("dias");
 
+  // Callback when validation fails (to trigger error auto-expand)
+  const onInvalid = useCallback(() => {
+    submitAttemptRef.current = true;
+  }, []);
+
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(onSubmit, onInvalid)}
       className="bg-white dark:bg-[#121212] rounded-2xl border border-[#e5e7eb] dark:border-[#2a2a2a]"
     >
       {/* Error Message */}
