@@ -58,7 +58,7 @@ export function RutinaCompletaForm() {
     handleSubmit,
     watch,
     getValues,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, submitCount },
   } = form;
 
   // Field array for dias
@@ -78,9 +78,6 @@ export function RutinaCompletaForm() {
 
   // Ref to track the index of the newly added day that needs auto-expansion
   const newlyAddedDayIndexRef = useRef<number | null>(null);
-
-  // Ref to track submit attempts (for error auto-expand)
-  const submitAttemptRef = useRef(false);
 
   // Ref to keep updated snapshot of diasFields for use in effects
   const fieldsRef = useRef(diasFields);
@@ -110,15 +107,12 @@ export function RutinaCompletaForm() {
 
   // Effect to auto-expand days with validation errors after failed submit
   useEffect(() => {
-    if (!submitAttemptRef.current) return;
+    if (submitCount === 0) return;
 
     const diasErrors = errors.dias as Record<string, any> | undefined;
     const fields = fieldsRef.current;
 
-    if (!diasErrors) {
-      submitAttemptRef.current = false;
-      return;
-    }
+    if (!diasErrors) return;
 
     setExpandedDayIds((prev) => {
       const next = new Set(prev);
@@ -137,9 +131,7 @@ export function RutinaCompletaForm() {
 
       return changed ? next : prev;
     });
-
-    submitAttemptRef.current = false;
-  }, [errors.dias]);
+  }, [submitCount, errors.dias]);
 
   // Toggle day expansion
   const toggleDay = useCallback((diaId: string) => {
@@ -249,14 +241,9 @@ export function RutinaCompletaForm() {
   // Get current dias values for passing to DiaSection
   const diasValues = getValues("dias");
 
-  // Callback when validation fails (to trigger error auto-expand)
-  const onInvalid = useCallback(() => {
-    submitAttemptRef.current = true;
-  }, []);
-
   return (
     <form
-      onSubmit={handleSubmit(onSubmit, onInvalid)}
+      onSubmit={handleSubmit(onSubmit)}
       className="bg-white dark:bg-[#121212] rounded-2xl border border-[#e5e7eb] dark:border-[#2a2a2a]"
     >
       {/* Error Message */}
