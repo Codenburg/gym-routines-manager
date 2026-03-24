@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
 import { usePersistedForm } from "@/hooks/use-persisted-form";
@@ -76,8 +76,23 @@ export function RutinaCompletaForm() {
     () => new Set(diasFields.length > 0 ? [diasFields[0].id] : [])
   );
 
+  // Ref to track the index of the newly added day that needs auto-expansion
+  const newlyAddedDayIndexRef = useRef<number | null>(null);
+
   // Watch tipo for segmented control
   const tipo = watch("tipo");
+
+  // Effect to auto-expand newly added day after append
+  useEffect(() => {
+    if (newlyAddedDayIndexRef.current !== null) {
+      const index = newlyAddedDayIndexRef.current;
+      const field = diasFields[index];
+      if (field) {
+        setExpandedDayIds(new Set([field.id]));
+      }
+      newlyAddedDayIndexRef.current = null;
+    }
+  }, [diasFields]);
 
   // Toggle day expansion
   const toggleDay = useCallback((diaId: string) => {
@@ -92,20 +107,12 @@ export function RutinaCompletaForm() {
     });
   }, []);
 
-  // Add new day and expand it (collapse others)
+  // Add new day and auto-expand it (collapse others)
   const addDay = useCallback(() => {
     if (diasFields.length >= MAX_DAYS) return;
-
+    // Track the index of the day that will be added (current length = new index)
+    newlyAddedDayIndexRef.current = diasFields.length;
     appendDia({ ...defaultDia });
-
-    // Expand the newly added day
-    // Use setTimeout to ensure the field is rendered with the new ID
-    setTimeout(() => {
-      const newDiaId = diasFields[diasFields.length]?.id;
-      if (newDiaId) {
-        setExpandedDayIds(new Set([newDiaId]));
-      }
-    }, 0);
   }, [appendDia, diasFields]);
 
   // Remove day
