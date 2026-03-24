@@ -1,0 +1,13 @@
+# SDD State - refactor-ui-editar-rutina
+change: refactor-ui-editar-rutina
+phase: specs
+artifact_store: hybrid
+artifacts:
+  proposal: true
+  specs: true
+  design: true
+  tasks: false
+tasks_progress:
+  completed: []
+  pending: []
+last_updated: 2026-03-23T16:30:00.000Z

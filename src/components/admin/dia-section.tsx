@@ -1,42 +1,46 @@
 "use client";
 
+import { useCallback } from "react";
+import { Controller, useFieldArray } from "react-hook-form";
 import { ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EjercicioRow } from "./ejercicio-row";
 import { cn } from "@/lib/utils";
-
-interface Ejercicio {
-  id: string;
-  nombre: string;
-  series?: string;
-  repes?: string;
-}
+import type { Control, FieldErrors } from "react-hook-form";
 
 interface DiaSectionProps {
-  diaId: string;
   diaIndex: number;
+  control: Control<any>;
   isExpanded: boolean;
   onToggle: () => void;
-  onRemove: (diaId: string) => void;
-  onAddExercise: (diaIndex: number) => void;
-  onRemoveExercise: (diaId: string, ejercicioId: string) => void;
-  ejercicios: Ejercicio[];
-  errors?: Record<string, string[]>;
+  onRemove: () => void;
+  errors?: FieldErrors<any>;
 }
 
 export function DiaSection({
-  diaId,
   diaIndex,
+  control,
   isExpanded,
   onToggle,
   onRemove,
-  onAddExercise,
-  onRemoveExercise,
-  ejercicios,
   errors,
 }: DiaSectionProps) {
   const baseName = `dias[${diaIndex}]`;
+  // Type assertion for nested errors - RHF types are complex
+  const diasErrors = errors?.dias as any;
+  const diaErrors = diasErrors?.[diaIndex];
+
+  // Field array for ejercicios within this day
+  const { fields: ejercicioFields, append: appendEjercicio, remove: removeEjercicio } = useFieldArray({
+    control,
+    name: `${baseName}.ejercicios`,
+  });
+
+  // Add new exercise to this day
+  const addExercise = useCallback(() => {
+    appendEjercicio({ nombre: "", series: "", repes: "" });
+  }, [appendEjercicio]);
 
   return (
     <div className="bg-white dark:bg-[#121212] rounded-2xl shadow-sm dark:shadow-black/30 overflow-hidden border border-[#e5e7eb] dark:border-[#2a2a2a]">
@@ -66,7 +70,7 @@ export function DiaSection({
         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
           <button
             type="button"
-            onClick={() => onRemove(diaId)}
+            onClick={onRemove}
             className="p-2 text-[#9ca3af] dark:text-[#6b7280] hover:text-[#ef4444] transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-white/10"
             title="Eliminar día"
           >
@@ -75,72 +79,89 @@ export function DiaSection({
         </div>
       </div>
 
-      {/* Collapsible content */}
-      {isExpanded && (
-        <div className="px-4 pt-5 pb-4 space-y-4">
-          {/* Nombre del día - full width */}
-          <div className="space-y-2">
-            <label className="text-[#6b7280] dark:text-[#9ca3af] text-sm font-medium block">Nombre del día</label>
-            <Input
-              name={`${baseName}.nombre`}
-              placeholder="Ej: Pierna, Espalda, Pecho..."
-              required
-              className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
-            />
-            {errors?.[`${baseName}.nombre`] && (
-              <p className="text-[#ef4444] dark:text-[#ef4444] text-xs mt-1">{errors[`${baseName}.nombre`][0]}</p>
+      {/* Collapsible content - hidden instead of unmounting to preserve input values */}
+      <div className={cn("px-4 pt-5 pb-4 space-y-4", !isExpanded && "hidden")}>
+        {/* Nombre del día - full width */}
+        <div className="space-y-2">
+          <label className="text-[#6b7280] dark:text-[#9ca3af] text-sm font-medium block">Nombre del día</label>
+          <Controller
+            name={`${baseName}.nombre`}
+            control={control}
+            rules={{ required: "El nombre del día es requerido" }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                type="text"
+                placeholder="Ej: Pierna, Espalda, Pecho..."
+                className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
+              />
             )}
-          </div>
-
-          {/* Músculos enfocados - full width */}
-          <div className="space-y-2">
-            <label className="text-[#6b7280] dark:text-[#9ca3af] text-sm font-medium block">Músculos enfocados</label>
-            <Input
-              name={`${baseName}.musculosEnfocados`}
-              placeholder="Ej: Cuádriceps, isquiotibiales, glúteos..."
-              className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
-            />
-          </div>
-
-          {/* Ejercicios */}
-          <div className="space-y-3 pt-2">
-            <div className="flex items-center justify-between">
-              <label className="text-[#6b7280] dark:text-[#9ca3af] text-sm font-medium">Ejercicios</label>
-              <span className="text-[#9ca3af] dark:text-[#6b7280] text-xs">Al menos 1 ejercicio</span>
-            </div>
-
-            {/* Exercise rows - compact gap */}
-            <div className="space-y-1">
-              {ejercicios.map((ejercicio, ejercicioIndex) => (
-                <EjercicioRow
-                  key={ejercicio.id}
-                  diaId={diaId}
-                  diaIndex={diaIndex}
-                  ejercicioId={ejercicio.id}
-                  ejercicioIndex={ejercicioIndex}
-                  onRemove={() => onRemoveExercise(diaId, ejercicio.id)}
-                  errors={errors}
-                />
-              ))}
-            </div>
-
-            {/* Error for empty ejercicios */}
-            {errors?.[`${baseName}.ejercicios`] && (
-              <p className="text-[#ef4444] dark:text-[#ef4444] text-xs">{errors[`${baseName}.ejercicios`][0]}</p>
-            )}
-
-            {/* Add exercise button - discrete text + icon style */}
-            <button
-              type="button"
-              onClick={() => onAddExercise(diaIndex)}
-              className="text-[#6b7280] dark:text-[#6b7280] hover:text-[#48b8c9] transition-colors flex items-center gap-1 text-sm mt-3"
-            >
-              <span className="h-4 w-4">+</span>
-              <span>Agregar Ejercicio</span>
-            </button>
-          </div>
+          />
+          {diaErrors?.nombre && (
+            <p className="text-[#ef4444] dark:text-[#ef4444] text-xs mt-1">
+              {typeof diaErrors.nombre === 'object' ? diaErrors.nombre.message : diaErrors.nombre}
+            </p>
+          )}
         </div>
-      )}
+
+        {/* Músculos enfocados - full width */}
+        <div className="space-y-2">
+          <label className="text-[#6b7280] dark:text-[#9ca3af] text-sm font-medium block">Músculos enfocados</label>
+          <Controller
+            name={`${baseName}.musculosEnfocados`}
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                type="text"
+                placeholder="Ej: Cuádriceps, isquiotibiales, glúteos..."
+                className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
+              />
+            )}
+          />
+        </div>
+
+        {/* Ejercicios */}
+        <div className="space-y-3 pt-2">
+          <div className="flex items-center justify-between">
+            <label className="text-[#6b7280] dark:text-[#9ca3af] text-sm font-medium">Ejercicios</label>
+            <span className="text-[#9ca3af] dark:text-[#6b7280] text-xs">Al menos 1 ejercicio</span>
+          </div>
+
+          {/* Exercise rows */}
+          <div className="space-y-1">
+            {ejercicioFields.map((ejercicioField, ejercicioIndex) => (
+              <EjercicioRow
+                key={ejercicioField.id}
+                control={control}
+                diaIndex={diaIndex}
+                ejercicioIndex={ejercicioIndex}
+                onRemove={() => removeEjercicio(ejercicioIndex)}
+                errors={diaErrors?.ejercicios}
+              />
+            ))}
+          </div>
+
+          {/* Error for empty ejercicios */}
+          {diaErrors?.ejercicios?.root && (
+            <p className="text-[#ef4444] dark:text-[#ef4444] text-xs">
+              {typeof diaErrors.ejercicios.root === 'object' 
+                ? diaErrors.ejercicios.root.message 
+                : diaErrors.ejercicios.root}
+            </p>
+          )}
+
+          {/* Add exercise button */}
+          <button
+            type="button"
+            onClick={addExercise}
+            className="text-[#6b7280] dark:text-[#6b7280] hover:text-[#48b8c9] transition-colors flex items-center gap-1 text-sm mt-3"
+          >
+            <span className="h-4 w-4">+</span>
+            <span>Agregar Ejercicio</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
