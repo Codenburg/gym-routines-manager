@@ -95,11 +95,10 @@ export function SegmentedControl({
         role="tablist"
         aria-label={name || "Seleccionar opción"}
         className={cn(
-          "inline-flex bg-muted dark:bg-[#1a1a1a] rounded-lg p-1 gap-1",
-          // Mobile: flex-wrap with gap-2 to prevent overflow
-          "flex-wrap gap-2",
-          // Tablet+: single row
-          "md:flex-nowrap md:overflow-x-auto md:gap-1",
+          // Background container - semantic token, inline-flex to fit content
+          "inline-flex bg-muted rounded-lg p-1",
+          // Horizontal layout, no stretch
+          "flex-nowrap items-center gap-1",
           // Error state
           error && "ring-2 ring-destructive/50"
         )}
@@ -122,29 +121,22 @@ export function SegmentedControl({
               onKeyDown={(e) => handleKeyDown(e, index)}
               onFocus={() => setFocusedIndex(index)}
               onBlur={() => setFocusedIndex(-1)}
-              data-selected={isSelected ? "true" : undefined}
               className={cn(
-                // Base styles
-                "px-3 py-2 rounded-md text-sm font-medium transition-all duration-150 ease-out",
-                "flex items-center gap-1.5 min-w-fit",
-                // Focus state - turquoise ring in light, red in dark
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#48b8c9] focus-visible:ring-offset-2 focus-visible:ring-offset-muted",
-                "dark:focus-visible:ring-[#E11D48] dark:focus-visible:ring-offset-[#1a1a1a]",
+                // Base styles - inline-flex, no grow
+                "inline-flex items-center gap-2 h-9 px-3 rounded-md text-sm font-medium transition-all duration-150 ease-out",
+                "flex-none whitespace-nowrap",
+                // Focus state - ring using semantic token
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 // Disabled state
                 "disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
-                // Unselected state - light mode
-                "text-[#6b7280] bg-transparent hover:text-[#111827]",
-                // Unselected state - dark mode
-                "dark:text-[#9ca3af] dark:hover:text-[#f8fafc]",
-                // Selected state - turquoise in light, red in dark
-                "data-[selected=true]:bg-[#48b8c9] data-[selected=true]:text-white data-[selected=true]:shadow-sm",
-                "dark:data-[selected=true]:bg-[#E11D48] dark:data-[selected=true]:text-white",
-                // Hover on unselected - light mode
-                "hover:bg-[#e5e7eb] dark:hover:bg-[#27272a]"
+                // Unselected state - semantic tokens
+                "text-muted-foreground bg-transparent hover:text-foreground hover:bg-accent",
+                // Selected state - primary token
+                isSelected && "bg-primary text-primary-foreground shadow-sm"
               )}
             >
               {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
-              <span className="whitespace-nowrap">{option.label}</span>
+              <span>{option.label}</span>
             </button>
           );
         })}

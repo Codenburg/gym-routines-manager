@@ -3,7 +3,6 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { createRutina, updateRutina } from "@/app/actions/rutinas";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { AdminFormField } from "@/components/admin/admin-form-field";
 import { SegmentedControl } from "@/components/admin/segmented-control";
@@ -71,8 +70,10 @@ export function RutinaForm({ initialData, onSuccess }: RutinaFormProps) {
     <form
       ref={formRef}
       action={action}
-      className="bg-white dark:bg-[#121212] rounded-2xl border border-[#e5e7eb] dark:border-[#2a2a2a] p-4 space-y-6"
+      className="space-y-3"
     >
+      <h2 className="text-base font-medium text-muted-foreground">Detalles de la Rutina</h2>
+
       {initialData && <input type="hidden" name="id" value={initialData.id} />}
 
       {/* Error Message */}
@@ -85,16 +86,15 @@ export function RutinaForm({ initialData, onSuccess }: RutinaFormProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Nombre */}
         <AdminFormField variant="default" label="Nombre *" error={state?.errors?.nombre?.[0]}>
-          <Input
+          <input
             id="nombre"
             name="nombre"
             type="text"
             required
-            defaultValue={initialData?.nombre}
+            defaultValue={initialData?.nombre ?? ""}
             placeholder="Ej: Rutina Full Body"
-            error={!!state?.errors?.nombre}
             disabled={isPending}
-            className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
+            className="seamless-input h-8 w-full min-w-0 rounded-lg px-2.5 py-1 text-sm transition-colors placeholder:text-muted-foreground"
           />
         </AdminFormField>
 
@@ -117,11 +117,11 @@ export function RutinaForm({ initialData, onSuccess }: RutinaFormProps) {
         <Textarea
           id="descripcion"
           name="descripcion"
-          defaultValue={initialData?.descripcion || ""}
+          defaultValue={initialData?.descripcion ?? ""}
           placeholder="Describe los objetivos de esta rutina..."
           rows={3}
           disabled={isPending}
-          className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
+          className="seamless-input w-full placeholder:text-muted-foreground"
         />
       </AdminFormField>
 
@@ -130,7 +130,7 @@ export function RutinaForm({ initialData, onSuccess }: RutinaFormProps) {
         <Button
           type="submit"
           disabled={isPending}
-          className="bg-[#48b8c9] hover:bg-[#3da4b3] text-white dark:bg-[#E11D48] dark:hover:bg-[#be123c] dark:text-white"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           {isPending
             ? isEditing

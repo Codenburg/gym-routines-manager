@@ -99,6 +99,15 @@
   --btn-primary-bg: #E11D48;
   --btn-primary-bg-hover: #be123c;
   --btn-primary-text: #ffffff;
+
+  /* Token System - Light Mode */
+  --color-base: #f8fafc;
+  --color-surface: #ffffff;
+  --color-border: #e2e8f0;
+  --color-hover: #f1f5f9;
+  --color-muted: #64748b;
+  --color-foreground: #111827;
+  --color-primary: #48b8c9;
 }
 
 .light {
@@ -175,6 +184,10 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  /* Token System Colors */
+  --color-surface: var(--color-surface);
+  --color-hover: var(--color-hover);
+  --color-foreground: var(--color-foreground);
 }
 
 /* Theme is now black by default - no media query needed */
@@ -284,6 +297,15 @@ html {
   --btn-primary-bg: #E11D48;
   --btn-primary-bg-hover: #f43f5e;
   --btn-primary-text: #ffffff;
+
+  /* Token System - Dark Mode */
+  --color-base: #0f0f10;
+  --color-surface: #18181b;
+  --color-border: #27272a;
+  --color-hover: #1f1f23;
+  --color-muted: #a1a1aa;
+  --color-foreground: #fafafa;
+  --color-primary: #E11D48;
 }
 
 @layer base {
@@ -377,4 +399,13 @@ html {
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* Hide scrollbar utility for SegmentedControl */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

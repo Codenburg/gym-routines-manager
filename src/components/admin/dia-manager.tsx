@@ -6,7 +6,7 @@ import { createDia } from "@/app/actions/dias";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AdminFormField } from "@/components/admin/admin-form-field";
-import { RoutineDayCard } from "@/components/admin/routine-day-card";
+import { DiaCard } from "@/components/admin/dia-card";
 import type { FormState } from "@/lib/schemas";
 
 import { toast } from "sonner";
@@ -65,36 +65,26 @@ export function DiaManager({ rutinaId, dias }: DiaManagerProps) {
     setIsAdding(false);
   };
 
-  const handleDayUpdated = () => {
-    toast.success("¡Día actualizado!");
-  };
-
-  const handleDayDeleted = () => {
-    toast.success("¡Día eliminado!");
-  };
-
   return (
-    <div className="bg-white dark:bg-[#121212] rounded-2xl border border-[#e5e7eb] dark:border-[#2a2a2a] p-4 space-y-4">
+    <div className="bg-surface border border-border rounded-xl p-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-medium text-foreground">Días de entrenamiento</h2>
-          <p className="text-muted-foreground text-xs">
-            {localDias.length} día{localDias.length !== 1 ? "s" : ""} • Al menos 1 día
-          </p>
-        </div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold">Días de entrenamiento</h2>
+        <p className="text-muted-foreground text-xs">
+          {localDias.length} día{localDias.length !== 1 ? "s" : ""} • Al menos 1 día
+        </p>
       </div>
 
       {/* Max days warning */}
       {localDias.length >= MAX_DAYS && (
-        <p className="text-center text-[#6b7280] dark:text-[#6b7280] text-sm py-2">
+        <p className="text-center text-muted-foreground text-sm py-2">
           Has alcanzado el máximo de {MAX_DAYS} días por rutina
         </p>
       )}
 
       {/* Add Day Form */}
       {isAdding && (
-        <div className="p-4 bg-[#f3f4f6] dark:bg-[#1a1a1a] rounded-2xl border border-[#e5e7eb] dark:border-[#2a2a2a] space-y-4">
+        <div className="p-4 bg-hover rounded-xl border border-border space-y-4">
           <form
             action={async (formData: FormData) => {
               formData.set("rutinaId", rutinaId);
@@ -119,14 +109,14 @@ export function DiaManager({ rutinaId, dias }: DiaManagerProps) {
                   placeholder="Ej: Día 1 - Pecho"
                   error={!!createState?.errors?.nombre}
                   autoFocus
-                  className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
+                  className="seamless-input w-full placeholder:text-muted-foreground"
                 />
               </AdminFormField>
               <AdminFormField variant="default" label="Músculos Enfocados">
                 <Input
                   name="musculosEnfocados"
                   placeholder="Ej: Pecho, tríceps"
-                  className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
+                  className="seamless-input w-full placeholder:text-muted-foreground"
                 />
               </AdminFormField>
             </div>
@@ -136,11 +126,11 @@ export function DiaManager({ rutinaId, dias }: DiaManagerProps) {
                 type="button"
                 variant="ghost"
                 onClick={() => setIsAdding(false)}
-                className="text-[#6b7280] hover:text-[#ef4444] dark:text-[#9ca3af] dark:hover:text-[#E11D48]"
+                className="text-muted-foreground hover:text-destructive"
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isCreatePending} className="bg-[#48b8c9] hover:bg-[#3da4b3] text-white dark:bg-[#E11D48] dark:hover:bg-[#be123c]">
+              <Button type="submit" disabled={isCreatePending} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 {isCreatePending ? "Guardando..." : "Crear Día"}
               </Button>
             </div>
@@ -148,12 +138,12 @@ export function DiaManager({ rutinaId, dias }: DiaManagerProps) {
         </div>
       )}
 
-      {/* Add day button - gray bar in light mode */}
+      {/* Add day button - dashed border style */}
       {!isAdding && localDias.length < MAX_DAYS && (
         <button
           type="button"
           onClick={() => setIsAdding(true)}
-          className="w-full py-3 px-4 bg-[#f3f4f6] hover:bg-gray-200 text-[#6b7280] hover:text-[#4b5563] transition-colors rounded-2xl flex items-center justify-center gap-2 text-sm font-medium border border-[#e5e7eb] dark:bg-[#1a1a1a] dark:hover:bg-[#222222] dark:text-[#6b7280] dark:hover:text-[#9ca3af] dark:border-[#2a2a2a]"
+          className="w-full border border-dashed border-border bg-transparent hover:bg-surface min-h-[44px] flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground transition-all duration-150 rounded-xl"
         >
           <span className="h-4 w-4">+</span>
           <span>Agregar Día</span>
@@ -161,15 +151,13 @@ export function DiaManager({ rutinaId, dias }: DiaManagerProps) {
       )}
 
       {/* Days Grid - Responsive: 1 col mobile, 2 col tablet, 3 col desktop */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
         {localDias.map((dia, index) => (
-          <RoutineDayCard
+          <DiaCard
             key={dia.id}
             dia={dia}
             rutinaId={rutinaId}
             index={index}
-            onDayUpdated={handleDayUpdated}
-            onDayDeleted={handleDayDeleted}
           />
         ))}
 

@@ -1,7 +1,9 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useForm, useFieldArray } from "react-hook-form";
+import { usePersistedForm } from "@/hooks/use-persisted-form";
 import { createRutinaCompleta } from "@/app/actions/rutinas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,155 +15,195 @@ import { useConfirm } from "@/hooks/use-confirm";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { toast } from "sonner";
 import type { FormState } from "@/lib/schemas";
+import type { RutinaCompletaInput } from "@/lib/schemas";
 
-interface Ejercicio {
-  id: string;
-  nombre: string;
-  series?: string;
-  repes?: string;
-}
+const STORAGE_KEY = "rutina-draft";
+const STORAGE_VERSION = 1;
+const MAX_DAYS = 7;
 
-interface Dia {
-  id: string;
-  nombre: string;
-  musculosEnfocados?: string;
-  ejercicios: Ejercicio[];
-}
-
-type RutinaFormState = FormState<{ id: string }>;
-
-const initialState: RutinaFormState = {
-  success: false,
+// Default values for a new day
+const defaultDia = {
+  nombre: "",
+  musculosEnfocados: "",
+  ejercicios: [{ nombre: "", series: "", repes: "" }],
 };
 
-// Cast to bypass type mismatch
-const createAction = createRutinaCompleta as unknown as (
-  state: RutinaFormState,
-  formData: FormData
-) => Promise<RutinaFormState>;
+// Default values for the entire form
+const defaultValues: RutinaCompletaInput & { dias: typeof defaultDia[] } = {
+  nombre: "",
+  tipo: "fuerza",
+  descripcion: "",
+  creador: "",
+  dias: [{ ...defaultDia }],
+};
 
-const MAX_DAYS = 7;
+type RutinaFormData = typeof defaultValues;
 
 export function RutinaCompletaForm() {
   const router = useRouter();
-  const [state, action, isPending] = useActionState(createAction, initialState);
-  const formRef = useRef<HTMLFormElement>(null);
   const { confirm, Dialog } = useConfirm();
 
-  // Client-side state for routine type (ChipSelector)
-  const [tipo, setTipo] = useState("");
+  // Persisted form state with localStorage
+  const form = usePersistedForm<RutinaFormData>({
+    storageKey: STORAGE_KEY,
+    version: STORAGE_VERSION,
+    defaultValues,
+    mode: "onBlur",
+    reValidateMode: "onChange",
+  });
 
-  // Client-side state for dynamic days and exercises
-  const [dias, setDias] = useState<Dia[]>([
-    {
-      id: crypto.randomUUID(),
-      nombre: "",
-      musculosEnfocados: "",
-      ejercicios: [{ id: crypto.randomUUID(), nombre: "", series: "", repes: "" }],
-    },
-  ]);
+  const {
+    control,
+    register,
+    handleSubmit,
+    watch,
+    getValues,
+    formState: { errors, isSubmitting },
+  } = form;
 
-  // State for tracking expanded days (Day 1 is always expanded initially)
+  // Field array for dias
+  const {
+    fields: diasFields,
+    append: appendDia,
+    remove: removeDia,
+  } = useFieldArray({
+    control,
+    name: "dias",
+  });
+
+  // UI state for expanded days (not persisted, just local UI)
   const [expandedDayIds, setExpandedDayIds] = useState<Set<string>>(
-    () => new Set(dias.length > 0 ? [dias[0].id] : [])
+    () => new Set(diasFields.length > 0 ? [diasFields[0].id] : [])
   );
 
-  // Handle success/error - redirect and show toast
-  useEffect(() => {
-    if (state?.success && state.data?.id) {
-      router.push("/admin");
-      // Show toast after redirect
-      setTimeout(() => {
-        toast.success("¡Rutina creada exitosamente!");
-      }, 100);
-    } else if (state?.success === false && state.message) {
-      toast.error(state.message);
-    }
-  }, [state, router]);
+  // Watch tipo for segmented control
+  const tipo = watch("tipo");
 
   // Toggle day expansion
-  const toggleDay = (dayId: string) => {
+  const toggleDay = useCallback((diaId: string) => {
     setExpandedDayIds((prev) => {
       const next = new Set(prev);
-      if (next.has(dayId)) {
-        next.delete(dayId);
+      if (next.has(diaId)) {
+        next.delete(diaId);
       } else {
-        next.add(dayId);
+        next.add(diaId);
       }
       return next;
     });
-  };
+  }, []);
 
-  // Add a new day (starts collapsed, max 7 days)
-  const addDay = () => {
-    if (dias.length >= MAX_DAYS) {
-      // Could show toast here - for now just return
-      return;
-    }
+  // Add new day and expand it (collapse others)
+  const addDay = useCallback(() => {
+    if (diasFields.length >= MAX_DAYS) return;
 
-    const newDia: Dia = {
-      id: crypto.randomUUID(),
-      nombre: "",
-      musculosEnfocados: "",
-      ejercicios: [{ id: crypto.randomUUID(), nombre: "", series: "", repes: "" }],
-    };
+    appendDia({ ...defaultDia });
 
-    setDias((prev) => [...prev, newDia]);
-    // New day starts collapsed
-  };
+    // Expand the newly added day
+    // Use setTimeout to ensure the field is rendered with the new ID
+    setTimeout(() => {
+      const newDiaId = diasFields[diasFields.length]?.id;
+      if (newDiaId) {
+        setExpandedDayIds(new Set([newDiaId]));
+      }
+    }, 0);
+  }, [appendDia, diasFields]);
 
-  // Remove a day by ID
-  const removeDay = (diaId: string) => {
-    setDias((prev) => {
-      const updated = prev.filter((dia) => dia.id !== diaId);
+  // Remove day
+  const removeDay = useCallback(
+    (diaId: string, index: number) => {
+      removeDia(index);
       // If we removed an expanded day, expand the next available day or first day
       if (expandedDayIds.has(diaId)) {
-        setExpandedDayIds(() => {
+        setExpandedDayIds((prev) => {
           const newExpanded = new Set<string>();
-          if (updated.length > 0) {
-            newExpanded.add(updated[0].id);
+          const remainingIds = diasFields.filter((_, i) => i !== index).map((f) => f.id);
+          if (remainingIds.length > 0) {
+            newExpanded.add(remainingIds[0]);
           }
           return newExpanded;
         });
       }
-      return updated;
+    },
+    [removeDia, expandedDayIds, diasFields]
+  );
+
+  // Convert form data to FormData for server action
+  const convertToFormData = useCallback((data: RutinaFormData): FormData => {
+    const formData = new FormData();
+
+    // Add simple fields
+    formData.append("nombre", data.nombre || "");
+    formData.append("tipo", data.tipo || "");
+    if (data.descripcion) {
+      formData.append("descripcion", data.descripcion);
+    }
+    if (data.creador) {
+      formData.append("creador", data.creador);
+    }
+
+    // Add nested dias and ejercicios
+    data.dias.forEach((dia, diaIndex) => {
+      formData.append(`dias[${diaIndex}].nombre`, dia.nombre || "");
+      if (dia.musculosEnfocados) {
+        formData.append(`dias[${diaIndex}].musculosEnfocados`, dia.musculosEnfocados);
+      }
+      dia.ejercicios.forEach((ejercicio, ejIndex) => {
+        formData.append(`dias[${diaIndex}].ejercicios[${ejIndex}].nombre`, ejercicio.nombre || "");
+        if (ejercicio.series) {
+          formData.append(`dias[${diaIndex}].ejercicios[${ejIndex}].series`, ejercicio.series);
+        }
+        if (ejercicio.repes) {
+          formData.append(`dias[${diaIndex}].ejercicios[${ejIndex}].repes`, ejercicio.repes);
+        }
+      });
     });
-  };
 
-  // Add an exercise to a day
-  const addExercise = (diaIndex: number) => {
-    setDias((prev) =>
-      prev.map((dia, index) =>
-        index === diaIndex
-          ? {
-              ...dia,
-              ejercicios: [...dia.ejercicios, { id: crypto.randomUUID(), nombre: "", series: "", repes: "" }],
-            }
-          : dia
-      )
-    );
-  };
+    return formData;
+  }, []);
 
-  // Remove an exercise from a day (prevent removing last one) by IDs
-  const removeExercise = (diaId: string, ejercicioId: string) => {
-    setDias((prev) =>
-      prev.map((dia) =>
-        dia.id === diaId && dia.ejercicios.length > 1
-          ? {
-              ...dia,
-              ejercicios: dia.ejercicios.filter((ej) => ej.id !== ejercicioId),
-            }
-          : dia
-      )
-    );
-  };
+  // Handle form submission
+  const onSubmit = useCallback(
+    async (data: RutinaFormData) => {
+      const confirmed = await confirm({
+        title: "¿Crear rutina?",
+        description: "Se creará una nueva rutina con los datos ingresados.",
+        variant: "default",
+        confirmText: "Crear",
+      });
+
+      if (!confirmed) return;
+
+      const formData = convertToFormData(data);
+      const result: FormState<{ id: string }> = await createRutinaCompleta(
+        { success: false },
+        formData
+      );
+
+      if (result.success && result.data?.id) {
+        form.clear(); // Clear persisted draft
+        router.push("/admin");
+        setTimeout(() => {
+          toast.success("¡Rutina creada exitosamente!");
+        }, 100);
+      } else {
+        toast.error(result.message || "Error al crear la rutina");
+      }
+    },
+    [confirm, convertToFormData, router, form]
+  );
+
+  // Get current dias values for passing to DiaSection
+  const diasValues = getValues("dias");
 
   return (
-    <form ref={formRef} action={action} className="bg-white dark:bg-[#121212] rounded-2xl border border-[#e5e7eb] dark:border-[#2a2a2a]">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="bg-white dark:bg-[#121212] rounded-2xl border border-[#e5e7eb] dark:border-[#2a2a2a]"
+    >
       {/* Error Message */}
-      {state && !state.success && state.message && (
+      {errors.root && (
         <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
-          <p className="text-destructive text-sm">{state.message}</p>
+          <p className="text-destructive text-sm">{errors.root.message}</p>
         </div>
       )}
 
@@ -169,23 +211,26 @@ export function RutinaCompletaForm() {
       <div className="p-4 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Nombre */}
-          <AdminFormField variant="default" label="Nombre de la rutina" error={state?.errors?.nombre?.[0]}>
+          <AdminFormField
+            variant="default"
+            label="Nombre de la rutina"
+            error={errors.nombre?.message}
+          >
             <Input
               id="nombre"
-              name="nombre"
               type="text"
-              required
               placeholder="Ej: Rutina Full Body"
               className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
+              {...register("nombre", { required: "El nombre es requerido" })}
             />
           </AdminFormField>
 
           {/* Tipo */}
-          <AdminFormField variant="default" label="Tipo" error={state?.errors?.tipo?.[0]}>
+          <AdminFormField variant="default" label="Tipo" error={errors.tipo?.message}>
             <SegmentedControl
               name="tipo"
               value={tipo}
-              onChange={setTipo}
+              onChange={(value) => form.setValue("tipo", value as any)}
               options={[
                 { value: "fuerza", label: "Fuerza" },
                 { value: "cardio", label: "Cardio" },
@@ -197,13 +242,17 @@ export function RutinaCompletaForm() {
         </div>
 
         {/* Descripcion */}
-        <AdminFormField variant="default" label="Descripción" error={state?.errors?.descripcion?.[0]}>
+        <AdminFormField
+          variant="default"
+          label="Descripción"
+          error={errors.descripcion?.message}
+        >
           <Textarea
             id="descripcion"
-            name="descripcion"
             placeholder="Describe los objetivos de esta rutina..."
             rows={3}
             className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
+            {...register("descripcion")}
           />
         </AdminFormField>
       </div>
@@ -218,29 +267,29 @@ export function RutinaCompletaForm() {
           <span className="text-muted-foreground text-xs">Al menos 1 día</span>
         </div>
 
-        {state?.errors?.dias && (
-          <p className="text-destructive text-sm">{state.errors.dias[0]}</p>
+        {errors.dias?.root && (
+          <p className="text-destructive text-sm">{errors.dias.root.message}</p>
         )}
 
         <div className="space-y-4">
-          {dias.map((dia) => (
-            <DiaSection
-              key={dia.id}
-              diaId={dia.id}
-              diaIndex={dias.indexOf(dia)}
-              isExpanded={expandedDayIds.has(dia.id)}
-              onToggle={() => toggleDay(dia.id)}
-              onRemove={removeDay}
-              onAddExercise={addExercise}
-              onRemoveExercise={removeExercise}
-              ejercicios={dia.ejercicios}
-              errors={state?.errors}
-            />
-          ))}
+          {diasFields.map((field, index) => {
+            const diaValues = diasValues?.[index];
+            return (
+              <DiaSection
+                key={field.id}
+                control={control}
+                diaIndex={index}
+                isExpanded={expandedDayIds.has(field.id)}
+                onToggle={() => toggleDay(field.id)}
+                onRemove={() => removeDay(field.id, index)}
+                errors={errors}
+              />
+            );
+          })}
         </div>
 
-        {/* Add day button - gray bar in light mode */}
-        {dias.length < MAX_DAYS && (
+        {/* Add day button */}
+        {diasFields.length < MAX_DAYS && (
           <button
             type="button"
             onClick={addDay}
@@ -250,7 +299,7 @@ export function RutinaCompletaForm() {
             <span>Agregar Día</span>
           </button>
         )}
-        {dias.length >= MAX_DAYS && (
+        {diasFields.length >= MAX_DAYS && (
           <p className="text-center text-[#6b7280] dark:text-[#6b7280] text-sm py-2">
             Máximo {MAX_DAYS} días por rutina
           </p>
@@ -271,24 +320,11 @@ export function RutinaCompletaForm() {
           Cancelar
         </Button>
         <Button
-          type="button"
-          disabled={isPending}
-          onClick={() => {
-            // Show confirmation dialog (server will validate on submit)
-            confirm({
-              title: "¿Crear rutina?",
-              description: "Se creará una nueva rutina con los datos ingresados.",
-              variant: "default",
-              confirmText: "Crear",
-            }).then((confirmed) => {
-              if (confirmed) {
-                formRef.current?.requestSubmit();
-              }
-            });
-          }}
+          type="submit"
+          disabled={isSubmitting}
           className="rounded-xl bg-[#48b8c9] text-white hover:bg-[#3da4b3] hover:border-2 hover:border-black cursor-pointer font-semibold dark:bg-[#E11D48] dark:text-white dark:hover:bg-[#c01030] dark:hover:border-2 dark:hover:border-white"
         >
-          {isPending ? "Creando..." : "Crear Rutina"}
+          {isSubmitting ? "Creando..." : "Crear Rutina"}
         </Button>
       </div>
       {Dialog}
