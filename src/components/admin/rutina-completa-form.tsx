@@ -82,28 +82,43 @@ export function RutinaCompletaForm() {
   // Ref to track submit attempts (for error auto-expand)
   const submitAttemptRef = useRef(false);
 
+  // Ref to keep updated snapshot of diasFields for use in effects
+  const fieldsRef = useRef(diasFields);
+  useEffect(() => {
+    fieldsRef.current = diasFields;
+  }, [diasFields]);
+
   // Watch tipo for segmented control
   const tipo = watch("tipo");
 
   // Effect to auto-expand newly added day after append
   useEffect(() => {
-    if (newlyAddedDayIndexRef.current !== null) {
-      const index = newlyAddedDayIndexRef.current;
-      const field = diasFields[index];
-      if (field) {
-        setExpandedDayIds(new Set([field.id]));
-      }
+    if (newlyAddedDayIndexRef.current === null) return;
+
+    const fields = fieldsRef.current;
+    const index = newlyAddedDayIndexRef.current;
+    const field = fields[index];
+
+    if (!field) {
       newlyAddedDayIndexRef.current = null;
+      return;
     }
+
+    setExpandedDayIds(new Set([field.id]));
+    newlyAddedDayIndexRef.current = null;
   }, [diasFields]);
 
   // Effect to auto-expand days with validation errors after failed submit
   useEffect(() => {
     if (!submitAttemptRef.current) return;
-    if (!errors.dias) return;
 
-    const diasErrors = errors.dias as Record<string, any>;
-    if (!diasErrors) return;
+    const diasErrors = errors.dias as Record<string, any> | undefined;
+    const fields = fieldsRef.current;
+
+    if (!diasErrors) {
+      submitAttemptRef.current = false;
+      return;
+    }
 
     setExpandedDayIds((prev) => {
       const next = new Set(prev);
@@ -112,8 +127,9 @@ export function RutinaCompletaForm() {
       Object.keys(diasErrors).forEach((key) => {
         if (isNaN(Number(key))) return; // Skip non-numeric keys like 'root'
         const index = Number(key);
-        const field = diasFields[index];
-        if (field && !next.has(field.id)) {
+        const field = fields[index];
+        if (!field) return;
+        if (!next.has(field.id)) {
           next.add(field.id);
           changed = true;
         }
@@ -123,7 +139,7 @@ export function RutinaCompletaForm() {
     });
 
     submitAttemptRef.current = false;
-  }, [errors.dias, diasFields]);
+  }, [errors.dias]);
 
   // Toggle day expansion
   const toggleDay = useCallback((diaId: string) => {
