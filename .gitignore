@@ -50,4 +50,4 @@ generated/
 next-env.d.ts
 
 #SKILLs
-.agents/skills/
+.agents/
