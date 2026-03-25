@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getRutina } from "@/app/actions/rutinas";
+import { getCachedRutinaById } from "@/lib/rutinas";
 import { RutinaForm } from "@/components/admin/rutina-form";
 import { DiaManager } from "@/components/admin/dia-manager";
 import { DeleteRutinaPageButton } from "@/components/admin/delete-rutina-page-button";
@@ -14,7 +14,7 @@ interface EditRutinaPageProps {
 
 export default async function EditRutinaPage({ params }: EditRutinaPageProps) {
   const { id } = await params;
-  const rutina = await getRutina(id);
+  const rutina = await getCachedRutinaById(id);
 
   if (!rutina) {
     notFound();

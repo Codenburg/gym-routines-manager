@@ -6,7 +6,7 @@ import { RoutineList } from "@/components/routines/routine-list";
 import { RoutineListSkeleton } from "@/components/routines/routine-card-skeleton";
 import { TrainerSidebarClient } from "@/components/search/trainer-sidebar-client";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { getCachedRutinas } from "@/lib/rutinas";
+import { getFilteredRutinas } from "@/lib/rutinas";
 
 interface SearchParams {
   search?: string;
@@ -22,7 +22,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
   // If DB fails, result is null (not cached) so UI shows error state
   let result;
   try {
-    result = await getCachedRutinas(search, trainers);
+    result = await getFilteredRutinas(search, trainers);
   } catch {
     result = null;
   }
@@ -87,7 +87,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
 }
 
 interface RoutineListWrapperProps {
-  result: Awaited<ReturnType<typeof getCachedRutinas>> | null;
+  result: Awaited<ReturnType<typeof getFilteredRutinas>> | null;
 }
 
 async function RoutineListWrapper({ result }: RoutineListWrapperProps) {

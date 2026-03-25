@@ -99,123 +99,106 @@ interface RutinasYTrainersResult {
 }
 
 /**
- * Fetch rutinas from database with caching.
- * Uses unstable_cache to avoid repeated DB queries within revalidation period.
+ * Fetch simple list of rutinas for admin dashboard.
+ * Does NOT include filtering logic - simple query for list view.
  */
-async function fetchRutinasFromDb(
-  search?: string,
-  trainers?: string
-): Promise<RutinasYTrainersResult> {
-  try {
-    // Build WHERE clause for rutinas (filters apply here)
-    const where: Record<string, unknown> = {};
-
-    if (search && search.trim().length > 0) {
-      where.nombre = {
-        contains: search.trim(),
-        mode: "insensitive",
-      };
-    }
-
-    // Parse trainer filter (used in where clause for rutinas only)
-    let trainersList: string[] = [];
-    if (trainers && trainers.trim().length > 0) {
-      trainersList = trainers
-        .split(",")
-        .map((t) => t.trim())
-        .filter((t) => t.length > 0);
-    }
-
-    // CRITICAL: First query for ALL trainers (unfiltered) - this is the stable source
-    // We need this BEFORE applying trainer filter so chips never disappear
-    const allRutinasForTrainers = await prisma.rutina.findMany({
-      select: { creadorUser: { select: { id: true, name: true } } },
-    });
-    const trainersData = extractTrainers(allRutinasForTrainers);
-
-    // Apply trainer filter to WHERE clause for rutinas query
-    // Filter by creadorUser.name since that's now the identity field
-    if (trainersList.length > 0) {
-      where.creadorUser = {
-        name: {
-          in: trainersList,
-          mode: "insensitive",
-        },
-      };
-    }
-
-    // Second query: fetch filtered rutinas with dias and ejercicios
-    const rutinas = await prisma.rutina.findMany({
-      where,
-      select: {
-        id: true,
-        nombre: true,
-        tipo: true,
-        descripcion: true,
-        creadorId: true,
-        creadorUser: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        dias: {
-          include: {
-            ejercicios: {
-              select: {
-                id: true,
-                nombre: true,
-                series: true,
-                repes: true,
-              },
-              orderBy: { orden: "asc" },
-            },
-          },
-          orderBy: { orden: "asc" },
+async function fetchRutinasListFromDb(): Promise<Rutina[]> {
+  const rutinas = await prisma.rutina.findMany({
+    select: {
+      id: true,
+      nombre: true,
+      tipo: true,
+      descripcion: true,
+      creadorId: true,
+      creadorUser: {
+        select: {
+          id: true,
+          name: true,
         },
       },
-      orderBy: { createdAt: "desc" },
-    });
+      createdAt: true,
+      updatedAt: true,
+      dias: {
+        include: {
+          ejercicios: {
+            orderBy: { orden: "asc" },
+          },
+        },
+        orderBy: { orden: "asc" },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
-    return {
-      rutinas: rutinas.map((rutina) => ({
-        id: rutina.id,
-        nombre: rutina.nombre,
-        tipo: rutina.tipo,
-        descripcion: rutina.descripcion,
-        creadorId: rutina.creadorId,
-        creadorUser: rutina.creadorUser,
-        diasCount: rutina.dias.length,
-        dias: rutina.dias.map((dia) => ({
-          id: dia.id,
-          nombre: dia.nombre,
-          musculosEnfocados: dia.musculosEnfocados,
-          ejercicios: dia.ejercicios,
-        })),
-      })),
-      trainers: trainersData,
-    };
-  } catch (error) {
-    console.error("[fetchRutinasFromDb] DB query failed:", error);
-    throw error;
-  }
+  return rutinas.map((rutina) => ({
+    ...rutina,
+    diasCount: rutina.dias.length,
+  }));
+}
+
+/**
+ * Get cached rutinas for admin dashboard.
+ * This is the SINGLE source of truth for reading rutinas (admin view).
+ */
+export async function getRutinas() {
+  return unstable_cache(
+    () => fetchRutinasListFromDb(),
+    ["rutinas"],
+    {
+      revalidate: 60,
+      tags: [RUTINAS_CACHE_TAG],
+    }
+  )();
 }
 
 // Cache tag for manual revalidation
 const RUTINAS_CACHE_TAG = "rutinas";
 
 /**
- * Get cached rutinas with optional filters.
+ * Get filtered rutinas and trainers for homepage.
+ * Derives exclusively from getRutinas() — no direct Prisma access.
+ * Trainers are extracted from ALL rutinas so filter chips never disappear.
  */
-export async function getCachedRutinas(search?: string, trainers?: string) {
-  return unstable_cache(
-    () => fetchRutinasFromDb(search, trainers),
-    ["rutinas", search ?? "", trainers ?? ""],
-    {
-      revalidate: 60,
-      tags: [RUTINAS_CACHE_TAG],
+export async function getFilteredRutinas(search?: string, trainers?: string) {
+  const allRutinas = await getRutinas();
+
+  // Extract trainers from ALL rutinas (unfiltered) — chips must always show all options
+  const trainersData = extractTrainers(allRutinas);
+
+  // Parse trainer filter
+  let trainersList: string[] = [];
+  if (trainers && trainers.trim().length > 0) {
+    trainersList = trainers
+      .split(",")
+      .map((t) => t.trim())
+      .filter((t) => t.length > 0);
+  }
+
+  // Apply filters in memory
+  const filteredRutinas = allRutinas.filter((rutina) => {
+    // Search filter
+    if (search && search.trim().length > 0) {
+      const searchLower = search.trim().toLowerCase();
+      if (!rutina.nombre.toLowerCase().includes(searchLower)) {
+        return false;
+      }
     }
-  )();
+
+    // Trainer filter
+    if (trainersList.length > 0) {
+      const rutinaTrainer = rutina.creadorUser?.name || "";
+      if (!trainersList.some((t) => rutinaTrainer.toLowerCase().includes(t.toLowerCase()))) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  return {
+    rutinas: filteredRutinas,
+    trainers: trainersData,
+  };
 }
 
 async function fetchRutinaById(id: string): Promise<RutinaDetail | null> {
@@ -298,3 +281,35 @@ export async function revalidateRutinasCache(): Promise<void> {
   const { revalidateTag } = await import("next/cache");
   revalidateTag(RUTINAS_CACHE_TAG, "max");
 }
+
+/**
+ * Stats structure for dashboard
+ */
+export interface RutinasStats {
+  rutinasCount: number;
+  diasCount: number;
+  ejerciciosCount: number;
+}
+
+/**
+ * Get cached stats for admin dashboard.
+ * Uses unstable_cache for automatic invalidation via revalidateTag("rutinas").
+ */
+async function fetchStatsFromDb(): Promise<RutinasStats> {
+  const [rutinasCount, diasCount, ejerciciosCount] = await Promise.all([
+    prisma.rutina.count(),
+    prisma.dia.count(),
+    prisma.ejercicio.count(),
+  ]);
+
+  return { rutinasCount, diasCount, ejerciciosCount };
+}
+
+export const getStats = unstable_cache(
+  async () => fetchStatsFromDb(),
+  ["rutinas-stats"],
+  {
+    revalidate: 60,
+    tags: [RUTINAS_CACHE_TAG],
+  }
+);

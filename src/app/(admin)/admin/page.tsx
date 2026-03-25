@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getRutinas } from "@/app/actions/rutinas";
+import { getRutinas, getStats } from "@/lib/rutinas";
 import prisma from "@/lib/prisma";
 import { GymPriceEditor } from "@/components/admin/GymPriceEditor";
 import { AdminCard } from "@/components/admin/admin-card";
@@ -10,31 +10,6 @@ import { FileText, Calendar, TrendingUp, Plus, AlertCircle } from "lucide-react"
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
-
-interface Stats {
-  rutinasCount: number;
-  diasCount: number;
-  ejerciciosCount: number;
-}
-
-async function getStats(): Promise<DataResult<Stats>> {
-  try {
-    const [rutinasCount, diasCount, ejerciciosCount] = await Promise.all([
-      prisma.rutina.count(),
-      prisma.dia.count(),
-      prisma.ejercicio.count(),
-    ]);
-
-    return ok({
-      rutinasCount,
-      diasCount,
-      ejerciciosCount,
-    });
-  } catch (error) {
-    console.error("[getStats] Failed to fetch stats:", error);
-    return err({ rutinasCount: 0, diasCount: 0, ejerciciosCount: 0 });
-  }
-}
 
 async function getGymPrice(): Promise<DataResult<number | null>> {
   try {
@@ -50,16 +25,14 @@ async function getGymPrice(): Promise<DataResult<number | null>> {
 }
 
 export default async function AdminDashboardPage() {
-  const [statsResult, rutinasResult, gymPriceResult] = await Promise.all([
+  const [stats, rutinas, gymPriceResult] = await Promise.all([
     getStats(),
     getRutinas(),
     getGymPrice(),
   ]);
 
-  const stats = statsResult.data;
-  const rutinas = rutinasResult;
   const gymPrice = gymPriceResult.data;
-  const hasError = statsResult.error || gymPriceResult.error;
+  const hasError = gymPriceResult.error;
 
   return (
     <div className="space-y-8">
@@ -80,7 +53,6 @@ export default async function AdminDashboardPage() {
               <p className="text-muted-foreground text-sm">Total Rutinas</p>
               <p className="text-2xl font-bold text-foreground">
                 {stats.rutinasCount}
-                {statsResult.error && <AlertCircle className="inline-block w-4 h-4 text-destructive ml-2" />}
               </p>
             </div>
           </div>
@@ -95,7 +67,6 @@ export default async function AdminDashboardPage() {
               <p className="text-muted-foreground text-sm">Total Días</p>
               <p className="text-2xl font-bold text-foreground">
                 {stats.diasCount}
-                {statsResult.error && <AlertCircle className="inline-block w-4 h-4 text-destructive ml-2" />}
               </p>
             </div>
           </div>
@@ -110,7 +81,6 @@ export default async function AdminDashboardPage() {
               <p className="text-muted-foreground text-sm">Total Ejercicios</p>
               <p className="text-2xl font-bold text-foreground">
                 {stats.ejerciciosCount}
-                {statsResult.error && <AlertCircle className="inline-block w-4 h-4 text-destructive ml-2" />}
               </p>
             </div>
           </div>

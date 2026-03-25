@@ -1,7 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { getRutina } from "@/app/actions/rutinas";
+import { getCachedRutinaById } from "@/lib/rutinas";
 import { EjercicioList } from "@/components/admin/ejercicio-list";
 import { PageHeader } from "@/components/admin/page-header";
 
@@ -25,7 +25,7 @@ export default async function EjerciciosPage({ params }: EjerciciosPageProps) {
   }
 
   const { id, diaId } = await params;
-  const rutina = await getRutina(id);
+  const rutina = await getCachedRutinaById(id);
 
   if (!rutina) {
     notFound();

@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Empty } from '@/components/ui/empty';
 import { flexRender, getCoreRowModel, useReactTable, ColumnDef } from '@tanstack/react-table';
@@ -27,7 +26,8 @@ interface AdminTableProps<T> {
   data: T[];
   emptyMessage?: string;
   enableRowSelection?: boolean;
-  onSelectionChange?: (selectedIds: string[]) => void;
+  rowSelection?: Record<string, boolean>;
+  onRowSelectionChange?: (rowSelection: Record<string, boolean>) => void;
 }
 
 export function AdminTable<T extends { id: string }>({
@@ -36,10 +36,9 @@ export function AdminTable<T extends { id: string }>({
   data,
   emptyMessage = 'No hay datos',
   enableRowSelection = false,
-  onSelectionChange,
+  rowSelection = {},
+  onRowSelectionChange,
 }: AdminTableProps<T>) {
-  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
-
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
@@ -48,11 +47,7 @@ export function AdminTable<T extends { id: string }>({
     enableRowSelection,
     onRowSelectionChange: (updater) => {
       const newSelection = typeof updater === 'function' ? updater(rowSelection) : updater;
-      setRowSelection(newSelection);
-      if (onSelectionChange) {
-        const selectedIds = Object.keys(newSelection).filter((key) => newSelection[key]);
-        onSelectionChange(selectedIds);
-      }
+      onRowSelectionChange?.(newSelection);
     },
     state: {
       rowSelection,

@@ -32,7 +32,6 @@ export function DeleteRutinaButton({ rutinaId }: DeleteRutinaButtonProps) {
       const result = await deleteRutina({ success: false }, formData);
       if (result.success) {
         toast.success("Rutina eliminada exitosamente");
-        router.refresh();
       } else {
         toast.error(result.message || "Error al eliminar la rutina");
         setIsDeleting(false);

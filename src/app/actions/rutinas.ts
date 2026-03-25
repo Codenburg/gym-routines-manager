@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
@@ -93,9 +92,6 @@ export async function createRutina(
     // Invalidate rutinas cache so homepage reflects changes immediately
     await revalidateRutinasCache();
 
-    revalidatePath("/admin/dashboard");
-    revalidatePath("/admin/rutinas");
-
     return {
       success: true,
       data: { id: rutina.id },
@@ -163,10 +159,6 @@ export async function updateRutina(
 
     // Invalidate rutinas cache so homepage reflects changes immediately
     await revalidateRutinasCache();
-
-    revalidatePath("/admin/dashboard");
-    revalidatePath("/admin/rutinas");
-    revalidatePath(`/admin/rutinas/${idParsed.data}`);
 
     return {
       success: true,
@@ -271,13 +263,10 @@ export async function duplicateRutina(
     // Invalidate rutinas cache so homepage reflects changes immediately
     await revalidateRutinasCache();
 
-    revalidatePath("/admin/dashboard");
-    revalidatePath("/admin/rutinas");
-
     return {
       success: true,
       data: { id: duplicated.id },
-      message: "Rutina duplicada exitosamente",
+      message: "Rutina creada exitosamente",
     };
   } catch (error) {
     console.error("Error duplicating rutina:", error);
@@ -319,9 +308,6 @@ export async function deleteRutina(
 
     // Invalidate rutinas cache so homepage reflects changes immediately
     await revalidateRutinasCache();
-
-    revalidatePath("/admin/dashboard");
-    revalidatePath("/admin/rutinas");
 
     return {
       success: true,
@@ -374,9 +360,6 @@ export async function deleteRutinas(
     // Invalidate rutinas cache so homepage reflects changes immediately
     await revalidateRutinasCache();
 
-    revalidatePath("/admin/dashboard");
-    revalidatePath("/admin/rutinas");
-
     return {
       success: true,
       data: { deletedCount: result.count },
@@ -387,85 +370,6 @@ export async function deleteRutinas(
       success: false,
       message: "Error al eliminar las rutinas",
     };
-  }
-}
-
-/**
- * Get all Rutinas (for server components)
- */
-export async function getRutinas() {
-  try {
-    const rutinas = await prisma.rutina.findMany({
-      select: {
-        id: true,
-        nombre: true,
-        tipo: true,
-        descripcion: true,
-        creadorId: true,
-        creadorUser: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        createdAt: true,
-        updatedAt: true,
-        dias: {
-          include: {
-            ejercicios: true,
-          },
-          orderBy: { orden: "asc" },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    return rutinas.map((rutina) => ({
-      ...rutina,
-      diasCount: rutina.dias.length,
-    }));
-  } catch (error) {
-    console.error("Error fetching rutinas:", error);
-    return [];
-  }
-}
-
-/**
- * Get a single Rutina by ID
- */
-export async function getRutina(id: string) {
-  try {
-    const rutina = await prisma.rutina.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        nombre: true,
-        tipo: true,
-        descripcion: true,
-        creadorId: true,
-        creadorUser: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        createdAt: true,
-        updatedAt: true,
-        dias: {
-          include: {
-            ejercicios: {
-              orderBy: { orden: "asc" },
-            },
-          },
-          orderBy: { orden: "asc" },
-        },
-      },
-    });
-
-    return rutina;
-  } catch (error) {
-    console.error("Error fetching rutina:", error);
-    return null;
   }
 }
 
@@ -642,9 +546,6 @@ export async function createRutinaCompleta(
 
     // Invalidate rutinas cache so homepage reflects changes immediately
     await revalidateRutinasCache();
-
-    revalidatePath("/admin/dashboard");
-    revalidatePath("/admin/rutinas");
 
     return {
       success: true,

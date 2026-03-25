@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
-import { deleteRutina, duplicateRutina } from "@/app/actions/rutinas";
+import { deleteRutina, deleteRutinas, duplicateRutina } from "@/app/actions/rutinas";
 import { useConfirm } from "@/hooks/use-confirm";
 
 interface CreadorUser {
@@ -121,7 +121,7 @@ function TableDuplicateButton({ rutinaId }: { rutinaId: string }) {
       formData.append("id", rutinaId);
       const result = await duplicateRutina({ success: false }, formData);
       if (result.success) {
-        router.refresh();
+        toast.success("Rutina duplicada");
       } else {
         toast.error(result.message || "Error al duplicar la rutina");
       }
@@ -175,7 +175,6 @@ function TableDeleteButton({ rutinaId }: { rutinaId: string }) {
       const result = await deleteRutina({ success: false }, formData);
       if (result.success) {
         toast.success("Rutina eliminada");
-        router.refresh();
       } else {
         toast.error(result.message || "Error al eliminar la rutina");
       }
@@ -210,9 +209,12 @@ function TableDeleteButton({ rutinaId }: { rutinaId: string }) {
 
 export function RutinasListClient({ rutinas }: RutinasListClientProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const router = useRouter();
   const { confirm, Dialog } = useConfirm();
+
+  // Derivar selectedIds desde rowSelection — única fuente de verdad
+  const selectedIds = Object.keys(rowSelection).filter((id) => rowSelection[id]);
 
   const filteredRutinas = rutinas.filter((rutina) => {
     const term = searchTerm.toLowerCase();
@@ -223,8 +225,8 @@ export function RutinasListClient({ rutinas }: RutinasListClientProps) {
     );
   });
 
-  const handleSelectionChange = (ids: string[]) => {
-    setSelectedIds(ids);
+  const handleRowSelectionChange = (newSelection: Record<string, boolean>) => {
+    setRowSelection(newSelection);
   };
 
   const handleBatchDelete = async () => {
@@ -239,20 +241,15 @@ export function RutinasListClient({ rutinas }: RutinasListClientProps) {
     if (!confirmed) return;
 
     try {
-      const deletePromises = selectedIds.map((id) => {
-        const formData = new FormData();
-        formData.append("id", id);
-        return deleteRutina({ success: false }, formData);
-      });
-      const results = await Promise.all(deletePromises);
-      const allSuccess = results.every((r) => r.success);
+      const formData = new FormData();
+      formData.append("ids", JSON.stringify(selectedIds));
+      const result = await deleteRutinas({ success: false }, formData);
 
-      if (allSuccess) {
+      if (result.success) {
         toast.success(`${selectedIds.length} rutina${selectedIds.length > 1 ? "s" : ""} eliminada${selectedIds.length > 1 ? "s" : ""}`);
-        setSelectedIds([]);
-        router.refresh();
+        setRowSelection({}); // Limpiar selección local
       } else {
-        toast.error("Error al eliminar algunas rutinas");
+        toast.error(result.message || "Error al eliminar rutinas");
       }
     } catch (error) {
       console.error("Error batch delete:", error);
@@ -297,7 +294,8 @@ export function RutinasListClient({ rutinas }: RutinasListClientProps) {
         data={filteredRutinas}
         emptyMessage="No hay rutinas creadas"
         enableRowSelection
-        onSelectionChange={handleSelectionChange}
+        rowSelection={rowSelection}
+        onRowSelectionChange={handleRowSelectionChange}
       />
 
       {/* No results message when search yields nothing */}

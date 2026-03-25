@@ -8,7 +8,6 @@ export function NuevaRutinaForm() {
 
   const handleSuccess = () => {
     router.push("/admin/rutinas");
-    router.refresh();
   };
 
   return <RutinaForm onSuccess={handleSuccess} />;

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getRutinas } from "@/app/actions/rutinas";
+import { getRutinas } from "@/lib/rutinas";
 import { RutinasListClient } from "@/components/admin/rutinas-list-client";
 import { PageHeader } from "@/components/admin/page-header";
 import { Button } from "@/components/ui/button";
