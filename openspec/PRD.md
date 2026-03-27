@@ -147,7 +147,7 @@ Cada rutina posee una página dedicada que muestra:
 - creador/entrenador
 - días de entrenamiento
 - ejercicios organizados por día
-- botón de descarga PDF
+- ~~botón de descarga PDF~~ (pendiente de implementar)
 
 ---
 
@@ -163,9 +163,13 @@ Cada ejercicio tiene `series` y `repes` como metadata.
 
 ---
 
-## Generación de PDF
+---
 
-El sistema permite generar automáticamente un documento PDF que reproduce exactamente la estructura de la rutina visible en pantalla.
+## Generación de PDF (Pendiente)
+
+> **Estado**: Pendiente — No implementado
+
+El sistema actualmente NO incluye generación de PDF. Esta feature está en el backlog para una versión futura.
 
 ---
 
@@ -379,7 +383,7 @@ User → múltiples Accounts
 3. Utiliza el buscador o filtros para encontrar una rutina.
 4. Accede a la página de detalle.
 5. Visualiza los días y ejercicios.
-6. Descarga la rutina en PDF.
+6. ~~Descarga la rutina en PDF~~ (pendiente de implementación)
 
 ## Flujo Administrador
 
@@ -511,7 +515,7 @@ Indicadores de funcionamiento del sistema:
 
 - número de rutinas publicadas
 - número de visualizaciones de rutinas
-- número de descargas de PDF
+- número de descargas de PDF (pendiente de implementar)
 - tiempo promedio de navegación en rutinas
 
 ---
@@ -523,6 +527,7 @@ Indicadores de funcionamiento del sistema:
 | Optimización de rendimiento | Deferred | Low traffic doesn't justify complexity; revisit at >10k monthly users |
 | Tests E2E con Playwright | In Progress | Part of Phase 4 |
 | Documentación de API | In Progress | Part of Phase 4 |
+| Generación de PDF | Backlog | Biblioteca: @react-pdf/renderer — baja prioridad |
 
 ---
 
@@ -539,7 +544,7 @@ Indicadores de funcionamiento del sistema:
 
 - buscador de rutinas ✅
 - filtros por tipo y entrenador ✅
-- generación de PDF ✅
+- generación de PDF ⏳ (pendiente — no implementada aún)
 - mejoras de UI ✅
 
 ## Fase 3 ✅
@@ -600,8 +605,9 @@ Indicadores de funcionamiento del sistema:
 
 | Feature | Prioridad | Notas |
 |---------|-----------|-------|
+| Generación de PDF | Media | @react-pdf/renderer — reproduce estructura de rutina |
 | Métricas de uso | Baja | Google Analytics ya está en uso |
 | Exportación CSV | Baja | Para rutinas bulk |
 | i18n (multi-idioma) | Baja | Solo español por ahora |
-| PWA support | Baja | Offline PDF access |
+| PWA support | Baja | Offline PDF access (relacionado con PDF) |
 | Multi-gym support | Muy Baja | Extensión futura |
