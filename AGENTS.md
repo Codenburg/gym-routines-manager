@@ -15,3 +15,4 @@ When working with username/DNI login, read `~/.agents/skills/better-auth-usernam
 When Working with Forms, read `~/.agents/skills/react-hook-form/SKILL.md` first.
 When Workin with Shadcn UI, read `~/.agents/skills/shadcn/SKILL.md` first.
 When implementing URL-based search with debounce and dual-state pattern, read `.agents/skills/url-search-debounce/SKILL.md` first.
+When maintaining README as single source of truth with versioning after commits, read `.agents/skills/readme-guardian/SKILL.md` first.
