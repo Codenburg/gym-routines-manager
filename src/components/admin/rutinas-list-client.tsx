@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Copy, Pencil, Trash2 } from "lucide-react";
+import { Copy, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { AdminTable } from "@/components/admin/admin-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
 import { deleteRutina, deleteRutinas, duplicateRutina } from "@/app/actions/rutinas";
 import { useConfirm } from "@/hooks/use-confirm";
@@ -31,76 +31,6 @@ interface RutinaWithCount {
 interface RutinasListClientProps {
   rutinas: RutinaWithCount[];
 }
-
-const columns: ColumnDef<RutinaWithCount, unknown>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <input
-        type="checkbox"
-        checked={table.getIsAllPageRowsSelected()}
-        onChange={(e) => table.toggleAllPageRowsSelected(e.target.checked)}
-        className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
-      />
-    ),
-    cell: ({ row }) => (
-      <input
-        type="checkbox"
-        checked={row.getIsSelected()}
-        onChange={(e) => row.toggleSelected(e.target.checked)}
-        className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "nombre",
-    header: "Nombre",
-    cell: ({ row }) => (
-      <span className="text-foreground font-medium">{row.original.nombre}</span>
-    ),
-  },
-  {
-    accessorKey: "tipo",
-    header: "Tipo",
-    cell: ({ row }) => (
-      <Badge variant="secondary" className="capitalize">
-        {row.original.tipo}
-      </Badge>
-    ),
-  },
-  {
-    accessorKey: "creadorUser.name",
-    header: "Creador",
-    cell: ({ row }) => (
-      <span className="text-muted-foreground text-sm">
-        {row.original.creadorUser?.name || "—"}
-      </span>
-    ),
-  },
-  {
-    id: "acciones",
-    header: "",
-    cell: ({ row }) => (
-      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <TableDuplicateButton rutinaId={row.original.id} />
-        <Link
-          href={`/admin/rutinas/${row.original.id}`}
-          className={cn(
-            "inline-flex items-center justify-center p-2 rounded-md",
-            "text-muted-foreground hover:text-foreground",
-            "hover:bg-muted transition-colors"
-          )}
-          title="Editar"
-        >
-          <Pencil className="w-4 h-4" />
-        </Link>
-        <TableDeleteButton rutinaId={row.original.id} />
-      </div>
-    ),
-  },
-];
 
 function TableDuplicateButton({ rutinaId }: { rutinaId: string }) {
   const [isDuplicating, setIsDuplicating] = useState(false);
@@ -210,20 +140,136 @@ function TableDeleteButton({ rutinaId }: { rutinaId: string }) {
 export function RutinasListClient({ rutinas }: RutinasListClientProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 15,
+  });
   const router = useRouter();
   const { confirm, Dialog } = useConfirm();
 
   // Derivar selectedIds desde rowSelection — única fuente de verdad
   const selectedIds = Object.keys(rowSelection).filter((id) => rowSelection[id]);
 
-  const filteredRutinas = rutinas.filter((rutina) => {
-    const term = searchTerm.toLowerCase();
-    return (
-      rutina.nombre.toLowerCase().includes(term) ||
-      rutina.tipo.toLowerCase().includes(term) ||
-      rutina.creadorUser?.name.toLowerCase().includes(term)
-    );
-  });
+  // Set para lookup O(1) en lugar de O(n) con includes
+  const selectedIdsSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+
+  // filteredRutinas — memoizada para evitar O(n) en cada render
+  const filteredRutinas = useMemo(() => {
+    return rutinas.filter((rutina) => {
+      const term = searchTerm.toLowerCase();
+      return (
+        rutina.nombre.toLowerCase().includes(term) ||
+        rutina.tipo.toLowerCase().includes(term) ||
+        rutina.creadorUser?.name.toLowerCase().includes(term)
+      );
+    });
+  }, [rutinas, searchTerm]);
+
+  // allFilteredSelected / someFilteredSelected — memoizados para evitar O(n) en cada render
+  const allFilteredSelected = useMemo(() => {
+    return filteredRutinas.length > 0 && filteredRutinas.every((r) => selectedIdsSet.has(r.id));
+  }, [filteredRutinas, selectedIdsSet]);
+
+  const someFilteredSelected = useMemo(() => {
+    return filteredRutinas.some((r) => selectedIdsSet.has(r.id));
+  }, [filteredRutinas, selectedIdsSet]);
+
+  // Toggle que opera sobre filtradas, no sobre página de TanStack
+  const toggleAllFiltered = useCallback(() => {
+    if (allFilteredSelected) {
+      // Deseleccionar todas las filtradas
+      setRowSelection((prev) => {
+        const next = { ...prev };
+        filteredRutinas.forEach((r) => delete next[r.id]);
+        return next;
+      });
+    } else {
+      // Seleccionar todas las filtradas
+      setRowSelection((prev) => {
+        const next = { ...prev };
+        filteredRutinas.forEach((r) => { next[r.id] = true; });
+        return next;
+      });
+    }
+  }, [allFilteredSelected, filteredRutinas]);
+
+  // columns movido adentro para acceder a filteredRutinas y rowSelection
+  // memoizado para evitar re-renders innecesarios
+  const columns = useMemo<ColumnDef<RutinaWithCount, unknown>[]>(
+    () => [
+      {
+        id: "select",
+        header: () => (
+          <input
+            type="checkbox"
+            checked={allFilteredSelected}
+            ref={(el) => {
+              if (el) el.indeterminate = someFilteredSelected && !allFilteredSelected;
+            }}
+            onChange={toggleAllFiltered}
+            className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            checked={row.getIsSelected()}
+            onChange={(e) => row.toggleSelected(e.target.checked)}
+            className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        accessorKey: "nombre",
+        header: "Nombre",
+        cell: ({ row }) => (
+          <span className="text-foreground font-medium">{row.original.nombre}</span>
+        ),
+      },
+      {
+        accessorKey: "tipo",
+        header: "Tipo",
+        cell: ({ row }) => (
+          <Badge variant="secondary" className="capitalize">
+            {row.original.tipo}
+          </Badge>
+        ),
+      },
+      {
+        accessorKey: "creadorUser.name",
+        header: "Creador",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground text-sm">
+            {row.original.creadorUser?.name || "—"}
+          </span>
+        ),
+      },
+      {
+        id: "acciones",
+        header: "",
+        cell: ({ row }) => (
+          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <TableDuplicateButton rutinaId={row.original.id} />
+            <Link
+              href={`/admin/rutinas/${row.original.id}`}
+              className={cn(
+                "inline-flex items-center justify-center p-2 rounded-md",
+                "text-muted-foreground hover:text-foreground",
+                "hover:bg-muted transition-colors"
+              )}
+              title="Editar"
+            >
+              <Pencil className="w-4 h-4" />
+            </Link>
+            <TableDeleteButton rutinaId={row.original.id} />
+          </div>
+        ),
+      },
+    ],
+    [allFilteredSelected, someFilteredSelected, toggleAllFiltered]
+  );
 
   const handleRowSelectionChange = (newSelection: Record<string, boolean>) => {
     setRowSelection(newSelection);
@@ -257,6 +303,8 @@ export function RutinasListClient({ rutinas }: RutinasListClientProps) {
     }
   };
 
+  const totalPages = Math.max(1, Math.ceil(filteredRutinas.length / pagination.pageSize));
+
   return (
     <div className="space-y-4">
       {/* Search Input */}
@@ -265,7 +313,10 @@ export function RutinasListClient({ rutinas }: RutinasListClientProps) {
           type="text"
           placeholder="Buscar rutinas..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+          }}
           className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors"
         />
       </div>
@@ -296,7 +347,43 @@ export function RutinasListClient({ rutinas }: RutinasListClientProps) {
         enableRowSelection
         rowSelection={rowSelection}
         onRowSelectionChange={handleRowSelectionChange}
+        pagination={pagination}
+        onPaginationChange={setPagination}
       />
+
+      {/* Pagination Controls — 100% React state, sin tableRef */}
+      {filteredRutinas.length > 0 && (
+        <div className="flex items-center justify-center gap-4 py-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPagination((prev) => ({ ...prev, pageIndex: prev.pageIndex - 1 }))}
+            disabled={pagination.pageIndex === 0}
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" />
+            Anterior
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Página{" "}
+            <span className="text-foreground font-medium">
+              {pagination.pageIndex + 1}
+            </span>{" "}
+            de{" "}
+            <span className="text-foreground font-medium">
+              {totalPages}
+            </span>
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPagination((prev) => ({ ...prev, pageIndex: prev.pageIndex + 1 }))}
+            disabled={pagination.pageIndex >= totalPages - 1}
+          >
+            Siguiente
+            <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
+        </div>
+      )}
 
       {/* No results message when search yields nothing */}
       {searchTerm && filteredRutinas.length === 0 && rutinas.length > 0 && (

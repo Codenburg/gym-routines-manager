@@ -2,7 +2,7 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Empty } from '@/components/ui/empty';
-import { flexRender, getCoreRowModel, useReactTable, ColumnDef } from '@tanstack/react-table';
+import { flexRender, getCoreRowModel, getPaginationRowModel, useReactTable, ColumnDef, PaginationState, OnChangeFn } from '@tanstack/react-table';
 import { cn } from '@/lib/utils';
 
 const variantStyles = {
@@ -28,6 +28,8 @@ interface AdminTableProps<T> {
   enableRowSelection?: boolean;
   rowSelection?: Record<string, boolean>;
   onRowSelectionChange?: (rowSelection: Record<string, boolean>) => void;
+  pagination?: PaginationState;
+  onPaginationChange?: OnChangeFn<PaginationState>;
 }
 
 export function AdminTable<T extends { id: string }>({
@@ -38,12 +40,15 @@ export function AdminTable<T extends { id: string }>({
   enableRowSelection = false,
   rowSelection = {},
   onRowSelectionChange,
+  pagination,
+  onPaginationChange,
 }: AdminTableProps<T>) {
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     enableRowSelection,
     getRowId: (row) => row.id,
     onRowSelectionChange: (updater) => {
@@ -52,7 +57,9 @@ export function AdminTable<T extends { id: string }>({
     },
     state: {
       rowSelection,
+      pagination,
     },
+    onPaginationChange,
   });
 
   const styles = variantStyles[variant];
