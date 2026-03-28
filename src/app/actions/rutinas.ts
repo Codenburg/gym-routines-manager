@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { revalidateRutinasCache } from "@/lib/rutinas";
@@ -308,6 +309,7 @@ export async function deleteRutina(
 
     // Invalidate rutinas cache so homepage reflects changes immediately
     await revalidateRutinasCache();
+    revalidatePath("/admin/rutinas");
 
     return {
       success: true,
@@ -359,6 +361,7 @@ export async function deleteRutinas(
 
     // Invalidate rutinas cache so homepage reflects changes immediately
     await revalidateRutinasCache();
+    revalidatePath("/admin/rutinas");
 
     return {
       success: true,

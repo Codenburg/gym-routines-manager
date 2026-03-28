@@ -279,7 +279,7 @@ export async function getCachedRutinaById(id: string): Promise<RutinaDetail | nu
  */
 export async function revalidateRutinasCache(): Promise<void> {
   const { revalidateTag } = await import("next/cache");
-  revalidateTag(RUTINAS_CACHE_TAG, "max");
+  revalidateTag(RUTINAS_CACHE_TAG);
 }
 
 /**
