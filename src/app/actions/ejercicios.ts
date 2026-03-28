@@ -66,16 +66,14 @@ export async function createEjercicio(
       },
     });
 
-    // Get the rutinaId for revalidation
+    // Get the dia for revalidation
     const dia = await prisma.dia.findUnique({
       where: { id: parsed.data.diaId },
       select: { rutinaId: true },
     });
 
-    revalidatePath("/admin/dashboard");
-    if (dia) {
-      revalidatePath(`/admin/rutinas/${dia.rutinaId}`);
-    }
+    // Revalidate exact path to the day page
+    revalidatePath(`/admin/rutinas/${dia?.rutinaId}/dias/${parsed.data.diaId}`);
 
     return {
       success: true,
@@ -125,22 +123,24 @@ export async function updateEjercicio(
     };
   }
 
-  try {
-    // Get the dia first to know the rutinaId for revalidation
+    try {
+    // Get the ejercicio with dia info for revalidation
     const ejercicio = await prisma.ejercicio.findUnique({
       where: { id },
-      select: { dia: { select: { rutinaId: true } } },
+      select: { diaId: true, dia: { select: { rutinaId: true } } },
     });
+
+    if (!ejercicio) {
+      return { success: false, message: "Ejercicio no encontrado" };
+    }
 
     const updatedEjercicio = await prisma.ejercicio.update({
       where: { id },
       data: parsed.data,
     });
 
-    revalidatePath("/admin/dashboard");
-    if (ejercicio) {
-      revalidatePath(`/admin/rutinas/${ejercicio.dia.rutinaId}`);
-    }
+    // Revalidate exact path to the day page
+    revalidatePath(`/admin/rutinas/${ejercicio.dia.rutinaId}/dias/${ejercicio.diaId}`);
 
     return {
       success: true,
@@ -178,21 +178,23 @@ export async function deleteEjercicio(
     };
   }
 
-  try {
-    // Get the dia first to know the rutinaId for revalidation
+    try {
+    // Get the ejercicio with dia info for revalidation
     const ejercicio = await prisma.ejercicio.findUnique({
       where: { id },
-      select: { dia: { select: { rutinaId: true } } },
+      select: { diaId: true, dia: { select: { rutinaId: true } } },
     });
+
+    if (!ejercicio) {
+      return { success: false, message: "Ejercicio no encontrado" };
+    }
 
     await prisma.ejercicio.delete({
       where: { id },
     });
 
-    revalidatePath("/admin/dashboard");
-    if (ejercicio) {
-      revalidatePath(`/admin/rutinas/${ejercicio.dia.rutinaId}`);
-    }
+    // Revalidate exact path to the day page
+    revalidatePath(`/admin/rutinas/${ejercicio.dia.rutinaId}/dias/${ejercicio.diaId}`);
 
     return {
       success: true,
