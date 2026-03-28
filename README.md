@@ -375,24 +375,7 @@ npm run db:generate
 
 Ver [CONTRIBUTING.md](./CONTRIBUTING.md) para guías de contribución.
 
----
-
-## Changelog
-
-### [0.1.1] - 2026-03-27
-#### Changed
-- README: Mark PDF generation as pending (not implemented)
-- README: Add TODO section with completed/pending features
-- README: Fix Spanish/English mixed text in Troubleshooting
-- PRD: PDF moved to backlog, Phase 2 marked as pending
-
-#### Added
-- README: TODO section with full project status tracking
-
-### [0.1.0] - 2026-03-25
-#### Added
-- Initial documented state with full tech stack
-- All Phase 1-3 features implemented and documented
+Changelog detallado en [openspec/CHANGELOG.md](./openspec/CHANGELOG.md).
 
 ---
 
