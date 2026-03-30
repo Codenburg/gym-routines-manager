@@ -13,8 +13,8 @@ import { toast } from "sonner";
 interface Ejercicio {
   id: string;
   nombre: string;
-  series?: string | null;
-  repes?: string | null;
+  series?: number | null;
+  repes?: number | null;
   orden: number;
 }
 
@@ -124,8 +124,8 @@ export function EjercicioList({ diaId, diaNombre, rutinaId, ejercicios }: Ejerci
                 initialData={{
                   id: ejercicio.id,
                   nombre: ejercicio.nombre,
-                  series: ejercicio.series || undefined,
-                  repes: ejercicio.repes || undefined,
+                  series: ejercicio.series?.toString() || undefined,
+                  repes: ejercicio.repes?.toString() || undefined,
                 }}
                 diaId={diaId}
                 onSuccess={handleEditSuccess}

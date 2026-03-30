@@ -5,7 +5,7 @@ import { getToday } from "@/lib/dates";
 // Formato 4x12 helper
 // ======================
 
-const parseFormato = (value: string | undefined) => {
+export function parseFormato(value: string | undefined): { series: number | undefined; repes: number | undefined } | null {
   if (!value) return { series: undefined, repes: undefined };
 
   const match = value.match(/^(\d+)x(\d+)$/);
@@ -61,8 +61,7 @@ export type EjercicioUpdateInput = z.infer<typeof ejercicioUpdateSchema>;
 
 const ejercicioNestedSchema = z.object({
   nombre: z.string().min(1, { error: "El nombre del ejercicio es requerido" }).max(100),
-  series: z.coerce.number().int().positive().max(99).optional(),
-  repes: z.coerce.number().int().positive().max(99).optional(),
+  formato: z.string().optional(),
 });
 
 export type EjercicioNestedInput = z.infer<typeof ejercicioNestedSchema>;

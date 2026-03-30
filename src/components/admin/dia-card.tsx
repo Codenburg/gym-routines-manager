@@ -9,8 +9,8 @@ import {
 interface Ejercicio {
   id: string;
   nombre: string;
-  series?: string | null;
-  repes?: string | null;
+  series?: number | null;
+  repes?: number | null;
 }
 
 interface Dia {

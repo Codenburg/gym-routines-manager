@@ -10,6 +10,7 @@ import {
   rutinaUpdateSchema,
   rutinaCompletaSchema,
   idSchema,
+  parseFormato,
   type FormState,
 } from "@/lib/schemas";
 import type { RutinaCompletaInput } from "@/lib/schemas";
@@ -531,13 +532,14 @@ export async function createRutinaCompleta(
         // Create Ejercicios for this Dia
         for (let ejercicioIndex = 0; ejercicioIndex < diaData.ejercicios.length; ejercicioIndex++) {
           const ejercicioData = diaData.ejercicios[ejercicioIndex];
+          const parsedFormato = parseFormato(ejercicioData.formato);
 
           await tx.ejercicio.create({
             data: {
               diaId: createdDia.id,
               nombre: ejercicioData.nombre,
-              series: ejercicioData.series,
-              repes: ejercicioData.repes,
+              series: parsedFormato?.series,
+              repes: parsedFormato?.repes,
               orden: ejercicioIndex,
             },
           });
