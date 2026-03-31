@@ -4,6 +4,17 @@ Todos los cambios significativos del proyecto se documentan aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [0.2.2] - 2026-03-31
+
+### Fixed
+- RutinaCompletaForm: ejercicio drag-and-drop no funcionaba (faltaban `ejercicioIndex` y `diaIndex` en sortable data)
+- RutinaCompletaForm: day reorder causaba pérdida de campos `nombre` y `musculosEnfocados` en drags subsiguientes (memo causaba re-renders omitidos, key forzada `${field.id}-${index}` + `diaIndex` prop directo)
+- usePersistedForm: state corruption durante drag (persistía estados transitorios via `useWatch`), agregado flag `skipPersistence` para pausar persistencia durante operaciones DnD
+
+### Changed
+- EjercicioRow: props ahora incluyen `diaIndex` y pasa `ejercicioIndex` en sortable data
+- DiaSection: sin `React.memo()`, usa key forzada `${field.id}-${index}`, `baseName` calculado en el map del padre y pasado como prop
+
 ## [0.2.1] - 2026-03-30
 
 ### Fixed
