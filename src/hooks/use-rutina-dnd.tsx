@@ -142,10 +142,11 @@ export function useRutinaDnd({
   const [activeOver, setActiveOver] = useState<string | null>(null);
 
   // Memoized auto-scroll configuration with sensible defaults for lists
+  // Smoother scrolling: lower acceleration + higher threshold = less jerky movement
   const autoScroll = useMemo<AutoScrollOptions | false>(
     () =>
       customAutoScroll ?? {
-        acceleration: 10,
+        acceleration: 0.5, // reduced from 10 - very slow for small forms
         threshold: { x: 50, y: 50 },
         layoutShift: true,
       },
@@ -159,12 +160,13 @@ export function useRutinaDnd({
   );
 
   // Configure sensors with proper activation constraints
-  // PointerSensor: 8px distance prevents accidental drags (finger tremor, click hesitation)
+  // PointerSensor: 15px distance prevents accidental drags (finger tremor, click hesitation)
+  // Higher distance = less likely to trigger on small movements = smoother feel
   // KeyboardSensor: enables accessibility - drag with keyboard arrows
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 15, // increased from 8 - prevents accidental activation
       },
     }),
     useSensor(KeyboardSensor, {
