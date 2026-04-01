@@ -259,17 +259,17 @@ html {
   --sidebar-border: oklch(1 0 0 / 6%);
   --sidebar-ring: oklch(1 0 0 / 8%);
 
-  /* Dark Mode Tokens - Routine Form Design */
-  --color-base: #0a0a0a;
-  --color-card: #121212;
-  --color-card-alt: #181818;
+  /* Dark Mode Tokens - Routine Form Design - Exact values per spec */
+  --color-base: #0B0B0C;
+  --color-card: #161618;
+  --color-card-alt: #18181b;
   --color-accent: #48b8c9;
   --color-accent-foreground: #ffffff;
   --color-primary-btn: #ffffff;
   --color-primary-btn-text: #0a0a0a;
   --color-text-primary: #ffffff;
   --color-text-secondary: #9ca3af;
-  --color-border-light: #2a2a2a;
+  --color-border-light: #262629;
   --color-error: #ef4444;
   --color-placeholder: #6b7280;
 
@@ -284,9 +284,9 @@ html {
   /* Focus Ring - Red (Dark Mode) */
   --focus-ring-red: 0 0 0 2px #E11D48;
 
-  /* RoutineDayCard - Dark Mode */
-  --daycard-bg: #18181b;
-  --daycard-border: #27272a;
+  /* RoutineDayCard - Dark Mode - Using exact spec values */
+  --daycard-bg: #161618;
+  --daycard-border: #262629;
   --daycard-icon: #E11D48;
   --daycard-title: #f8fafc;
   --daycard-subtitle: #9ca3af;
@@ -298,10 +298,10 @@ html {
   --btn-primary-bg-hover: #f43f5e;
   --btn-primary-text: #ffffff;
 
-  /* Token System - Dark Mode */
-  --color-base: #0f0f10;
-  --color-surface: #18181b;
-  --color-border: #27272a;
+  /* Token System - Dark Mode - Exact values per spec */
+  --color-base: #0B0B0C;
+  --color-surface: #161618;
+  --color-border: #262629;
   --color-hover: #1f1f23;
   --color-muted: #a1a1aa;
   --color-foreground: #fafafa;
@@ -362,6 +362,72 @@ html {
     box-shadow: 0 0 0 1.5px #48b8c9;
   }
 
+  /* Focus-input: borderless by default, only shows indicator on focus-visible */
+  /* Minimal visual noise for long lists of exercises */
+  .focus-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--color-border);
+    border-radius: 0;
+    padding-left: 0;
+    padding-right: 0;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    color: var(--foreground);
+  }
+
+  .focus-input::placeholder {
+    color: var(--muted-foreground);
+    opacity: 1;
+  }
+
+  /* Light mode focus - subtle gray, not turquesa, to maintain minimalism */
+  .focus-input:focus {
+    outline: none;
+    border-bottom-color: #d1d5db;
+    box-shadow: 0 1px 0 0 #9ca3af;
+  }
+
+  .focus-input:focus-visible {
+    outline: none;
+    border-bottom-color: #d1d5db;
+    box-shadow: 0 1px 0 0 #9ca3af;
+  }
+
+  .light .focus-input {
+    background: transparent;
+    color: #111827;
+    border-bottom-color: #e5e7eb;
+  }
+
+  .light .focus-input::placeholder {
+    color: #c4c9d1;
+    opacity: 0.7;
+  }
+
+  .light .focus-input:focus,
+  .light .focus-input:focus-visible {
+    border-bottom-color: #9ca3af;
+    box-shadow: 0 1px 0 0 #9ca3af;
+  }
+
+  .dark .focus-input {
+    background: transparent;
+    color: #ffffff;
+    border-bottom-color: #262629;
+  }
+
+  .dark .focus-input::placeholder {
+    color: #6b7280;
+    opacity: 0.7;
+  }
+
+  /* Dark mode focus - turquesa accent for visual pop against dark bg */
+  .dark .focus-input:focus,
+  .dark .focus-input:focus-visible {
+    border-bottom-color: #48b8c9;
+    box-shadow: 0 1px 0 0 #48b8c9;
+  }
+
   /* Number inputs - remove spinner arrows for cleaner look */
   .seamless-input[type="number"]::-webkit-inner-spin-button,
   .seamless-input[type="number"]::-webkit-outer-spin-button {
@@ -389,6 +455,7 @@ html {
 
   body {
     @apply bg-background text-foreground;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
   html {
     @apply font-sans;
@@ -425,4 +492,62 @@ html {
 
 .dark input[type="time"]::-webkit-calendar-picker-indicator:hover {
   filter: invert(0.8);
+}
+
+/* ============================================
+   DRAG MOTION STATES
+   Active: elevation + subtle rotation
+   Dropzone: dashed placeholder indicator
+   ============================================ */
+
+/* Active drag state - elevated with subtle rotation */
+.drag-active {
+  transform: scale(1.02) rotate(1deg);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 8px 16px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  cursor: grabbing;
+}
+
+/* Dropzone placeholder - dashed border indicator */
+.dropzone-placeholder {
+  border: 2px dashed var(--color-accent);
+  border-radius: var(--radius);
+  background: var(--color-hover);
+  opacity: 0.6;
+  transition: border-color 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
+}
+
+/* Day card drag states */
+.day-card-dragging {
+  opacity: 0.5;
+  pointer-events: none;
+  background: var(--muted);
+}
+
+.day-card-overlay {
+  background: var(--card);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+  transform: scale(1.02) rotate(1deg);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Exercise row drag states */
+.ejercicio-row-dragging {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.ejercicio-row-overlay {
+  background: var(--card);
+  border: 1px solid var(--color-accent);
+  border-radius: calc(var(--radius) * 0.5);
+  box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.3);
+  transform: scale(1.01) rotate(0.5deg);
+}
+
+/* Theme transition for cards and inputs */
+.theme-transition {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }

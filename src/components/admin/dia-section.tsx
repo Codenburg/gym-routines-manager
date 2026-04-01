@@ -105,55 +105,58 @@ function DiaSectionComponent({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "bg-white dark:bg-[#121212] rounded-2xl shadow-sm dark:shadow-black/30 overflow-hidden border transition-all duration-200",
-        isDragging && "opacity-50 z-50 pointer-events-none bg-muted"
+        "bg-card dark:bg-card rounded-xl shadow-sm dark:shadow-black/20 overflow-hidden border border-border theme-transition",
+        isDragging && "day-card-dragging"
       )}
     >
       {/* Header with collapse toggle, drag handle, and delete button */}
+      {/* Structure: grabber (drag ONLY) | chevron + clickable area for navigation */}
       <div
         className={cn(
-          "flex items-center justify-between gap-4 px-4 py-3 transition-colors rounded-t-2xl",
-          !isDragging && "hover:bg-gray-100 dark:hover:bg-white/5",
-          isExpanded && "border-b border-[#e5e7eb] dark:border-[#2a2a2a]"
+          "flex items-center justify-between gap-4 px-3 py-2.5 theme-transition rounded-t-xl",
+          !isDragging && "hover:bg-muted/50",
+          isExpanded && "border-b border-border"
         )}
-        onClick={onToggle}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onToggle();
-          }
-        }}
-        aria-expanded={isExpanded}
       >
-        <div className="flex items-center gap-3">
-          {/* Drag handle for the day - ONLY this gets the listeners */}
+        <div className="flex items-center gap-2">
+          {/* Drag handle for the day - EXCLUSIVE listeners, no onClick */}
+          {/* touch-action: none prevents browser from intercepting touch for scroll */}
           <button
             type="button"
             data-testid={`dia-drag-handle-${diaIndex}`}
-            className="cursor-grab active:cursor-grabbing p-1 -ml-1 hover:bg-gray-200 dark:hover:bg-white/10 rounded transition-colors"
+            className="cursor-grab active:cursor-grabbing p-1.5 -ml-1 hover:bg-accent/50 rounded transition-colors touch-none"
             {...attributes}
             {...listeners}
             aria-label="Arrastrar para reordenar día"
             title="Arrastrar para reordenar día"
           >
-            <GripVertical className="h-5 w-5 text-muted-foreground" />
+            <GripVertical className="h-4 w-4 text-muted-foreground" />
           </button>
 
-          <ChevronRight
-            className={cn(
-              "h-5 w-5 text-[#6b7280] transition-transform duration-200",
-              isExpanded && "rotate-90"
-            )}
-          />
-          <h3 className="text-[#111827] dark:text-white font-semibold text-base" data-testid={`dia-title-${diaIndex}`}>Día {diaIndex + 1}</h3>
+          {/* Clickable area - triggers navigation/edit, NOT drag */}
+          <button
+            type="button"
+            data-testid={`dia-toggle-${diaIndex}`}
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={onToggle}
+            aria-expanded={isExpanded}
+          >
+            <ChevronRight
+              className={cn(
+                "h-4 w-4 text-muted-foreground transition-transform duration-200",
+                isExpanded && "rotate-90"
+              )}
+            />
+            {/* No "Día N" - visual order is sufficient per spec */}
+            {/* Day name is shown in collapsible content below */}
+          </button>
         </div>
-        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+
+        <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={onRemove}
-            className="p-2 text-[#9ca3af] dark:text-[#6b7280] hover:text-[#ef4444] transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-white/10"
+            className="p-1.5 text-muted-foreground hover:text-destructive transition-colors rounded hover:bg-destructive/10"
             title="Eliminar día"
           >
             <Trash2 className="h-4 w-4" />
@@ -162,10 +165,10 @@ function DiaSectionComponent({
       </div>
 
       {/* Collapsible content - hidden instead of unmounting to preserve input values */}
-      <div className={cn("px-4 pt-5 pb-4 space-y-4", !isExpanded && "hidden")}>
+      <div className={cn("px-4 pt-4 pb-4 space-y-4 theme-transition", !isExpanded && "hidden")}>
         {/* Nombre del día - full width */}
         <div className="space-y-2">
-          <label className="text-[#6b7280] dark:text-[#9ca3af] text-sm font-medium block">Nombre del día</label>
+          <label className="text-muted-foreground text-sm font-medium block">Nombre del día</label>
           <Controller
             name={`${baseName}.nombre`}
             control={control}
@@ -179,12 +182,12 @@ function DiaSectionComponent({
                 ref={field.ref}
                 type="text"
                 placeholder="Ej: Pierna, Espalda, Pecho..."
-                className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
+                className="focus-input w-full"
               />
             )}
           />
           {diaErrors?.nombre && (
-            <p className="text-[#ef4444] dark:text-[#ef4444] text-xs mt-1">
+            <p className="text-destructive text-xs mt-1">
               {typeof diaErrors.nombre === "object" ? diaErrors.nombre.message : diaErrors.nombre}
             </p>
           )}
@@ -192,7 +195,7 @@ function DiaSectionComponent({
 
         {/* Músculos enfocados - full width */}
         <div className="space-y-2">
-          <label className="text-[#6b7280] dark:text-[#9ca3af] text-sm font-medium block">Músculos enfocados</label>
+          <label className="text-muted-foreground text-sm font-medium block">Músculos enfocados</label>
           <Controller
             name={`${baseName}.musculosEnfocados`}
             control={control}
@@ -205,7 +208,7 @@ function DiaSectionComponent({
                 ref={field.ref}
                 type="text"
                 placeholder="Ej: Cuádriceps, isquiotibiales, glúteos..."
-                className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
+                className="focus-input w-full"
               />
             )}
           />
@@ -214,8 +217,8 @@ function DiaSectionComponent({
         {/* Ejercicios with nested SortableContext */}
         <div className="space-y-3 pt-2">
           <div className="flex items-center justify-between">
-            <label className="text-[#6b7280] dark:text-[#9ca3af] text-sm font-medium">Ejercicios</label>
-            <span className="text-[#9ca3af] dark:text-[#6b7280] text-xs">Al menos 1 ejercicio</span>
+            <label className="text-muted-foreground text-sm font-medium">Ejercicios</label>
+            <span className="text-muted-foreground/70 text-xs">Al menos 1 ejercicio</span>
           </div>
 
           {/* SortableContext for ejercicios - enables cross-ejercicio drag within same day */}
@@ -242,7 +245,7 @@ function DiaSectionComponent({
 
           {/* Error for empty ejercicios */}
           {diaErrors?.ejercicios?.root && (
-            <p className="text-[#ef4444] dark:text-[#ef4444] text-xs">
+            <p className="text-destructive text-xs">
               {typeof diaErrors.ejercicios.root === "object"
                 ? diaErrors.ejercicios.root.message
                 : diaErrors.ejercicios.root}
@@ -253,7 +256,7 @@ function DiaSectionComponent({
           <button
             type="button"
             onClick={addExercise}
-            className="text-[#6b7280] dark:text-[#6b7280] hover:text-[#48b8c9] transition-colors flex items-center gap-1 text-sm mt-3"
+            className="text-muted-foreground hover:text-accent transition-colors flex items-center gap-1 text-sm mt-2"
           >
             <span className="h-4 w-4">+</span>
             <span>Agregar Ejercicio</span>

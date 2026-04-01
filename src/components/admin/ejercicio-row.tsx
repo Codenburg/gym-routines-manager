@@ -63,17 +63,18 @@ export const EjercicioRow = memo(function EjercicioRow({
       style={style}
       data-testid={`ejercicio-row-${index}`}
       className={cn(
-        "flex items-center gap-2 py-1 px-1 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors group",
-        isDragging && "opacity-50 z-50 pointer-events-none shadow-lg",
-        isOver && "border-primary ring-2 ring-primary/20 bg-primary/5"
+        "flex items-center gap-3 py-1.5 px-1 rounded-lg hover:bg-muted/30 transition-colors theme-transition",
+        isDragging && "ejercicio-row-dragging",
+        isOver && "dropzone-placeholder"
       )}
     >
-      {/* Drag handle button - listeners ONLY on this */}
+      {/* Drag handle button - EXCLUSIVE listeners, no onClick */}
+      {/* touch-action: none prevents browser from intercepting touch for scroll */}
       <button
         type="button"
         data-testid={`ejercicio-drag-handle-${index}`}
         className={cn(
-          "cursor-grab active:cursor-grabbing p-1 hover:bg-accent rounded transition-colors",
+          "cursor-grab active:cursor-grabbing p-1 hover:bg-accent/50 rounded transition-colors shrink-0 touch-none",
           isDragging && "cursor-grabbing"
         )}
         {...attributes}
@@ -101,14 +102,14 @@ export const EjercicioRow = memo(function EjercicioRow({
               type="text"
               placeholder="Ej: Sentadillas con barra"
               className={cn(
-                "seamless-input h-9 placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]",
-                hasError && "border-[#ef4444]/50"
+                "focus-input h-8",
+                hasError && "border-destructive/50"
               )}
             />
           )}
         />
         {hasError && (
-          <p className="text-[#ef4444] dark:text-[#ef4444] text-xs mt-1">
+          <p className="text-destructive text-xs mt-0.5">
             {typeof hasError === "object" ? hasError.message : hasError}
           </p>
         )}
@@ -128,7 +129,7 @@ export const EjercicioRow = memo(function EjercicioRow({
               type="text"
               inputMode="numeric"
               placeholder="4x12"
-              className="seamless-input w-full h-9 text-center placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
+              className="focus-input w-full h-8 text-center"
             />
           )}
         />
@@ -138,7 +139,7 @@ export const EjercicioRow = memo(function EjercicioRow({
       <button
         type="button"
         onClick={onRemove}
-        className="p-2 text-[#d1d5db] dark:text-[#3a3a3a] hover:text-[#dc2626] transition-colors shrink-0"
+        className="p-1 text-muted-foreground/50 hover:text-destructive transition-colors shrink-0"
         title="Eliminar ejercicio"
       >
         <Trash2 className="h-4 w-4" />

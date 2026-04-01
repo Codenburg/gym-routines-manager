@@ -17,6 +17,7 @@ import {
   type AutoScrollOptions,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { GripVertical } from "lucide-react";
 
 import {
   reorderDias,
@@ -81,17 +82,17 @@ export interface UseRutinaDndReturn {
 
 /**
  * Drag preview component for days - rendered in DragOverlay.
+ * Motion state: scale(1.02) + rotate(1deg) + enhanced shadow
  */
 function DiaDragOverlay({ diaIndex }: { diaIndex: number }) {
   return (
-    <div className="bg-white dark:bg-[#1a1a1a] rounded-xl shadow-2xl border-2 border-[#48b8c9] dark:border-[#E11D48] px-4 py-3 min-w-[200px]">
+    <div className="day-card-overlay px-4 py-3 min-w-[200px]">
       <div className="flex items-center gap-2">
-        <div className="w-6 h-6 rounded-full bg-[#48b8c9]/20 dark:bg-[#E11D48]/20 flex items-center justify-center">
-          <span className="text-xs font-bold text-[#48b8c9] dark:text-[#E11D48]">
-            {diaIndex + 1}
-          </span>
+        {/* Visual indicator without numbering - order is shown by position */}
+        <div className="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center">
+          <GripVertical className="h-3 w-3 text-accent" />
         </div>
-        <span className="font-semibold text-[#111827] dark:text-white">
+        <span className="font-medium text-foreground">
           Día {diaIndex + 1}
         </span>
       </div>
@@ -101,17 +102,14 @@ function DiaDragOverlay({ diaIndex }: { diaIndex: number }) {
 
 /**
  * Drag preview component for exercises - rendered in DragOverlay.
+ * Motion state: scale(1.01) + rotate(0.5deg) + enhanced shadow
  */
 function EjercicioDragOverlay({ nombre }: { nombre?: string }) {
   return (
-    <div className="bg-white dark:bg-[#1a1a1a] rounded-xl shadow-2xl border-2 border-[#48b8c9] dark:border-[#E11D48] px-4 py-3 min-w-[180px]">
+    <div className="ejercicio-row-overlay px-3 py-2 min-w-[180px]">
       <div className="flex items-center gap-2">
-        <div className="w-5 h-5 rounded bg-[#48b8c9]/20 dark:bg-[#E11D48]/20 flex items-center justify-center">
-          <span className="text-[10px] font-bold text-[#48b8c9] dark:text-[#E11D48]">
-            E
-          </span>
-        </div>
-        <span className="text-sm text-[#111827] dark:text-white truncate max-w-[150px]">
+        <GripVertical className="h-4 w-4 text-accent shrink-0" />
+        <span className="text-sm text-foreground truncate max-w-[150px]">
           {nombre || "Ejercicio"}
         </span>
       </div>

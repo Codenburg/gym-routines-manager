@@ -89,16 +89,18 @@ export function SegmentedControl({
   );
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 px-px">
       <div
         ref={containerRef}
         role="tablist"
         aria-label={name || "Seleccionar opción"}
         className={cn(
-          // Background container - semantic token, inline-flex to fit content
-          "inline-flex bg-muted rounded-lg p-1",
-          // Horizontal layout, no stretch
-          "flex-nowrap items-center gap-1",
+          // Background container - flex with horizontal scroll for mobile
+          "flex bg-muted rounded-lg p-1",
+          // Horizontal scroll, hide scrollbar, gap between items
+          "overflow-x-auto scrollbar-hide snap-x snap-mandatory",
+          // Horizontal layout with padding for edge clearance
+          "gap-1 px-1",
           // Error state
           error && "ring-2 ring-destructive/50"
         )}
@@ -122,9 +124,11 @@ export function SegmentedControl({
               onFocus={() => setFocusedIndex(index)}
               onBlur={() => setFocusedIndex(-1)}
               className={cn(
-                // Base styles - inline-flex, no grow
+                // Base styles - min-width for readability on mobile, snap to center
                 "inline-flex items-center gap-2 h-9 px-3 rounded-md text-sm font-medium transition-all duration-150 ease-out",
-                "flex-none whitespace-nowrap",
+                "flex-none whitespace-nowrap min-w-[80px] justify-center",
+                // Snap scroll - each button snaps to center when scrolled
+                "snap-center",
                 // Focus state - ring using semantic token
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 // Disabled state

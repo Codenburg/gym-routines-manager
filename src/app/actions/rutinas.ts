@@ -565,3 +565,125 @@ export async function createRutinaCompleta(
     };
   }
 }
+
+/**
+ * Update a complete Rutina with nested Dias and Ejercicios
+ * This replaces all days and ejercicios with the new data provided.
+ */
+export async function updateRutinaCompleta(
+  prevState: FormState,
+  formData: FormData
+): Promise<FormState<{ id: string }>> {
+  // Verify admin access
+  const authCheck = await verifyAdmin(await headers());
+  if (!authCheck.authorized) {
+    return { success: false, message: authCheck.message };
+  }
+
+  const id = formData.get("id") as string;
+  if (!id) {
+    return { success: false, message: "ID de rutina requerido" };
+  }
+
+  // Validate UUID format
+  const idParsed = idSchema.safeParse(id);
+  if (!idParsed.success) {
+    return {
+      success: false,
+      message: "ID de rutina inválido",
+    };
+  }
+
+  // Parse nested FormData
+  const rawData = parseNestedFormData(formData);
+
+  // Validate with schema
+  const parsed = rutinaCompletaSchema.safeParse(rawData);
+
+  if (!parsed.success) {
+    return {
+      success: false,
+      errors: parsed.error.flatten().fieldErrors,
+      message: "Error de validación",
+    };
+  }
+
+  const data = parsed.data as RutinaCompletaInput;
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      // Update the Rutina basic info
+      await tx.rutina.update({
+        where: { id: idParsed.data },
+        data: {
+          nombre: data.nombre,
+          tipo: data.tipo,
+          descripcion: data.descripcion,
+        },
+      });
+
+      // Get existing days for this rutina
+      const existingDias = await tx.dia.findMany({
+        where: { rutinaId: idParsed.data },
+        include: { ejercicios: true },
+      });
+
+      // Delete all existing ejercicios first
+      for (const dia of existingDias) {
+        await tx.ejercicio.deleteMany({
+          where: { diaId: dia.id },
+        });
+      }
+
+      // Delete all existing days
+      await tx.dia.deleteMany({
+        where: { rutinaId: idParsed.data },
+      });
+
+      // Create new Dias and Ejercicios with sequential orden
+      for (let diaIndex = 0; diaIndex < data.dias.length; diaIndex++) {
+        const diaData = data.dias[diaIndex];
+
+        const createdDia = await tx.dia.create({
+          data: {
+            rutinaId: idParsed.data,
+            nombre: diaData.nombre,
+            musculosEnfocados: diaData.musculosEnfocados,
+            orden: diaIndex,
+          },
+        });
+
+        // Create Ejercicios for this Dia
+        for (let ejercicioIndex = 0; ejercicioIndex < diaData.ejercicios.length; ejercicioIndex++) {
+          const ejercicioData = diaData.ejercicios[ejercicioIndex];
+          const parsedFormato = parseFormato(ejercicioData.formato);
+
+          await tx.ejercicio.create({
+            data: {
+              diaId: createdDia.id,
+              nombre: ejercicioData.nombre,
+              series: parsedFormato?.series,
+              repes: parsedFormato?.repes,
+              orden: ejercicioIndex,
+            },
+          });
+        }
+      }
+    });
+
+    // Invalidate rutinas cache so homepage reflects changes immediately
+    await revalidateRutinasCache();
+
+    return {
+      success: true,
+      data: { id: idParsed.data },
+      message: "Rutina actualizada exitosamente",
+    };
+  } catch (error) {
+    console.error("Error updating rutina completa:", error);
+    return {
+      success: false,
+      message: "Error al actualizar la rutina",
+    };
+  }
+}
