@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "chunks": [
+    {
+      "id": "639d0d02",
+      "created_by": "Floki",
+      "created_at": "2026-04-01T18:44:34Z",
+      "sessions": 86,
+      "memories": 300,
+      "prompts": 2
+    }
+  ]
+}
