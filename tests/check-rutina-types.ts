@@ -38,7 +38,7 @@ async function checkPage() {
   // Check if there's a span with the type
   const spans = page.locator('span');
   const spanTexts = await spans.allTextContents();
-  const tipoSpan = spanTexts.find(t => ['Fuerza', 'Cardio', 'Funcional'].includes(t));
+  const tipoSpan = spanTexts.find(t => ['fuerza', 'cardio', 'flexibilidad', 'hipertrofia'].includes(t));
   console.log('Span with type found:', tipoSpan || 'none');
   
   await browser.close();

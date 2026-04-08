@@ -57,16 +57,16 @@ async function main() {
 
   // Routine templates
   const routineTemplates = [
-    { nombre: 'Full Body', tipo: 'Fuerza', descripcion: 'Rutina completa para todo el cuerpo' },
-    { nombre: 'Pecho y Tríceps', tipo: 'Fuerza', descripcion: 'Entrenamiento de empujes' },
-    { nombre: 'Espalda y Bíceps', tipo: 'Fuerza', descripcion: 'Entrenamiento de tirones' },
-    { nombre: 'Piernas', tipo: 'Fuerza', descripcion: 'Cuádriceps, isquiotibiales, gemelos' },
-    { nombre: 'Hombros', tipo: 'Fuerza', descripcion: 'Deltoides y manguito rotador' },
-    { nombre: 'Cardio HIIT', tipo: 'Cardio', descripcion: 'High intensity interval training' },
-    { nombre: 'Core y Abdominales', tipo: 'Funcional', descripcion: 'Fuerza central' },
-    { nombre: 'Full Body Ligero', tipo: 'Funcional', descripcion: 'Rutina accesible para todos' },
-    { nombre: 'Potencia', tipo: 'Fuerza', descripcion: 'Ejercicios pliométricos' },
-    { nombre: 'Resistencia', tipo: 'Cardio', descripcion: 'Endurance y stamina' },
+    { nombre: 'Full Body', tipo: 'fuerza', descripcion: 'Rutina completa para todo el cuerpo' },
+    { nombre: 'Pecho y Tríceps', tipo: 'fuerza', descripcion: 'Entrenamiento de empujes' },
+    { nombre: 'Espalda y Bíceps', tipo: 'fuerza', descripcion: 'Entrenamiento de tirones' },
+    { nombre: 'Piernas', tipo: 'fuerza', descripcion: 'Cuádriceps, isquiotibiales, gemelos' },
+    { nombre: 'Hombros', tipo: 'fuerza', descripcion: 'Deltoides y manguito rotador' },
+    { nombre: 'Cardio HIIT', tipo: 'cardio', descripcion: 'High intensity interval training' },
+    { nombre: 'Core y Abdominales', tipo: 'fuerza', descripcion: 'Fuerza central' },
+    { nombre: 'Full Body Ligero', tipo: 'flexibilidad', descripcion: 'Rutina accesible para todos' },
+    { nombre: 'Potencia', tipo: 'fuerza', descripcion: 'Ejercicios pliométricos' },
+    { nombre: 'Resistencia', tipo: 'cardio', descripcion: 'Endurance y stamina' },
   ];
 
   // Create admin users

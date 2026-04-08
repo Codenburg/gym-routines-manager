@@ -4,6 +4,14 @@ Todos los cambios significativos del proyecto se documentan aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [0.2.4] - 2026-04-07
+
+### Fixed
+- tipo-rutina: normalización de case en seed y display (valores en lowercase: `fuerza`, `cardio`, `flexibilidad`, `hipertrofia`)
+- tipo-rutina: seed corregido (`Funcional` → `fuerza`/`flexibilidad` según descripción de rutina)
+- UI: reemplazados `blue-500` hardcodeados por semantic tokens (`primary`)
+- UI: removidos gradient overrides que rompían dark mode en Cards
+
 ## [0.2.3] - 2026-04-04
 
 ### Fixed
