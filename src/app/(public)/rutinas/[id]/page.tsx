@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, AlertCircle } from "lucide-react";
+import { ArrowLeft, AlertCircle, Calendar, Dumbbell, Zap } from "lucide-react";
 import { getCachedRutinaById } from "@/lib/rutinas";
 
 export default async function RoutineDetailPage({
@@ -42,6 +42,15 @@ export default async function RoutineDetailPage({
     notFound();
   }
 
+  // Stats computation
+  const totalDays = rutina.dias.length;
+  const totalExercises = rutina.dias.reduce((sum, d) => sum + d.ejercicios.length, 0);
+  const totalSets = rutina.dias.reduce(
+    (sum, d) =>
+      sum + d.ejercicios.reduce((s, e) => s + (parseInt(e.series ?? "0") || 0), 0),
+    0
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-6 py-8 max-w-4xl">
@@ -56,28 +65,45 @@ export default async function RoutineDetailPage({
 
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">
-                {rutina.nombre}
-              </h1>
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary capitalize">
-                  {rutina.tipo}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  Creado por{" "}
-                  <span className="text-foreground font-medium">
-                    {rutina.creadorUser.name}
-                  </span>
-                </span>
-              </div>
-            </div>
-            {rutina.descripcion && (
-              <p className="text-muted-foreground mt-2">{rutina.descripcion}</p>
-            )}
+          <h1 className="text-3xl font-bold text-foreground mb-2 tracking-tight">
+            {rutina.nombre}
+          </h1>
+          <div className="flex items-center gap-3 flex-wrap mb-2">
+            <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary capitalize">
+              {rutina.tipo}
+            </span>
+            <span className="text-sm text-muted-foreground">
+              Creado por{" "}
+              <span className="text-foreground font-medium">
+                {rutina.creadorUser.name}
+              </span>
+            </span>
           </div>
+          {rutina.descripcion && (
+            <p className="text-sm text-muted-foreground">{rutina.descripcion}</p>
+          )}
         </div>
+
+        {/* Stats Summary */}
+        {totalDays > 0 && (
+          <div className="flex items-center gap-4 mb-8">
+            <Badge variant="outline" className="px-4 py-2 text-sm gap-1.5">
+              <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="font-bold text-primary">{totalDays}</span>
+              <span className="text-muted-foreground">días</span>
+            </Badge>
+            <Badge variant="outline" className="px-4 py-2 text-sm gap-1.5">
+              <Dumbbell className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="font-bold text-primary">{totalExercises}</span>
+              <span className="text-muted-foreground">ejercicios</span>
+            </Badge>
+            <Badge variant="outline" className="px-4 py-2 text-sm gap-1.5">
+              <Zap className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="font-bold text-primary">{totalSets}</span>
+              <span className="text-muted-foreground">series</span>
+            </Badge>
+          </div>
+        )}
 
         {/* Days */}
         <div className="flex flex-col gap-6">
@@ -92,79 +118,62 @@ export default async function RoutineDetailPage({
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-6">
+            <div className="flex flex-col gap-4">
               {rutina.dias.map((dia, index) => (
-                <Link
-                  key={dia.id}
-                  href={`/rutinas/${rutina.id}/dias/${dia.id}`}
-                  className="block"
-                >
-                  <Card className="hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 cursor-pointer">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-foreground flex items-center gap-3">
-                          <span className="flex items-center justify-center size-8 rounded-full bg-primary/10 text-primary text-sm font-bold">
-                            {index + 1}
-                          </span>
-                          {dia.nombre}
-                        </CardTitle>
-                        <div className="flex items-center gap-4">
-                          {dia.musculosEnfocados && dia.musculosEnfocados.length > 0 ? (
-                            <div className="flex gap-1 flex-wrap">
-                              {dia.musculosEnfocados.map((musculo) => (
-                                <Badge key={musculo} variant="secondary" className="text-xs">
-                                  {musculo}
-                                </Badge>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground italic">
-                              Sin músculos enfocados
-                            </span>
-                          )}
-                          {dia.ejercicios.length > 0 && (
-                            <span className="text-sm text-primary">
-                              {dia.ejercicios.length} ejercicio{dia.ejercicios.length !== 1 ? 's' : ''}
-                            </span>
-                          )}
+                <details key={dia.id} className="group rounded-lg border bg-card text-card-foreground shadow-sm">
+                  <summary className="flex items-center justify-between cursor-pointer list-none p-4">
+                    <div className="flex items-center gap-3">
+                      <span className="flex items-center justify-center size-8 rounded-full bg-primary/10 text-primary text-sm font-bold">
+                        {index + 1}
+                      </span>
+                      <span className="font-medium text-foreground">{dia.nombre}</span>
+                      {dia.musculosEnfocados && dia.musculosEnfocados.length > 0 && (
+                        <div className="flex gap-1 flex-wrap">
+                          {dia.musculosEnfocados.map((musculo) => (
+                            <Badge key={musculo} variant="secondary" className="text-xs">
+                              {musculo}
+                            </Badge>
+                          ))}
                         </div>
-                      </div>
-                    </CardHeader>
-                      <CardContent>
-                        {dia.ejercicios.length === 0 ? (
-                          <p className="text-muted-foreground text-sm">
-                            No hay ejercicios configurados
-                          </p>
-                        ) : (
-                          <ul className="flex flex-col gap-2">
-                            {dia.ejercicios.slice(0, 3).map((ejercicio, ejIndex) => (
-                              <li
-                                key={ejercicio.id}
-                                className="flex items-center justify-between text-foreground"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <span className="text-muted-foreground text-sm w-6">
-                                    {ejIndex + 1}.
-                                  </span>
-                                  {ejercicio.nombre}
-                                </div>
-                                {ejercicio.series && (
-                                  <span className="text-sm text-primary font-medium">
-                                    {ejercicio.series}
-                                  </span>
-                                )}
-                              </li>
-                            ))}
-                            {dia.ejercicios.length > 3 && (
-                              <li className="text-sm text-primary">
-                                +{dia.ejercicios.length - 3} más...
-                              </li>
-                            )}
-                          </ul>
-                        )}
-                      </CardContent>
-                  </Card>
-                </Link>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4">
+                      {dia.ejercicios.length > 0 && (
+                        <span className="text-sm text-primary">
+                          {dia.ejercicios.length} ejercicio{dia.ejercicios.length !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
+                  </summary>
+                  <div className="px-4 pb-4">
+                    {dia.ejercicios.length === 0 ? (
+                      <p className="text-muted-foreground text-sm">
+                        No hay ejercicios configurados
+                      </p>
+                    ) : (
+                      <ul className="flex flex-col gap-2 mt-2">
+                        {dia.ejercicios.map((ejercicio, ejIndex) => (
+                          <li
+                            key={ejercicio.id}
+                            className="flex items-center justify-between text-foreground"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-muted-foreground text-sm w-6">
+                                {ejIndex + 1}.
+                              </span>
+                              {ejercicio.nombre}
+                            </div>
+                            {ejercicio.series && ejercicio.repes ? (
+                              <span className="text-sm text-primary font-medium">
+                                {ejercicio.series}×{ejercicio.repes}
+                              </span>
+                            ) : null}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </details>
               ))}
             </div>
           )}
