@@ -120,16 +120,14 @@ export default async function RoutineDetailPage({
           ) : (
             <div className="flex flex-col gap-4">
               {rutina.dias.map((dia, index) => (
-                <details key={dia.id} className="group rounded-lg border bg-card text-card-foreground shadow-sm">
+                <details key={dia.id} open className="group rounded-lg border bg-card text-card-foreground shadow-sm">
                   <summary className="flex items-center justify-between cursor-pointer list-none p-4">
                     <div className="flex items-center gap-3">
-                      <span className="flex items-center justify-center size-8 rounded-full bg-primary/10 text-primary text-sm font-bold">
-                        {index + 1}
-                      </span>
+                      <span className="text-sm font-medium text-foreground">Día {index + 1}</span>
                       {dia.musculosEnfocados && dia.musculosEnfocados.length > 0 && (
                         <div className="flex gap-1 flex-wrap">
                           {dia.musculosEnfocados.map((musculo) => (
-                            <Badge key={musculo} variant="secondary" className="text-xs">
+                            <Badge key={musculo} variant="outline" className="text-xs">
                               {musculo}
                             </Badge>
                           ))}
