@@ -25,3 +25,19 @@ When implementing URL-based search with debounce and dual-state pattern, read `.
 When maintaining README as single source of truth with versioning after commits, read `.agents/skills/readme-guardian/SKILL.md` first.
 For config and rules related to project management,rules, logics and more, read `~/openspec/config.yaml` first.
 For testing and debugging, read `~/.agents/skills/testing-debugging/SKILL.md` first.
+
+# Code Review Rules
+
+## References
+
+- project rules: `~/openspec/config.yaml`
+- 
+---
+
+## Critical Rules (ALL files)
+
+REJECT if:
+
+- Hardcoded secrets/credentials
+- `console.log` in production code
+- Missing error handling
