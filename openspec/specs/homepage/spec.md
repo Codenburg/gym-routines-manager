@@ -470,6 +470,155 @@ The search/controls section SHALL align with the routine cards grid.
 
 ---
 
+## Mobile-First Redesign Requirements
+
+### Requirement: Home Page Header — Mobile First
+
+The homepage header SHALL display only the page title and ThemeToggle component on both mobile and desktop viewports. No generic subtitle text SHALL be displayed.
+
+#### Scenario: Header displays title only
+**Given** the user is on the home page `/`
+**When** the page loads on any viewport size
+**Then** the header SHALL display only the page title and the ThemeToggle component
+**And** no subtitle text SHALL be displayed
+
+---
+
+### Requirement: RoutineCard — No Author Attribution
+
+The RoutineCard component SHALL NOT display any "Creado por [name]" or author attribution line. Cards SHALL display only: routine title, tipo badge, dias/semanas info, and description.
+
+#### Scenario: Card displays without author
+**Given** the user is viewing the home page `/`
+**When** routine cards are rendered
+**Then** each card SHALL display: routine title, tipo badge, dias/semanas info, and description
+**And** each card SHALL NOT display any "Creado por [name]" line or author attribution
+
+---
+
+### Requirement: Mobile Trainer Filter Drawer
+
+The system SHALL provide a Sheet-based bottom drawer for trainer filtering on mobile viewports.
+
+#### Scenario: Mobile "Filtrar" button opens bottom drawer
+**Given** the user is on the home page `/` on a mobile viewport (width < 1024px)
+**When** the user taps the "Filtrar" button
+**Then** a bottom Sheet drawer SHALL open
+**And** the drawer SHALL display trainer filter options with selectable pills
+
+#### Scenario: Active filter badge on "Filtrar" button
+**Given** a trainer filter is active (via URL search params)
+**When** the user views the SearchSection on mobile
+**Then** the "Filtrar" button SHALL display a visual badge indicating an active filter
+
+---
+
+### Requirement: Desktop Trainer Pills
+
+The system SHALL display trainer pills on desktop viewports (lg+), replacing the TrainerSidebar paradigm.
+
+#### Scenario: Trainer pills visible on desktop
+**Given** the user is on the home page `/` on a desktop viewport (width ≥ 1024px)
+**When** the page loads
+**Then** trainer pills SHALL be displayed above the routine grid
+**And** the pills SHALL be visible without requiring any user interaction
+
+#### Scenario: Trainer pills reflect URL state
+**Given** the home page `/` has trainer filter params in the URL
+**When** the page loads on desktop
+**Then** the trainer pills SHALL show the correct selected state matching the URL params
+
+---
+
+### Requirement: Mobile Bottom Nav Bar
+
+The system SHALL provide a fixed bottom bar on mobile viewports containing Info and Feriados navigation.
+
+#### Scenario: Bottom bar appears on mobile
+**Given** the user is on the home page `/` on a mobile viewport (width < 1024px)
+**When** the page loads
+**Then** a fixed bottom bar SHALL be visible at the bottom of the viewport
+**And** the bottom bar SHALL display Info icon with "Información" label and Feriados icon with "Feriados" label
+
+#### Scenario: Bottom bar hidden on desktop
+**Given** the user is on the home page `/` on a desktop viewport (width ≥ 1024px)
+**When** the page loads
+**Then** the fixed bottom bar SHALL NOT be rendered or displayed
+
+---
+
+### Requirement: Desktop Info/Feriados Header Links
+
+The system SHALL display discrete icon-only links for Info and Feriados in the header area on desktop viewports.
+
+#### Scenario: Header shows icon links on desktop
+**Given** the user is on the home page `/` on a desktop viewport (width ≥ 1024px)
+**When** the page loads
+**Then** the header SHALL display discrete icon-only links for Info and Feriados
+
+#### Scenario: Header links hidden on mobile
+**Given** the user is on the home page `/` on a mobile viewport
+**When** the page loads
+**Then** the Info/Feriados header links SHALL NOT be rendered or displayed
+
+---
+
+### Requirement: Mobile Layout Order
+
+The mobile layout SHALL follow a specific visual order with proper bottom padding to prevent overlap with the fixed bottom bar.
+
+#### Scenario: Correct mobile layout order
+**Given** the user is on the home page `/` on a mobile viewport
+**When** the page renders
+**Then** the visual order from top to bottom SHALL be: Header, SearchSection (with trainer filter button), RoutineCard grid, Bottom Bar
+
+#### Scenario: Content does not overlap bottom bar
+**Given** the user is on the home page `/` on a mobile viewport
+**When** the page renders
+**Then** the routine card grid SHALL have bottom padding of at least `pb-16` (or equivalent) to prevent overlap with the fixed bottom bar
+
+---
+
+### Requirement: Theme Consistency — CSS Var Tokens
+
+All components affected by the mobile-first redesign SHALL use CSS custom property tokens for all colors and SHALL NOT contain hardcoded `slate-*` color values.
+
+#### Scenario: No hardcoded slate colors
+**Given** the following files are modified as part of this change:
+- `src/app/(public)/page.tsx`
+- `src/components/routines/routine-card.tsx`
+- `src/components/search/trainer-pills.tsx`
+- `src/components/search/search-section.tsx`
+- `src/components/search/trainer-filter-drawer.tsx`
+- `src/components/layout/bottom-bar.tsx`
+
+**When** these files are reviewed or rendered
+**Then** NO hardcoded `slate-*` color values SHALL be present
+**And** all colors SHALL use CSS var tokens (`bg-background`, `bg-card`, `text-foreground`, `text-muted-foreground`, `border-border`, `hover:bg-accent`, `focus:ring-ring`)
+
+---
+
+## Acceptance Criteria Summary (Mobile-First Redesign)
+
+| Feature | Criterion | Priority |
+|---------|-----------|----------|
+| Header | Shows only title + ThemeToggle (no subtitle) | MUST |
+| RoutineCard | Does NOT display "Creado por [name]" | MUST |
+| Mobile Drawer | "Filtrar" button opens Sheet-based bottom drawer | MUST |
+| Trainer Filter | Pill selection updates URL params | MUST |
+| Filter Badge | Active badge shows on "Filtrar" when filter active | MUST |
+| Desktop Pills | Trainer pills visible (lg+), not sidebar | MUST |
+| Mobile Bottom Bar | Shows Info + Feriados with icons and labels | MUST |
+| Desktop Header | Shows Info + Feriados icon-only links | MUST |
+| Responsive | Bottom bar hidden on desktop, header links hidden on mobile | MUST |
+| Layout | Mobile order: header → search → filter → cards → bottom bar | MUST |
+| Padding | Card grid has `pb-16` bottom padding on mobile | MUST |
+| Theme | CSS var tokens used, no hardcoded slate-* | MUST |
+| Light Mode | All components render correctly | MUST |
+| Dark Mode | All components render correctly | MUST |
+
+---
+
 ## Technical Implementation Notes (Not Part of Spec)
 
 The following are implementation guidance and are NOT requirements:

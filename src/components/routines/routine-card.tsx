@@ -27,12 +27,6 @@ export function RoutineCard({ rutina }: RoutineCardProps) {
           {rutina.descripcion && (
             <p className="text-sm text-muted-foreground line-clamp-2">{rutina.descripcion}</p>
           )}
-          <p className="text-xs text-muted-foreground mt-2">
-            Creado por{" "}
-            <span className="text-foreground font-medium">
-              {rutina.creadorUser.name}
-            </span>
-          </p>
         </CardContent>
         <CardFooter className="mt-auto">
           <span className="text-xs text-muted-foreground flex items-center gap-1">

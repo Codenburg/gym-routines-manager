@@ -2,7 +2,8 @@ import { Suspense } from "react";
 import { SearchSection } from "@/components/search/search-section";
 import { RoutineList } from "@/components/routines/routine-list";
 import { RoutineListSkeleton } from "@/components/routines/routine-card-skeleton";
-import { TrainerSidebarClient } from "@/components/search/trainer-sidebar-client";
+import { TrainerPillsClient } from "@/components/search/trainer-pills-client";
+import { BottomBar } from "@/components/layout/bottom-bar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getFilteredRutinas } from "@/lib/rutinas";
 
@@ -31,37 +32,42 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
         <div className="mb-12">
           {/* Header with title and theme toggle */}
           <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2 tracking-tight">
-                Rutinas Champion Gym
-              </h1>
-              <p className="text-muted-foreground text-lg">Explora las mejores rutinas de entrenamiento</p>
-            </div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
+              Rutinas Champion Gym
+            </h1>
             <ThemeToggle />
           </div>
 
-          {/* Search + Cards Container - all aligned */}
+          {/* Search + Cards Container - mobile-first flex layout */}
           <div className="flex flex-col lg:flex-row gap-6">
-            {/* Trainer Sidebar - null result means DB error, not empty trainers */}
-            <TrainerSidebarClient
-              trainers={result?.trainers ?? null}
-            />
+            {/* Trainer Pills - desktop only */}
+            <aside className="hidden lg:block w-64 flex-shrink-0">
+              <TrainerPillsClient trainers={result?.trainers ?? null} />
+            </aside>
 
             {/* Search + Cards */}
             <div className="flex-1">
               {/* Search Section - aligned with cards */}
               <div className="mb-6">
-                <SearchSection defaultValue={search ?? ""} />
+                <SearchSection
+                  defaultValue={search ?? ""}
+                  trainers={result?.trainers ?? undefined}
+                />
               </div>
 
               {/* Cards Grid - streaming with skeleton fallback */}
-              <Suspense fallback={<RoutineListSkeleton count={6} />}>
-                <RoutineListWrapper result={result} />
-              </Suspense>
+              <div className="pb-16 lg:pb-0">
+                <Suspense fallback={<RoutineListSkeleton count={6} />}>
+                  <RoutineListWrapper result={result} />
+                </Suspense>
+              </div>
             </div>
           </div>
         </div>
       </main>
+
+      {/* Mobile bottom bar */}
+      <BottomBar />
     </div>
   );
 }
