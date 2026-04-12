@@ -4,6 +4,25 @@ Todos los cambios significativos del proyecto se documentan aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [0.6.0] - 2026-04-12
+
+### Added
+- Modelo `Promocion` (titulo, descripcion, precio, activo) con CRUD admin completo
+- Modelo `DescuentoDuracion` (meses, porcentaje) con unique constraint (gymId, meses) y CRUD admin
+- Página `/admin/promociones` para gestionar promociones activas
+- Página `/admin/descuentos-duracion` para gestionar descuentos por duración
+- Display de promociones activas en `/informacion`
+- Tabla de descuentos por duración en `/informacion`
+- Quick actions en admin dashboard linking a ambas páginas
+- Navegación lateral admin con links a promociones y descuentos
+- Seed data: 3 promociones y 4 descuentos por duración (3/6/9/12 meses → 10/15/17/20%)
+
+### Changed
+- `/informacion` ahora incluye secciones de promociones y descuentos
+- Prisma schema: nuevos modelos y relaciones con Gym
+
+---
+
 ## [0.5.1] - 2026-04-10
 
 ### Changed
