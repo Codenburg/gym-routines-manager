@@ -28,7 +28,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 sm:px-8 py-8 sm:py-12 max-w-7xl">
+      <main className="container mx-auto px-4 sm:px-8 py-8 sm:py-12 max-w-7xl pb-16 lg:pb-0">
         <div className="mb-12">
           {/* Header with title and theme toggle */}
           <div className="flex items-center justify-between mb-8">
@@ -58,7 +58,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
               </div>
 
               {/* Cards Grid - streaming with skeleton fallback */}
-              <div className="pb-16 lg:pb-0">
+              <div>
                 <Suspense fallback={<RoutineListSkeleton count={6} />}>
                   <RoutineListWrapper result={result} />
                 </Suspense>
