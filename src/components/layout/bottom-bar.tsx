@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Info, Calendar } from "lucide-react";
+import { Info, Calendar, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function BottomBar() {
@@ -37,6 +37,19 @@ export function BottomBar() {
       >
         <Calendar className="h-5 w-5" />
         <span className="text-xs font-medium">Feriados</span>
+      </Link>
+
+      <Link
+        href="/admin/login"
+        className={cn(
+          "flex flex-col items-center gap-1 p-2 transition-colors hover:bg-accent rounded-md",
+          pathname === "/admin/login"
+            ? "text-primary"
+            : "text-foreground"
+        )}
+      >
+        <Lock className="h-5 w-5" />
+        <span className="text-xs font-medium">Admin</span>
       </Link>
     </nav>
   );

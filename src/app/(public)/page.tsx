@@ -36,6 +36,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
               <h1 className="text-4xl sm:text-5xl font-black text-foreground" style={{ fontFamily: 'var(--font-bebas-neue), sans-serif' }}>
                 Champion Gym
               </h1>
+              <p className="text-xs text-muted-foreground mt-1">by Codenburg</p>
             </div>
             <ThemeToggle />
           </div>
