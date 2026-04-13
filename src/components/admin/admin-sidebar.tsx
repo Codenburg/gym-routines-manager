@@ -78,7 +78,7 @@ function SidebarContent({
       <div className="p-4 border-b border-border">
         <Link href="/admin" className="flex items-center gap-2">
           <House className="w-5 h-5 text-foreground" />
-          <span className="font-black text-xl text-foreground" style={{ fontFamily: 'var(--font-bebas-neue), sans-serif' }}>Champion Gym</span>
+          <span className="font-bold text-xl text-foreground uppercase">Champion Gym</span>
         </Link>
       </div>
 
@@ -120,7 +120,7 @@ function SidebarContent({
         <DropdownMenu>
           <DropdownMenuTrigger className="w-full p-4 flex items-center gap-3 rounded-none hover:bg-accent transition-colors cursor-pointer">
             <User className="w-5 h-5 text-foreground" />
-            <span className="flex-1 text-sm font-medium text-foreground text-left">
+            <span className="flex-1 text-sm font-medium text-foreground text-left uppercase">
               {username}
             </span>
             <ChevronDown className="w-4 h-4 text-muted-foreground" />
