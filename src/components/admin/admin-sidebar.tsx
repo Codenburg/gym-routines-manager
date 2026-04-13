@@ -78,7 +78,7 @@ function SidebarContent({
       <div className="p-4 border-b border-border">
         <Link href="/admin" className="flex items-center gap-2">
           <House className="w-5 h-5 text-foreground" />
-          <span className="font-bold text-lg text-foreground">Champion Gym</span>
+          <span className="font-black text-xl text-foreground" style={{ fontFamily: 'var(--font-bebas-neue), sans-serif' }}>Champion Gym</span>
         </Link>
       </div>
 
