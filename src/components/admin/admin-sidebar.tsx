@@ -24,10 +24,11 @@ import {
   ChevronDown,
 } from "lucide-react";
 import {
-  Popover,
-  PopoverTrigger,
-  PopoverPopup,
-} from "@base-ui/react";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const navItems = [
   {
@@ -116,41 +117,34 @@ function SidebarContent({
 
       {/* Footer */}
       <div className="mt-auto border-t border-border">
-        <Popover>
-          <PopoverTrigger
-            render={
-              <button
-                className="w-full p-4 flex items-center gap-3 rounded-none hover:bg-accent transition-colors cursor-pointer"
-              >
-                <User className="w-5 h-5 text-foreground" />
-                <span className="flex-1 text-sm font-medium text-foreground text-left">
-                  {username}
-                </span>
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-              </button>
-            }
-          />
-          <PopoverPopup className="min-w-[200px] rounded-lg border border-border bg-background shadow-lg p-1">
-            <button
-              onClick={toggleTheme}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-foreground hover:bg-accent rounded-md transition-colors cursor-pointer"
-            >
+        <DropdownMenu>
+          <DropdownMenuTrigger className="w-full p-4 flex items-center gap-3 rounded-none hover:bg-accent transition-colors cursor-pointer">
+            <User className="w-5 h-5 text-foreground" />
+            <span className="flex-1 text-sm font-medium text-foreground text-left">
+              {username}
+            </span>
+            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-56">
+            <DropdownMenuItem onClick={toggleTheme} className="cursor-pointer">
               {theme === "dark" ? (
-                <Sun className="w-5 h-5" />
+                <>
+                  <Sun className="w-5 h-5 mr-2" />
+                  Modo Claro
+                </>
               ) : (
-                <Moon className="w-5 h-5" />
+                <>
+                  <Moon className="w-5 h-5 mr-2" />
+                  Modo Oscuro
+                </>
               )}
-              {theme === "dark" ? "Modo Claro" : "Modo Oscuro"}
-            </button>
-            <button
-              onClick={handleSignOut}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-foreground hover:bg-accent rounded-md transition-colors cursor-pointer"
-            >
-              <LogOut className="w-5 h-5" />
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+              <LogOut className="w-5 h-5 mr-2" />
               Cerrar sesión
-            </button>
-          </PopoverPopup>
-        </Popover>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
