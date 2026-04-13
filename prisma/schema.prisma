@@ -174,6 +174,8 @@ model Gym {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   feriados  Feriado[]
+  promociones Promocion[]
+  descuentosDuracion DescuentoDuracion[]
 }
 
 // ======================
@@ -192,4 +194,28 @@ model Feriado {
 
   @@unique([gymId, fecha])
   @@index([gymId])
+}
+
+model Promocion {
+  id          String   @id @default(uuid())
+  titulo      String
+  descripcion String
+  precio      String
+  activo      Boolean  @default(true)
+  gymId       String
+  gym         Gym      @relation(fields: [gymId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DescuentoDuracion {
+  id          Int      @id @default(autoincrement())
+  meses       Int      // enum: 3, 6, 9, 12
+  porcentaje  Int      // Int sin enum - valores libres
+  gymId       String
+  gym         Gym      @relation(fields: [gymId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([gymId, meses])
 }

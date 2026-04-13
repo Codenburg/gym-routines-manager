@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Dumbbell } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Rutina } from "@/lib/rutinas";
 
@@ -30,7 +30,7 @@ export function RoutineCard({ rutina }: RoutineCardProps) {
         </CardContent>
         <CardFooter className="mt-auto">
           <span className="text-xs text-muted-foreground flex items-center gap-1">
-            <Dumbbell className="shrink-0" />
+            <Calendar className="shrink-0" />
             {diasLabel}
           </span>
         </CardFooter>

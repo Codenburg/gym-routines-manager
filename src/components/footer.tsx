@@ -16,7 +16,7 @@ export function Footer() {
   if (!showFooter) return null;
 
   return (
-    <footer className="border-t border-[var(--card-border)] bg-[var(--background)] py-6 mt-auto">
+    <footer className="hidden lg:flex border-t border-[var(--card-border)] bg-[var(--background)] py-6 mt-auto">
       <div className="container mx-auto px-4 max-w-5xl">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
           <p className="text-[var(--muted-foreground)] text-sm order-2 sm:order-1">

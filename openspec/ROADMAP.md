@@ -1,6 +1,6 @@
 # Roadmap
 
-_Last updated: 2026-04-10_ | _Version: 0.5.1_
+_Last updated: 2026-04-13_ | _Version: 0.8.0_
 
 ---
 
@@ -21,6 +21,10 @@ _Last updated: 2026-04-10_ | _Version: 0.5.1_
 - [x] Prevención de feriados duplicados (unique date constraint)
 - [x] Página de información del gimnasio
 - [x] Búsqueda unificada con debounce y URL como source of truth
+- [x] Promociones y descuentos por duración (v0.6.0)
+- [x] Admin CRUD para promociones y descuentos (v0.6.0)
+- [x] Sidebar admin con navegación y drawer mobile (v0.7.0)
+- [x] Sidebar footer con user dropdown, theme toggle y logout (v0.8.0)
 
 ### Técnico
 - [x] Next.js 16.1.6 + React 19.2.3

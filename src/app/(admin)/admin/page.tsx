@@ -4,9 +4,8 @@ import prisma from "@/lib/prisma";
 import { GymPriceEditor } from "@/components/admin/GymPriceEditor";
 import { AdminCard } from "@/components/admin/admin-card";
 import { PageHeader } from "@/components/admin/page-header";
-import { Button } from "@/components/ui/button";
 import { DataResult, ok, err } from "@/lib/data-result";
-import { FileText, Calendar, TrendingUp, Plus, AlertCircle } from "lucide-react";
+import { FileText, Calendar, TrendingUp, AlertCircle } from "lucide-react";
 
 // Force dynamic rendering
 export const dynamic = "force-dynamic";
@@ -46,8 +45,8 @@ export default async function AdminDashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <AdminCard variant="standard">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-red-600/20 rounded-lg flex items-center justify-center">
-              <FileText className="w-6 h-6 text-red-500" />
+            <div className="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center">
+              <FileText className="w-6 h-6 text-muted-foreground" />
             </div>
             <div>
               <p className="text-muted-foreground text-sm">Total Rutinas</p>
@@ -60,8 +59,8 @@ export default async function AdminDashboardPage() {
 
         <AdminCard variant="standard">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-blue-600/20 rounded-lg flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-blue-500" />
+            <div className="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center">
+              <Calendar className="w-6 h-6 text-muted-foreground" />
             </div>
             <div>
               <p className="text-muted-foreground text-sm">Total Días</p>
@@ -74,8 +73,8 @@ export default async function AdminDashboardPage() {
 
         <AdminCard variant="standard">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-green-600/20 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-green-500" />
+            <div className="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-muted-foreground" />
             </div>
             <div>
               <p className="text-muted-foreground text-sm">Total Ejercicios</p>
@@ -85,31 +84,6 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
         </AdminCard>
-      </div>
-
-      {/* Quick Actions */}
-      <div>
-        <h2 className="text-lg font-semibold text-foreground mb-4">Acciones Rápidas</h2>
-        <div className="flex gap-4 flex-wrap">
-          <Link href="/admin/rutinas/new">
-            <Button className="cursor-pointer">
-              <Plus className="w-5 h-5 mr-2" />
-              Nueva Rutina
-            </Button>
-          </Link>
-          <Link href="/admin/rutinas">
-            <Button variant="secondary" className="cursor-pointer">
-              <FileText className="w-5 h-5 mr-2" />
-              Ver Rutinas
-            </Button>
-          </Link>
-          <Link href="/admin/feriados">
-            <Button variant="secondary" className="cursor-pointer">
-              <Calendar className="w-5 h-5 mr-2" />
-              Ver Feriados
-            </Button>
-          </Link>
-        </div>
       </div>
 
       {/* Recent Routines */}
@@ -132,11 +106,15 @@ export default async function AdminDashboardPage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="text-foreground font-medium">{rutina.nombre}</h3>
-                      <p className="text-muted-foreground text-sm mt-1 capitalize">{rutina.tipo}</p>
                     </div>
-                    <span className="px-2 py-1 bg-secondary rounded text-xs text-muted-foreground">
-                      {rutina.diasCount || 0} días
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary capitalize">
+                        {rutina.tipo}
+                      </span>
+                      <span className="text-muted-foreground text-xs">
+                        {rutina.diasCount === 1 ? "1 día" : `${rutina.diasCount || 0} días`}
+                      </span>
+                    </div>
                   </div>
                 </AdminCard>
               </Link>

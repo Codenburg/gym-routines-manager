@@ -238,6 +238,50 @@ export type FeriadoUpdateInput = z.infer<typeof updateFeriadoSchema>;
 export const idSchema = z.string().uuid({ error: "ID inválido" });
 
 // ======================
+// Promocion Schemas
+// ======================
+
+export const createPromocionSchema = z.object({
+  titulo: z.string().min(1, "El título es requerido"),
+  descripcion: z.string().min(1, "La descripción es requerida"),
+  precio: z.string().min(1, "El precio es requerido"),
+  activo: z.boolean().default(true),
+});
+
+export const updatePromocionSchema = createPromocionSchema.partial();
+
+export type CreatePromocionInput = z.infer<typeof createPromocionSchema>;
+export type UpdatePromocionInput = z.infer<typeof updatePromocionSchema>;
+
+// FormState for Promocion - use any to allow Prisma entity returns with id, createdAt, etc.
+export type PromocionFormState = FormState<any>;
+
+// ======================
+// DescuentoDuracion Schemas
+// ======================
+
+// meses is enum [3, 6, 9, 12]
+export const mesesEnum = z.union([
+  z.literal(3),
+  z.literal(6),
+  z.literal(9),
+  z.literal(12),
+]);
+
+export const createDescuentoDuracionSchema = z.object({
+  meses: mesesEnum,
+  porcentaje: z.coerce.number().int().min(0).max(100),
+});
+
+export const updateDescuentoDuracionSchema = createDescuentoDuracionSchema.partial();
+
+export type CreateDescuentoDuracionInput = z.infer<typeof createDescuentoDuracionSchema>;
+export type UpdateDescuentoDuracionInput = z.infer<typeof updateDescuentoDuracionSchema>;
+
+// FormState for DescuentoDuracion - use any to allow Prisma entity returns with id, createdAt, etc.
+export type DescuentoDuracionFormState = FormState<any>;
+
+// ======================
 // Form State Type
 // ======================
 

@@ -4,6 +4,7 @@
 .claude/**
 AGENTS.md
 .agents/**
+.atl
 
 # dependencies
 /node_modules

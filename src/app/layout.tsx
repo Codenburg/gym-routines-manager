@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Roboto } from "next/font/google";
+import { Geist, Geist_Mono, Roboto, Bebas_Neue } from "next/font/google";
 import "./globals.css";
 import { Footer } from "@/components/footer";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -18,6 +18,12 @@ const geistMono = Geist_Mono({
 const roboto = Roboto({
   variable: "--font-roboto",
   weight: ["400", "500", "700"],
+  subsets: ["latin"],
+});
+
+const bebasNeue = Bebas_Neue({
+  variable: "--font-bebas-neue",
+  weight: "400",
   subsets: ["latin"],
 });
 
@@ -56,7 +62,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${roboto.variable} ${geistSans.variable} ${geistMono.variable} font-sans antialiased min-h-screen flex flex-col`}
+        className={`${roboto.variable} ${geistSans.variable} ${geistMono.variable} ${bebasNeue.variable} font-sans antialiased min-h-screen flex flex-col`}
       >
         <ThemeProvider>
           {children}

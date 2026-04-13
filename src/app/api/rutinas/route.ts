@@ -15,7 +15,6 @@ interface RutinaQueryResult {
   };
   dias: {
     id: string;
-    nombre: string;
     musculosEnfocados: string[] | null;
     orden: number;
     ejercicios: {
@@ -96,7 +95,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         dias: {
           select: {
             id: true,
-            nombre: true,
             musculosEnfocados: true,
             orden: true,
             ejercicios: {

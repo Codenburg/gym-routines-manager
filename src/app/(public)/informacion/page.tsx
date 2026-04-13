@@ -1,8 +1,17 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { House, AlertCircle } from "lucide-react";
+import { House, AlertCircle, Tag, Percent } from "lucide-react";
 import { DataResult, ok, err } from "@/lib/data-result";
 import { getToday } from "@/lib/dates";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Feriado {
   id: string;
@@ -18,6 +27,21 @@ interface GymConfig {
   price: number;
   createdAt: string;
   updatedAt: string;
+}
+
+interface Promocion {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  precio: string;
+  activo: boolean;
+  createdAt: string;
+}
+
+interface DescuentoDuracion {
+  id: number;
+  meses: number;
+  porcentaje: number;
 }
 
 async function getFeriados(): Promise<DataResult<Feriado[]>> {
@@ -59,6 +83,46 @@ async function getGymPrice(): Promise<DataResult<number | null>> {
   }
 }
 
+async function getPromociones(): Promise<DataResult<Promocion[]>> {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  try {
+    const response = await fetch(`${baseUrl}/api/promociones`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      console.error("[getPromociones] API returned non-OK status:", response.status);
+      return err([]);
+    }
+
+    const data = await response.json();
+    return ok(data.promociones);
+  } catch (error) {
+    console.error("[getPromociones] Failed to fetch promociones:", error);
+    return err([]);
+  }
+}
+
+async function getDescuentos(): Promise<DataResult<DescuentoDuracion[]>> {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  try {
+    const response = await fetch(`${baseUrl}/api/descuentos-duracion`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      console.error("[getDescuentos] API returned non-OK status:", response.status);
+      return err([]);
+    }
+
+    const data = await response.json();
+    return ok(data.descuentos);
+  } catch (error) {
+    console.error("[getDescuentos] Failed to fetch descuentos:", error);
+    return err([]);
+  }
+}
+
 function formatDate(fechaStr: string): string {
   // Use local time to avoid timezone offset issues
   const fecha = new Date(`${fechaStr}T00:00:00`);
@@ -88,9 +152,11 @@ function formatPrice(price: number): string {
 }
 
 export default async function InformacionPage() {
-  const [feriadosResult, gymPriceResult] = await Promise.all([
+  const [feriadosResult, gymPriceResult, promocionesResult, descuentosResult] = await Promise.all([
     getFeriados(),
     getGymPrice(),
+    getPromociones(),
+    getDescuentos(),
   ]);
 
   return (
@@ -148,6 +214,24 @@ export default async function InformacionPage() {
             <Suspense fallback={<HolidaysSkeleton />}>
               <HolidaysPreview feriados={feriadosResult.data} feriadosError={feriadosResult.error} />
             </Suspense>
+          </section>
+
+          {/* Promociones Section */}
+          <section className="bg-[var(--button-secondary-bg)] border border-[var(--card-border)] rounded-xl p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Tag className="w-5 h-5 text-[var(--foreground)]" />
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Promociones</h2>
+            </div>
+            <PromocionesPreview promociones={promocionesResult.data} error={promocionesResult.error} />
+          </section>
+
+          {/* Descuentos Section */}
+          <section className="bg-[var(--button-secondary-bg)] border border-[var(--card-border)] rounded-xl p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Percent className="w-5 h-5 text-[var(--foreground)]" />
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Descuentos por Duración</h2>
+            </div>
+            <DescuentosPreview descuentos={descuentosResult.data} error={descuentosResult.error} />
           </section>
         </div>
       </main>
@@ -260,5 +344,95 @@ function PriceSectionSkeleton() {
       </h2>
       <div className="h-8 w-28 bg-[var(--background)] rounded animate-pulse" />
     </section>
+  );
+}
+
+function PromocionesPreview({
+  promociones,
+  error,
+}: {
+  promociones: Promocion[];
+  error: boolean;
+}) {
+  if (error) {
+    return (
+      <p className="text-[var(--muted-foreground)]">No se pudieron cargar las promociones</p>
+    );
+  }
+
+  if (promociones.length === 0) {
+    return (
+      <p className="text-[var(--muted-foreground)]">No hay promociones activas</p>
+    );
+  }
+
+  return (
+    <div className="grid gap-4">
+      {promociones.map((promocion) => (
+        <Card
+          key={promocion.id}
+          className="bg-[var(--background)] border-[var(--card-border)]"
+        >
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-semibold text-[var(--foreground)]">
+              {promocion.titulo}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-[var(--muted-foreground)] mb-2">
+              {promocion.descripcion}
+            </p>
+            <p className="text-lg font-bold text-[var(--foreground)]">
+              {promocion.precio}
+            </p>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function DescuentosPreview({
+  descuentos,
+  error,
+}: {
+  descuentos: DescuentoDuracion[];
+  error: boolean;
+}) {
+  if (error) {
+    return (
+      <p className="text-[var(--muted-foreground)]">No se pudieron cargar los descuentos</p>
+    );
+  }
+
+  if (descuentos.length === 0) {
+    return (
+      <p className="text-[var(--muted-foreground)]">No hay descuentos disponibles</p>
+    );
+  }
+
+  return (
+    <div className="rounded-lg border border-[var(--card-border)] overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-[var(--background)] hover:bg-[var(--background)]">
+            <TableHead className="text-[var(--foreground)] font-medium">Duración</TableHead>
+            <TableHead className="text-[var(--foreground)] font-medium text-right">Descuento</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {descuentos.map((descuento) => (
+            <TableRow key={descuento.id} className="hover:bg-[var(--button-secondary-bg)]">
+              <TableCell className="text-[var(--foreground)]">
+                {descuento.meses} {descuento.meses === 1 ? "mes" : "meses"}
+              </TableCell>
+              <TableCell className="text-right font-semibold text-[var(--foreground)]">
+                {descuento.porcentaje}%
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }

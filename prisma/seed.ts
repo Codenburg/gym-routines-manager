@@ -49,6 +49,8 @@ async function main() {
     await tx.dia.deleteMany();
     await tx.ownershipTransfer.deleteMany();
     await tx.rutina.deleteMany();
+    await tx.promocion.deleteMany();
+    await tx.descuentoDuracion.deleteMany();
     await tx.feriado.deleteMany();
     await tx.gym.deleteMany();
     await tx.session.deleteMany();
@@ -66,6 +68,52 @@ async function main() {
     });
 
     console.log('Gym config ensured with price: $45.000');
+
+    // Seed Promociones
+    const promociones = [
+      {
+        titulo: '2x1 en Matrícula',
+        descripcion: 'Pagá la matrícula de un mes y llevá el segundo gratis. Válido para nuevas altas.',
+        precio: '2x1',
+        activo: true,
+      },
+      {
+        titulo: '50% OFF Primer Mes',
+        descripcion: 'Descuento exclusivo para nuevos socios. Aplica solo en el primer mes de suscripción.',
+        precio: '50% off',
+        activo: true,
+      },
+      {
+        titulo: 'Pack Anual Sin Costo de Inscripción',
+        descripcion: 'Contratá el plan anual y te bonificamos la matrícula. Ahorrá $45.000.',
+        precio: 'Matrícula bonificada',
+        activo: true,
+      },
+    ];
+
+    for (const promo of promociones) {
+      await tx.promocion.create({
+        data: { ...promo, gymId: 'gym' },
+      });
+    }
+
+    console.log(`Created ${promociones.length} promociones`);
+
+    // Seed DescuentosDuracion (meses as enum [3, 6, 9, 12])
+    const descuentosDuracion = [
+      { meses: 3, porcentaje: 10 },
+      { meses: 6, porcentaje: 15 },
+      { meses: 9, porcentaje: 17 },
+      { meses: 12, porcentaje: 20 },
+    ];
+
+    for (const descuento of descuentosDuracion) {
+      await tx.descuentoDuracion.create({
+        data: { ...descuento, gymId: 'gym' },
+      });
+    }
+
+    console.log(`Created ${descuentosDuracion.length} descuentos por duración`);
 
     // Routine templates
     const routineTemplates = [

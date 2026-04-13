@@ -4,6 +4,60 @@ Todos los cambios significativos del proyecto se documentan aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [0.8.0] - 2026-04-13
+
+### Added
+- User dropdown en sidebar footer con theme toggle y logout
+
+### Changed
+- Admin layout: header removido, sidebar ocupa h-screen completo
+- Mobile: hamburger flotante top-left para abrir drawer
+
+### Fixed
+- Pluralización correcta "1 día" vs "N días" en rutinas recientes
+- Stats cards con íconos monocromáticos (bg-secondary, text-muted-foreground)
+- Sidebar con indicador visual de ruta activa (border-l-2 border-primary)
+- Tipo de rutina mostrado como badge en rutinas recientes
+
+---
+
+## [0.7.0] - 2026-04-12
+
+### Added
+- Admin sidebar de navegación con items: Rutinas, Feriados, Promociones, Descuentos
+- Botón "Nueva Rutina" en sidebar → /admin/rutinas/new
+- Drawer lateral en mobile (Sheet) con hamburger en header
+
+### Fixed
+- Tipos TypeScript alineados con Prisma schema (series, nombre en Dia/DiaDetail, musculosEnfocados)
+- Build pasa sin errores en src/ (0 errores TS)
+
+### Changed
+- Admin layout: sidebar fijo desktop (256px), contenido con ml-64
+- Header admin simplificado: solo logo/título + nombre de usuario
+- Dashboard admin: eliminada sección "Acciones Rápidas" (navegación vía sidebar)
+
+---
+
+## [0.6.0] - 2026-04-12
+
+### Added
+- Modelo `Promocion` (titulo, descripcion, precio, activo) con CRUD admin completo
+- Modelo `DescuentoDuracion` (meses, porcentaje) con unique constraint (gymId, meses) y CRUD admin
+- Página `/admin/promociones` para gestionar promociones activas
+- Página `/admin/descuentos-duracion` para gestionar descuentos por duración
+- Display de promociones activas en `/informacion`
+- Tabla de descuentos por duración en `/informacion`
+- Quick actions en admin dashboard linking a ambas páginas
+- Navegación lateral admin con links a promociones y descuentos
+- Seed data: 3 promociones y 4 descuentos por duración (3/6/9/12 meses → 10/15/17/20%)
+
+### Changed
+- `/informacion` ahora incluye secciones de promociones y descuentos
+- Prisma schema: nuevos modelos y relaciones con Gym
+
+---
+
 ## [0.5.1] - 2026-04-10
 
 ### Changed

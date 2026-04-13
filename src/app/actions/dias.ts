@@ -118,7 +118,8 @@ export async function updateDia(
   const rawEntries = Array.from(formData.entries()).filter(([key]) => key !== "musculosEnfocados");
   const rawData = Object.fromEntries(rawEntries);
   if (musculosEnfocados.length > 0) {
-    rawData.musculosEnfocados = musculosEnfocados;
+    // Cast to FormDataEntryValue[] since we know these are strings
+    rawData.musculosEnfocados = musculosEnfocados as unknown as FormDataEntryValue;
   }
 
   // Validate form data

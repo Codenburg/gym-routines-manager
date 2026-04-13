@@ -28,14 +28,15 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 sm:px-8 py-8 sm:py-12 max-w-7xl">
+      <main className="container mx-auto px-4 sm:px-8 py-8 sm:py-12 max-w-7xl pb-16 lg:pb-0">
         <div className="mb-12">
           {/* Header with title and theme toggle */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex-1 text-center">
-              <h1 className="text-4xl sm:text-5xl font-black text-foreground">
+              <h1 className="text-4xl sm:text-5xl font-black text-foreground" style={{ fontFamily: 'var(--font-bebas-neue), sans-serif' }}>
                 Champion Gym
               </h1>
+              <p className="text-xs text-muted-foreground mt-1 lg:hidden">by Codenburg</p>
             </div>
             <ThemeToggle />
           </div>
@@ -58,7 +59,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
               </div>
 
               {/* Cards Grid - streaming with skeleton fallback */}
-              <div className="pb-16 lg:pb-0">
+              <div>
                 <Suspense fallback={<RoutineListSkeleton count={6} />}>
                   <RoutineListWrapper result={result} />
                 </Suspense>

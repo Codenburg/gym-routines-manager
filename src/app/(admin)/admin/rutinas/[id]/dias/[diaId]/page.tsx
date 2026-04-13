@@ -42,7 +42,7 @@ export default async function EjerciciosPage({ params }: EjerciciosPageProps) {
       {/* Breadcrumb via PageHeader */}
       <PageHeader
         title={`Día ${dia.orden}`}
-        description={dia.musculosEnfocados || undefined}
+        description={dia.musculosEnfocados?.join(", ") ?? undefined}
         backHref={`/admin/rutinas/${id}`}
       />
 

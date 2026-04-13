@@ -19,8 +19,8 @@ export function SearchSection({ defaultValue, trainers }: SearchSectionProps) {
   return (
     <>
       {/* Mobile layout (below lg): search + filter drawer */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:hidden">
-        <SearchBar defaultValue={defaultValue} className="w-full sm:flex-1 sm:max-w-md" />
+      <div className="flex items-center gap-3 lg:hidden">
+        <SearchBar defaultValue={defaultValue} className="flex-1" />
         {trainers && trainers.length > 0 && (
           <TrainerFilterDrawer trainers={trainers} />
         )}
