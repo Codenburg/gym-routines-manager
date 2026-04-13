@@ -47,7 +47,7 @@ export default async function RoutineDetailPage({
   const totalExercises = rutina.dias.reduce((sum, d) => sum + d.ejercicios.length, 0);
   const totalSets = rutina.dias.reduce(
     (sum, d) =>
-      sum + d.ejercicios.reduce((s, e) => s + (parseInt(e.series ?? "0") || 0), 0),
+      sum + d.ejercicios.reduce((s, e) => s + (e.series ?? 0), 0),
     0
   );
 

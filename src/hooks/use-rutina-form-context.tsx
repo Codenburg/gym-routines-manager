@@ -20,7 +20,7 @@ import { type RutinaCompletaInput } from "@/lib/schemas";
 
 interface DefaultDia {
   nombre: string;
-  musculosEnfocados: string;
+  musculosEnfocados: string[];
   ejercicios: Array<{ nombre: string; formato: string }>;
 }
 
@@ -105,7 +105,7 @@ const MAX_DAYS = 7;
 
 const defaultDia: DefaultDia = {
   nombre: "",
-  musculosEnfocados: "",
+  musculosEnfocados: [],
   ejercicios: [{ nombre: "", formato: "" }],
 };
 
@@ -139,7 +139,7 @@ export function RutinaFormProvider({
           descripcion: initialData.descripcion || "",
           dias: initialData.dias.map((d) => ({
             nombre: d.nombre,
-            musculosEnfocados: d.musculosEnfocados,
+            musculosEnfocados: Array.isArray(d.musculosEnfocados) ? d.musculosEnfocados : [d.musculosEnfocados],
             ejercicios: d.ejercicios.length > 0
               ? d.ejercicios.map((e) => ({
                   nombre: e.nombre,

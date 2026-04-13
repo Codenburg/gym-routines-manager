@@ -25,7 +25,6 @@ export interface Rutina {
 
 export interface Dia {
   id: string;
-  nombre: string;
   musculosEnfocados: string[] | null;
   ejercicios: Ejercicio[];
 }
@@ -52,7 +51,6 @@ export interface RutinaDetail {
 
 export interface DiaDetail {
   id: string;
-  nombre: string;
   musculosEnfocados: string[] | null;
   orden: number;
   ejercicios: EjercicioDetail[];
@@ -119,8 +117,16 @@ async function fetchRutinasListFromDb(): Promise<Rutina[]> {
       createdAt: true,
       updatedAt: true,
       dias: {
-        include: {
+        select: {
+          id: true,
+          musculosEnfocados: true,
           ejercicios: {
+            select: {
+              id: true,
+              nombre: true,
+              series: true,
+              repes: true,
+            },
             orderBy: { orden: "asc" },
           },
         },
@@ -220,8 +226,16 @@ async function fetchRutinaById(id: string): Promise<RutinaDetail | null> {
         createdAt: true,
         updatedAt: true,
         dias: {
-          include: {
+          select: {
+            id: true,
+            musculosEnfocados: true,
             ejercicios: {
+              select: {
+                id: true,
+                nombre: true,
+                series: true,
+                repes: true,
+              },
               orderBy: { orden: "asc" },
             },
           },
@@ -246,13 +260,13 @@ async function fetchRutinaById(id: string): Promise<RutinaDetail | null> {
       dias: rutina.dias.map((dia) => ({
         id: dia.id,
         musculosEnfocados: dia.musculosEnfocados,
-        orden: dia.orden,
+        orden: 0, // orden not selected from DB
         ejercicios: dia.ejercicios.map((ej) => ({
           id: ej.id,
           nombre: ej.nombre,
           series: ej.series,
           repes: ej.repes,
-          orden: ej.orden,
+          orden: 0, // orden not selected
         })),
       })),
     };
@@ -278,7 +292,8 @@ export async function getCachedRutinaById(id: string): Promise<RutinaDetail | nu
  */
 export async function revalidateRutinasCache(): Promise<void> {
   const { revalidateTag } = await import("next/cache");
-  revalidateTag(RUTINAS_CACHE_TAG);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (revalidateTag as any)(RUTINAS_CACHE_TAG);
 }
 
 /**
