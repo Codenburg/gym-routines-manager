@@ -4,6 +4,13 @@ Todos los cambios significativos del proyecto se documentan aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [0.8.1] - 2026-04-13
+
+### Fixed
+- Notification badge de feriados restaurado en BottomBar (mobile) y SearchSection (desktop)
+
+---
+
 ## [0.8.0] - 2026-04-13
 
 ### Added

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signOut } from "@/lib/auth-client";
+import { toast } from "sonner";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -63,13 +64,18 @@ function SidebarContent({
   const pathname = usePathname();
   const router = useRouter();
   const { theme, toggleTheme } = useThemeStore();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const handleSignOut = async () => {
-    await Promise.all([
-      signOut(),
-      router.push("/admin/login"),
-      router.refresh(),
-    ]);
+    try {
+      await Promise.all([
+        signOut(),
+        router.push("/admin/login"),
+        router.refresh(),
+      ]);
+    } catch {
+      toast.error("Error al cerrar sesión");
+    }
   };
 
   return (
@@ -78,7 +84,7 @@ function SidebarContent({
       <div className="p-4 border-b border-border">
         <Link href="/admin" className="flex items-center gap-2">
           <House className="w-5 h-5 text-foreground" />
-          <span className="font-bold text-lg text-foreground">Champion Gym</span>
+          <span className="font-bold text-xl text-foreground uppercase">Champion Gym</span>
         </Link>
       </div>
 
@@ -117,13 +123,15 @@ function SidebarContent({
 
       {/* Footer */}
       <div className="mt-auto border-t border-border">
-        <DropdownMenu>
-          <DropdownMenuTrigger className="w-full p-4 flex items-center gap-3 rounded-none hover:bg-accent transition-colors cursor-pointer">
-            <User className="w-5 h-5 text-foreground" />
-            <span className="flex-1 text-sm font-medium text-foreground text-left">
-              {username}
-            </span>
-            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+        <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+          <DropdownMenuTrigger className="w-full p-4 flex items-center justify-between rounded-none hover:bg-accent transition-colors cursor-pointer">
+            <div className="flex items-center gap-3">
+              <User className="w-5 h-5 text-foreground" />
+              <span className="text-sm font-medium text-foreground leading-none">
+                {username}
+              </span>
+            </div>
+            <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform duration-200", dropdownOpen ? "rotate-180" : "rotate-0")} />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-56">
             <DropdownMenuItem onClick={toggleTheme} className="cursor-pointer">
@@ -175,7 +183,6 @@ export function AdminSidebar({ username }: { username?: string }) {
       {/* Desktop Sidebar - fixed left, always visible */}
       <aside
         className="hidden lg:flex flex-col w-64 h-screen fixed left-0 top-0 bg-secondary border-r border-border z-30"
-        style={{ top: "0px" }}
       >
         <SidebarContent username={username} />
       </aside>

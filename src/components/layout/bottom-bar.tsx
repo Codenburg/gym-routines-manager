@@ -4,9 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Info, Calendar, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useFeriadosNotification } from "@/hooks/use-feriados-notification";
 
 export function BottomBar() {
   const pathname = usePathname();
+  const { hasNew } = useFeriadosNotification();
 
   return (
     <nav
@@ -29,7 +31,7 @@ export function BottomBar() {
       <Link
         href="/feriados"
         className={cn(
-          "flex flex-col items-center gap-1 p-2 transition-colors hover:bg-accent rounded-md",
+          "relative flex flex-col items-center gap-1 p-2 transition-colors hover:bg-accent rounded-md",
           pathname === "/feriados"
             ? "text-primary"
             : "text-foreground"
@@ -37,6 +39,12 @@ export function BottomBar() {
       >
         <Calendar className="h-5 w-5" />
         <span className="text-xs font-medium">Feriados</span>
+        {hasNew && (
+          <span className="absolute top-1 right-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-red-600 text-white text-[9px] font-bold shadow-md ring-1 ring-background">
+            <span aria-hidden="true">!</span>
+            <span className="sr-only">Nuevos feriados</span>
+          </span>
+        )}
       </Link>
 
       <Link
