@@ -106,11 +106,15 @@ export default async function AdminDashboardPage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="text-foreground font-medium">{rutina.nombre}</h3>
-                      <p className="text-muted-foreground text-sm mt-1 capitalize">{rutina.tipo}</p>
                     </div>
-                    <span className="px-2 py-1 bg-secondary rounded text-xs text-muted-foreground">
-                      {rutina.diasCount || 0} días
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary capitalize">
+                        {rutina.tipo}
+                      </span>
+                      <span className="text-muted-foreground text-xs">
+                        {rutina.diasCount === 1 ? "1 día" : `${rutina.diasCount || 0} días`}
+                      </span>
+                    </div>
                   </div>
                 </AdminCard>
               </Link>
