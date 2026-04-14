@@ -46,34 +46,25 @@ export function PromocionForm({
   const isEditing = editingPromocion !== null
 
   const form = useForm({
-    resolver: zodResolver(isEditing ? updatePromocionContentSchema : createPromocionSchema),
+    resolver: zodResolver(createPromocionSchema),
     defaultValues: {
       titulo: "",
       descripcion: "",
       precio: 0,
     },
-    mode: "onBlur",
   })
 
-  // Reset form when editingPromocion changes (key resync)
-  useEffect(() => {
-    if (editingPromocion) {
-      form.reset({
-        titulo: editingPromocion.titulo,
-        descripcion: editingPromocion.descripcion || "",
-      })
-      // Sync precio separately since updatePromocionContentSchema doesn't include it
-      form.setValue("precio", editingPromocion.precio)
-    } else {
-      form.reset({
-        titulo: "",
-        descripcion: "",
-        precio: 0,
-      })
-    }
-  }, [editingPromocion, form])
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting }, watch } = form
 
-  const { register, handleSubmit, formState: { errors, isSubmitting }, getValues, setValue, watch } = form
+  // Reset form when editingPromocion changes — only depends on id to avoid stale closures
+  useEffect(() => {
+    if (!editingPromocion) return
+    reset({
+      titulo: editingPromocion.titulo,
+      descripcion: editingPromocion.descripcion || "",
+      precio: editingPromocion.precio,
+    })
+  }, [editingPromocion?.id, reset])
 
   // Watch precio for ARS display - precio is tracked separately when editing content
   // When editing, updatePromocionContentSchema doesn't include precio, so watch returns unknown
@@ -93,7 +84,7 @@ export function PromocionForm({
         return
       }
 
-      // If precio changed, submit precio update separately (atomic update)
+      // If precio changed, submit precio update separately
       if (data.precio !== undefined && data.precio !== editingPromocion.precio) {
         const precioResult = await onSubmitPrecio({
           id: editingPromocion.id,
@@ -122,7 +113,7 @@ export function PromocionForm({
       }
 
       toast.success("Promoción creada exitosamente")
-      form.reset()
+      reset()
     }
   }
 

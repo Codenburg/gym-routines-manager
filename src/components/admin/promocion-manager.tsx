@@ -146,9 +146,7 @@ export function PromocionManager({ initialPromociones }: PromocionManagerProps) 
             {editingPromocionId ? "Editar Promoción" : "Agregar Promoción"}
           </h3>
 
-          {/* Key prop enables form remount when switching between editing different promociones */}
           <PromocionForm
-            key={editingPromocionId || "new"}
             editingPromocion={editingPromocion}
             onSubmitContent={handleSubmitContent}
             onSubmitPrecio={handleSubmitPrecio}

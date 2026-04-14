@@ -19,7 +19,7 @@ function Switch({
   labelOff?: string
 }) {
   return (
-    <label className="flex items-center gap-2 cursor-pointer">
+    <div className="flex items-center gap-2">
       <SwitchPrimitive.Root
         data-slot="switch"
         data-size={size}
@@ -63,7 +63,7 @@ function Switch({
           {props.checked ? labelOn : labelOff}
         </span>
       )}
-    </label>
+    </div>
   )
 }
 
