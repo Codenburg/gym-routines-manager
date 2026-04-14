@@ -1,5 +1,17 @@
 # Guía de Contribución
 
+## ⚠️ Reglas Críticas
+
+**GIT:**
+- **NEVER** ejecutar `git reset` (hard, soft, mixed) sin permiso explícito del usuario
+- **NEVER** ejecutar `git rebase` interactivo sin permiso explícito
+- Antes de cualquier operación destructiva, **STOP y PREGUNTAR**
+
+**Code Review — REJECT si:**
+- Secrets/credentials hardcoded
+- `console.log` en código de producción
+- Error handling faltante
+
 ## Workflow
 
 1. Crear branch desde `dev`: `git checkout -b feature/nombre`
@@ -35,48 +47,62 @@ Para features significativas, usar el workflow SDD:
 /sdd-spec <change>                 # Escribir specs
 /sdd-design <change>               # Diseño técnico
 /sdd-tasks <change>                # Task breakdown
-/sdd-apply <change>                 # Implementar
+/sdd-apply <change>                # Implementar
 /sdd-verify <change>               # Verificar
-/sdd-archive <change>               # Archivar
+/sdd-archive <change>              # Archivar
 ```
+
+## Stack
+
+| Tecnología | Versión |
+|------------|--------|
+| Next.js | 16.1.6 |
+| React | 19.2.3 |
+| TypeScript | 5 |
+| Tailwind CSS | 4 |
+| Prisma | 7.7.0 |
+| Zod | 4.3.6 |
+| Zustand | 5.0.11 |
+| better-auth | 1.5.4 |
+| shadcn | 4.2.0 |
 
 ## Agent Setup
 
-Este proyecto usa **opencode** con skills especializados. Los skills son necesarios para mantener los estándares del proyecto.
+Este proyecto usa **opencode** con skills especializados en `~/.config/opencode/skills/`.
 
-### Skills requeridos
-
-Los skills se instalan en `~/.agents/skills/` o `~/.config/opencode/skills/`:
+### Skills del Proyecto
 
 | Área | Skill | Path |
 |------|-------|------|
-| React 19 + Compiler | react-19 | react-19/SKILL.md |
-| Next.js App Router | nextjs-best-practices | nextjs-best-practices/SKILL.md |
-| TypeScript strict | typescript | typescript/SKILL.md |
-| Tailwind CSS v4 | tailwind-design-system | tailwind-design-system/SKILL.md |
-| Prisma ORM | prisma | prisma/SKILL.md |
-| Zod validation | zod-4 | zod-4/SKILL.md |
-| Zustand state | zustand-5 | zustand-5/SKILL.md |
-| React Hook Form | react-hook-form | react-hook-form/SKILL.md |
-| shadcn/ui | shadcn | shadcn/SKILL.md |
-| Auth (Better Auth) | better-auth-best-practices | better-auth-best-practices/SKILL.md |
-| Server-side auth | nextjs-auth-server-side | nextjs-auth-server-side/SKILL.md |
-| PostgreSQL | postgresql-best-practices | postgresql-best-practices/SKILL.md |
-| API testing | api-testing-patterns | api-testing-patterns/SKILL.md |
-| Frontend design | frontend-design | frontend-design/SKILL.md |
-| URL search debounce | url-search-debounce | url-search-debounce/SKILL.md |
-| README versioning | readme-guardian | readme-guardian/SKILL.md |
+| React 19 + Compiler | react-19 | `~/skills/react-19/SKILL.md` |
+| Next.js App Router | nextjs-best-practices | `~/skills/nextjs-best-practices/SKILL.md` |
+| TypeScript strict | typescript | `~/skills/typescript/SKILL.md` |
+| Tailwind CSS v4 | tailwind-design-system | `~/skills/tailwind-design-system/SKILL.md` |
+| Prisma ORM | prisma | `~/skills/prisma/SKILL.md` |
+| PostgreSQL setup | prisma-database-setup | `~/skills/prisma-database-setup/SKILL.md` |
+| Zod validation | zod-4 | `~/skills/zod-4/SKILL.md` |
+| Zustand state | zustand-5 | `~/skills/zustand-5/SKILL.md` |
+| React Hook Form | react-hook-form | `~/skills/react-hook-form/SKILL.md` |
+| shadcn/ui | shadcn | `~/skills/shadcn/SKILL.md` |
+| Auth (Better Auth) | better-auth-best-practices | `~/skills/better-auth-best-practices/SKILL.md` |
+| Server-side auth | nextjs-auth-server-side | `~/skills/nextjs-auth-server-side/SKILL.md` |
+| Username/DNI login | better-auth-username | `~/skills/better-auth-username/SKILL.md` |
+| PostgreSQL best practices | postgresql-best-practices | `~/skills/postgresql-best-practices/SKILL.md` |
+| API testing | api-testing-patterns | `~/skills/api-testing-patterns/SKILL.md` |
+| Frontend design | frontend-design | `~/skills/frontend-design/SKILL.md` |
+| README versioning | readme-guardian | `~/skills/readme-guardian/SKILL.md` |
+| Testing/debugging | testing-debugging | `~/skills/testing-debugging/SKILL.md` |
 
 ### Instalación
 
 1. Asegurate de tener **opencode** instalado
-2. Los skills van en `~/.agents/skills/` (o `~/.config/opencode/skills/` según la config)
+2. Los skills van en `~/.config/opencode/skills/`
 3. Usar el skill `find-skills` para buscar e instalar skills
 4. O clonar/linkear manualmente desde el origen de cada skill
 
 ### Verificación
 
-Al trabajar en el proyecto, el agente debería leer automáticamente los skills desde `AGENTS.md`. Si un skill no está disponible, el agente loindicará.
+El agente lee automáticamente los skills desde `AGENTS.md` cuando detecta el contexto соответствующий.
 
 ## Código
 
@@ -84,6 +110,8 @@ Al trabajar en el proyecto, el agente debería leer automáticamente los skills 
 - Server Components por defecto; Client Components con `"use client"`
 - Mensajes de error en español
 - TypeScript strict mode
+- No `console.log` en producción
+- Siempre error handling
 
 ## UI Components
 
@@ -98,15 +126,16 @@ Agregar: `npx shadcn@latest add <componente>`
 npm run test          # Playwright E2E
 npm run test:ui       # Playwright con UI
 npm run test:unit     # Vitest unit tests
+npm run test:unit:watch # Vitest watch mode
 ```
 
 ## DB
 
 ```bash
-npm run db:generate   # Generar Prisma client
-npm run db:push       # Push schema
+npx prisma generate   # Generar Prisma client
+npx prisma db push    # Push schema
 npm run db:seed       # Seed data
-npm run db:studio     # Prisma Studio
+npx prisma studio      # Prisma Studio
 ```
 
 ## Pull Requests
@@ -115,3 +144,13 @@ npm run db:studio     # Prisma Studio
 - Descripción del qué y por qué
 - Link a issue si aplica
 - Screenshots para cambios de UI
+
+## Memorias (Engram)
+
+Este proyecto usa **Engram** para memoria persistente entre sesiones:
+
+- `mem_save` — Guardar decisiones, bugs fixed, patterns establecidos
+- `mem_search` — Buscar decisiones pasadas
+- `mem_session_summary` — Resumen al cerrar sesión
+
+Ver `AGENTS.md` para el protocolo completo.

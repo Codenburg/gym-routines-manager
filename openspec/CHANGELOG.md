@@ -4,6 +4,66 @@ Todos los cambios significativos del proyecto se documentan aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [0.10.4] - 2026-04-14
+
+### Fixed
+- Mensajes de error en español para validación de precio en schemas de promociones (createPromocionSchema, updatePromocionPrecioSchema) y descuento duración (createDescuentoDuracionSchema)
+
+---
+
+## [0.10.3] - 2026-04-14
+
+### Changed
+- Mejora visual en tarjetas de promociones: borde izquierdo verde (border-l-4 border-l-primary), título con font-semibold, precio renderizado como Badge con bg-primary/10 text-primary
+
+---
+
+## [0.10.2] - 2026-04-14
+
+### Fixed
+- Removido botón redundante "Crear primera promoción" en lista vacía de promociones
+- Formulario ahora se vacía correctamente al cancelar edición de promoción
+- Campo precio vacío por defecto (undefined en lugar de 0)
+- Tipo `any` removido en createPromocion, usado PromocionFormState tipado
+- Type cast duplicado en errors de precio reemplazado por helper errorsMap
+
+---
+
+## [0.10.1] - 2026-04-14
+
+### Fixed
+- Form submit no disparaba por lifecycle violations en RHF (dynamic resolver, key remount)
+- RHF ahora usa single resolver estable para ambos modos (create/edit)
+- Removido `<label>` wrapper del Switch que interfería con form
+
+---
+
+## [0.10.0] - 2026-04-14
+
+### Added
+- Componentes modulares para admin promociones: PromocionCard, PromocionForm, PromocionList, PromocionStatusBadge
+- Switch component reutilizable con soporte labels y colores verde/gris
+- Tests E2E para flujo de promociones (Playwright)
+- Tests unitarios para schemas de promociones (Vitest)
+
+### Changed
+- Schema Promocion: campo `precio` de String a Int (CRITICAL)
+- Server Actions de promociones refactorizadas en acciones atómicas: updatePromocionContent, updatePromocionPrecio, togglePromocionActivo
+- Admin panel de promociones con layout 2 columnas (desktop) y stacked (mobile)
+- Input y Textarea con mejor contraste (bg-background en lugar de bg-transparent)
+- Switch con group-data-[checked] para animaciones suaves
+
+### Fixed
+- Form inputs con React Hook Form (controlled/uncontrolled mismatch)
+- Precio en edit mode ahora muestra valor correcto de la DB
+- Labels de switch usan props.checked en lugar de data-* selectors inválidos
+
+### Removed
+- Legacy updatePromocion action (reemplazado por acciones atómicas)
+- Toast notifications en toggle de promociones
+
+---
+
 ## [0.9.0] - 2026-04-13
 
 ### Added

@@ -200,7 +200,7 @@ model Promocion {
   id          String   @id @default(uuid())
   titulo      String
   descripcion String
-  precio      String
+  precio      Int
   activo      Boolean  @default(true)
   gymId       String
   gym         Gym      @relation(fields: [gymId], references: [id])

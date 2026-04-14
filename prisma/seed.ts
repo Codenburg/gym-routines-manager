@@ -74,19 +74,19 @@ async function main() {
       {
         titulo: '2x1 en Matrícula',
         descripcion: 'Pagá la matrícula de un mes y llevá el segundo gratis. Válido para nuevas altas.',
-        precio: '2x1',
+        precio: 47000,
         activo: true,
       },
       {
         titulo: '50% OFF Primer Mes',
         descripcion: 'Descuento exclusivo para nuevos socios. Aplica solo en el primer mes de suscripción.',
-        precio: '50% off',
+        precio: 24500,
         activo: true,
       },
       {
         titulo: 'Pack Anual Sin Costo de Inscripción',
         descripcion: 'Contratá el plan anual y te bonificamos la matrícula. Ahorrá $45.000.',
-        precio: 'Matrícula bonificada',
+        precio: 470000,
         activo: true,
       },
     ];
