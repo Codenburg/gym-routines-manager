@@ -244,7 +244,7 @@ export const idSchema = z.string().uuid({ error: "ID inválido" });
 export const createPromocionSchema = z.object({
   titulo: z.string().min(1, "El título es requerido"),
   descripcion: z.string().min(1, "La descripción es requerida"),
-  precio: z.coerce.number().int().positive({ message: "El precio debe ser un entero positivo" }),
+  precio: z.coerce.number({ error: "El precio debe ser un número válido" }).int({ error: "El precio debe ser un número entero" }).positive({ error: "El precio debe ser un valor positivo" }),
   activo: z.boolean().default(true),
 });
 
@@ -259,7 +259,7 @@ export const updatePromocionContentSchema = z.object({
 
 export const updatePromocionPrecioSchema = z.object({
   id: z.string().min(1, { message: "ID requerido" }),
-  precio: z.coerce.number().int().positive({ message: "El precio debe ser un entero positivo" }),
+  precio: z.coerce.number({ error: "El precio debe ser un número válido" }).int({ error: "El precio debe ser un número entero" }).positive({ error: "El precio debe ser un valor positivo" }),
 });
 
 export const togglePromocionActivoSchema = z.object({
@@ -307,7 +307,7 @@ export const mesesEnum = z.union([
 
 export const createDescuentoDuracionSchema = z.object({
   meses: mesesEnum,
-  porcentaje: z.coerce.number().int().min(0).max(100),
+  porcentaje: z.coerce.number({ error: "El porcentaje debe ser un número válido" }).int({ error: "El porcentaje debe ser un número entero" }).min(0, { error: "El porcentaje no puede ser negativo" }).max(100, { error: "El porcentaje no puede superar 100" }),
 });
 
 export const updateDescuentoDuracionSchema = createDescuentoDuracionSchema.partial();

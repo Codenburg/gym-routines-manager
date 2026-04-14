@@ -1,5 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Promocion } from "@/app/(public)/informacion/page"
+
+const formatPriceARS = (n: number) => `$ ${n.toLocaleString("es-AR")}`
 
 interface PlansSectionProps {
   promociones: Promocion[]
@@ -28,7 +31,7 @@ export function PlansSection({ promociones, error }: PlansSectionProps) {
         {promociones.map((promocion) => (
           <Card
             key={promocion.id}
-            className="bg-[var(--background)]"
+            className="bg-[var(--background)] border-l-4 border-l-primary border"
           >
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-semibold text-[var(--foreground)]">
@@ -39,9 +42,9 @@ export function PlansSection({ promociones, error }: PlansSectionProps) {
               <p className="text-sm text-[var(--muted-foreground)] mb-2">
                 {promocion.descripcion}
               </p>
-              <p className="text-lg font-bold text-[var(--foreground)]">
-                {promocion.precio}
-              </p>
+              <Badge className="bg-primary/10 text-primary">
+                {formatPriceARS(promocion.precio)}
+              </Badge>
             </CardContent>
           </Card>
         ))}

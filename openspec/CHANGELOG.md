@@ -4,6 +4,13 @@ Todos los cambios significativos del proyecto se documentan aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [0.10.4] - 2026-04-14
+
+### Fixed
+- Mensajes de error en español para validación de precio en schemas de promociones (createPromocionSchema, updatePromocionPrecioSchema) y descuento duración (createDescuentoDuracionSchema)
+
+---
+
 ## [0.10.3] - 2026-04-14
 
 ### Changed
