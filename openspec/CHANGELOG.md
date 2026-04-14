@@ -4,6 +4,17 @@ Todos los cambios significativos del proyecto se documentan aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [0.10.2] - 2026-04-14
+
+### Fixed
+- Removido botón redundante "Crear primera promoción" en lista vacía de promociones
+- Formulario ahora se vacía correctamente al cancelar edición de promoción
+- Campo precio vacío por defecto (undefined en lugar de 0)
+- Tipo `any` removido en createPromocion, usado PromocionFormState tipado
+- Type cast duplicado en errors de precio reemplazado por helper errorsMap
+
+---
+
 ## [0.10.1] - 2026-04-14
 
 ### Fixed
