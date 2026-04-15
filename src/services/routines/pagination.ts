@@ -74,7 +74,7 @@ export async function getRoutinesPaginated(
     trainerIds = trainerUsers.map((u) => u.id);
   }
 
-  // Build WHERE clause - MUST be consistent across all 3 queries
+  // Build WHERE clause for data query (includes all filters)
   const where: Record<string, unknown> = {};
 
   // Search filter on nombre
@@ -89,6 +89,16 @@ export async function getRoutinesPaginated(
   if (trainerIds && trainerIds.length > 0) {
     where.creadorId = {
       in: trainerIds,
+    };
+  }
+
+  // Build WHERE clause for trainer counts - ONLY search filter (NO trainer filter)
+  // This ensures all trainers show up in the filter UI regardless of selected trainers
+  const whereForTrainerCounts: Record<string, unknown> = {};
+  if (search && search.trim() !== "") {
+    whereForTrainerCounts.nombre = {
+      contains: search.trim(),
+      mode: "insensitive",
     };
   }
 
@@ -139,11 +149,11 @@ export async function getRoutinesPaginated(
     // Query 2: count with same where (no take/skip)
     const total = await prisma.rutina.count({ where });
 
-    // Query 3: groupBy for trainer counts with same where (no take/skip)
-    // Note: groupBy uses the FK field 'creadorId', not the relation name
+    // Query 3: groupBy for trainer counts - uses whereForTrainerCounts (NO trainer filter)
+    // This allows multi-select: all trainers show in UI regardless of active filter
     const trainerCountsRaw = await prisma.rutina.groupBy({
       by: ["creadorId"],
-      where,
+      where: whereForTrainerCounts,
       _count: {
         id: true,
       },
