@@ -92,9 +92,8 @@ export function DescuentoDuracionManager({
       } else {
         toast.error(result.message || "Error al crear el descuento");
       }
-    } catch (err) {
+    } catch {
       toast.error("Error al crear el descuento");
-      console.error(err);
     } finally {
       setIsAdding(false);
     }
@@ -140,9 +139,8 @@ export function DescuentoDuracionManager({
       } else {
         toast.error(result.message || "Error al actualizar el descuento");
       }
-    } catch (err) {
+    } catch {
       toast.error("Error al actualizar el descuento");
-      console.error(err);
     }
   };
 
@@ -164,9 +162,8 @@ export function DescuentoDuracionManager({
       } else {
         toast.error(result.message || "Error al eliminar el descuento");
       }
-    } catch (err) {
+    } catch {
       toast.error("Error al eliminar el descuento");
-      console.error(err);
     }
   };
 
@@ -189,75 +186,130 @@ export function DescuentoDuracionManager({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Add/Edit Form */}
+    <div className="flex flex-col gap-6">
+      {/* Add/Edit Form — separated into distinct layouts */}
       <AdminCard variant="standard">
-        <h3 className="text-lg font-semibold text-foreground mb-4">
-          {editingId ? "Editar Descuento" : "Agregar Descuento por Duración"}
-        </h3>
+        {editingId ? (
+          /* ========== EDIT MODE ========== */
+          <div className="relative">
+            <h3 className="text-lg font-semibold text-foreground mb-4">
+              Editar Descuento
+            </h3>
 
-        {error && (
-          <div className="mb-4 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-destructive text-sm">
-            {error}
-          </div>
-        )}
-
-        <div className="flex gap-4 items-end">
-          <AdminFormField variant="default" label="Duración">
-            <select
-              value={meses}
-              onChange={(e) => setMeses(parseInt(e.target.value, 10))}
-              disabled={!!editingId}
-              className="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:border-ring disabled:opacity-50 cursor-pointer"
-            >
-              {MESES_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            {editingId && (
-              <p className="text-muted-foreground text-xs mt-1">
-                La duración no se puede cambiar
-              </p>
+            {error && (
+              <div className="mb-4 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-destructive text-sm">
+                {error}
+              </div>
             )}
-          </AdminFormField>
 
-          <AdminFormField variant="default" label="Porcentaje de descuento">
-            <div className="relative">
-              <input
-                type="number"
-                value={porcentaje}
-                onChange={(e) => setPorcentaje(e.target.value)}
-                placeholder="10"
-                min="0"
-                max="100"
-                className="w-full px-4 py-2 pr-8 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring"
-              />
-              <Percent className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            {/* Grid fijo: select + input + botones en una línea estable */}
+            <div className="grid gap-3">
+              <div className="flex gap-4 items-end">
+                {/* Duración — disabled, sin helper text dentro del flujo */}
+                <div className="w-40">
+                  <label className="text-muted-foreground text-sm font-medium mb-2 block">
+                    Duración
+                  </label>
+                  <select
+                    value={meses}
+                    disabled
+                    className="w-full px-4 py-2 bg-muted/50 border border-border rounded-lg text-muted-foreground cursor-not-allowed"
+                  >
+                    {MESES_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Porcentaje */}
+                <AdminFormField variant="default" label="Porcentaje de descuento">
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={porcentaje}
+                      onChange={(e) => setPorcentaje(e.target.value)}
+                      placeholder="10"
+                      min="0"
+                      max="100"
+                      className="w-full px-4 py-2 pr-8 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring"
+                    />
+                    <Percent className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  </div>
+                </AdminFormField>
+
+                {/* Botones de acción */}
+                <div className="flex gap-2 pb-2">
+                  <Button onClick={() => handleUpdate(editingId)} disabled={isAdding}>
+                    <Check className="w-5 h-5 mr-2" />
+                    {isAdding ? "Guardando..." : "Guardar"}
+                  </Button>
+                  <Button variant="outline" onClick={cancelEditing}>
+                    <X className="w-5 h-5 mr-2" />
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
             </div>
-          </AdminFormField>
 
-          <div className="flex gap-2 pb-2">
-            {editingId ? (
-              <>
-                <Button onClick={() => handleUpdate(editingId)} disabled={isAdding}>
-                  <Check className="w-5 h-5 mr-2" />
-                  {isAdding ? "Guardando..." : "Guardar"}
-                </Button>
-                <Button variant="outline" onClick={cancelEditing}>
-                  <X className="w-5 h-5 mr-2" />
-                  Cancelar
-                </Button>
-              </>
-            ) : (
-              <Button onClick={handleAdd} disabled={isAdding}>
-                <Plus className="w-5 h-5 mr-2" />
-                {isAdding ? "Agregando..." : "Agregar"}
-              </Button>
-            )}
+            {/* Helper text AFUERA del flujo — no causa reflow */}
+            <p className="text-xs text-muted-foreground mt-2">
+              La duración no se puede cambiar
+            </p>
           </div>
-        </div>
+        ) : (
+          /* ========== CREATE MODE ========== */
+          <>
+            <h3 className="text-lg font-semibold text-foreground mb-4">
+              Agregar Descuento por Duración
+            </h3>
+
+            {error && (
+              <div className="mb-4 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-destructive text-sm">
+                {error}
+              </div>
+            )}
+
+            <div className="flex gap-4 items-end">
+              <AdminFormField variant="default" label="Duración">
+                <select
+                  value={meses}
+                  onChange={(e) => setMeses(parseInt(e.target.value, 10))}
+                  className="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:border-ring cursor-pointer"
+                >
+                  {MESES_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </AdminFormField>
+
+              <AdminFormField variant="default" label="Porcentaje de descuento">
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={porcentaje}
+                    onChange={(e) => setPorcentaje(e.target.value)}
+                    placeholder="10"
+                    min="0"
+                    max="100"
+                    className="w-full px-4 py-2 pr-8 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring"
+                  />
+                  <Percent className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                </div>
+              </AdminFormField>
+
+              <div className="flex gap-2 pb-2">
+                <Button onClick={handleAdd} disabled={isAdding}>
+                  <Plus className="w-5 h-5 mr-2" />
+                  {isAdding ? "Agregando..." : "Agregar"}
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       </AdminCard>
 
       {/* Lista de Descuentos */}
@@ -276,8 +328,8 @@ export function DescuentoDuracionManager({
                 className="flex items-center justify-between px-6 py-4 hover:bg-muted transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
-                    <Percent className="w-5 h-5 text-green-600" />
+                  <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center">
+                    <Percent className="w-5 h-5 text-emerald-600" />
                   </div>
                   <div>
                     <p className="text-foreground font-medium">
@@ -285,27 +337,29 @@ export function DescuentoDuracionManager({
                     </p>
                     <p className="text-muted-foreground text-sm">
                       Descuento del{" "}
-                      <span className="text-green-600 font-medium">
+                      <span className="text-emerald-600 font-medium">
                         {descuento.porcentaje}%
                       </span>
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => startEditing(descuento)}
-                    className="p-2 hover:bg-primary/10 rounded-lg text-muted-foreground hover:text-primary transition-colors"
                     title="Editar"
                   >
                     <Edit2 className="w-5 h-5" />
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => handleDelete(descuento.id)}
-                    className="p-2 hover:bg-destructive/10 rounded-lg text-muted-foreground hover:text-destructive transition-colors"
                     title="Eliminar"
                   >
                     <Trash2 className="w-5 h-5" />
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}
