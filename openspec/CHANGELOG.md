@@ -4,6 +4,13 @@ Todos los cambios significativos del proyecto se documentan aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [0.10.5] - 2026-04-14
+
+### Fixed
+- DescuentoDuracionManager: separar layouts de CreateMode/EditMode para evitar que el Select se mueva al activar edición
+
+---
+
 ## [0.10.4] - 2026-04-14
 
 ### Fixed

@@ -1,6 +1,6 @@
 # Roadmap
 
-_Last updated: 2026-04-14_ | _Version: 0.10.4_
+_Last updated: 2026-04-14_ | _Version: 0.10.5_
 
 ---
 
@@ -28,6 +28,7 @@ _Last updated: 2026-04-14_ | _Version: 0.10.4_
 - [x] Admin panel de promociones refactorizado con acciones atómicas y UI mejorada (v0.10.0)
 - [x] Mejora visual en tarjetas de promociones: borde izquierdo verde, jerarquía de título, badge de precio (v0.10.3)
 - [x] Mensajes de error en español para validación de precio en formularios Zod (v0.10.4)
+- [x] Fix layout en DescuentoDuracionManager: separación de CreateMode/EditMode previene jump del Select (v0.10.5)
 
 ### Técnico
 - [x] Next.js 16.1.6 + React 19.2.3
