@@ -14,6 +14,7 @@ When working with Prisma, read `~/skills/prisma/SKILL.md` first.
 When Set-up Prisma with ProstgreSQL, Nodejs and Typescript, read `~/skills/prisma-database-setup/SKILL.md` first.
 When working with zod-4v, read `~/skills/zod-4/SKILL.md` first.
 When Working with zustand-5v, read `~/skills/zustand-5/SKILL.md` first.
+When Working on frontend design, read `~/skills/frontend-design/SKILL.md` first.
 
 When working with authentication, read `~/skills/better-auth-best-practices/SKILL.md` first.
 When implementing server-side auth with Next.js App Router (flicker-free), read /skills/nextjs-auth-server-side/SKILL.md` first.
@@ -22,6 +23,7 @@ When Working with Forms, read `~/skills/react-hook-form/SKILL.md` first.
 When Working with Shadcn UI, read `~/skills/shadcn/SKILL.md` first.
 When maintaining README as single source of truth with versioning after commits, read /skills/readme-guardian/SKILL.md` first.
 For testing and debugging, read `~/skills/testing-debugging/SKILL.md` first.
+
 
 
 ## Not installed:

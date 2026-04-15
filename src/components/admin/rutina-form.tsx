@@ -83,7 +83,7 @@ export function RutinaForm({ initialData, onSuccess }: RutinaFormProps) {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4">
         {/* Nombre */}
         <AdminFormField variant="default" label="Nombre *" error={state?.errors?.nombre?.[0]}>
           <input

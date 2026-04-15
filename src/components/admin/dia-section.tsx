@@ -178,7 +178,7 @@ function DiaSectionComponent({
             control={control}
             render={({ field }) => (
               <TagInput
-                value={field.value ?? []}
+                value={Array.isArray(field.value) ? field.value : []}
                 onChange={field.onChange}
                 placeholder="Agregar músculo..."
               />

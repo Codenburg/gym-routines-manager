@@ -5,6 +5,7 @@ import { createEjercicio, updateEjercicio } from "@/app/actions/ejercicios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AdminFormField } from "@/components/admin/admin-form-field";
+import { SeriesRepsInput } from "@/components/ui/series-reps-input";
 import type { FormState } from "@/lib/schemas";
 import { useEffect, useRef } from "react";
 
@@ -57,40 +58,60 @@ export function EjercicioForm({ diaId, initialData, onSuccess, onCancel }: Ejerc
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Name and Format inputs - 3 columns, aligned by baseline */}
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px_120px] gap-3 sm:gap-4 items-stretch">
         {/* Nombre */}
-        <div className="md:col-span-1">
-          <AdminFormField variant="default" label="Nombre *" error={state?.errors?.nombre?.[0]}>
-            <Input
-              id="nombre"
-              name="nombre"
-              type="text"
-              required
-              defaultValue={initialData?.nombre}
-              placeholder="Ej: Press de banca"
-              error={!!state?.errors?.nombre}
-              className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
-            />
-          </AdminFormField>
+        <div className="space-y-2">
+        <AdminFormField variant="default" label="Nombre *" error={state?.errors?.nombre?.[0]}>
+          <Input
+            id="nombre"
+            name="nombre"
+            type="text"
+            required
+            defaultValue={initialData?.nombre}
+            placeholder="Ej: Press de banca"
+            error={!!state?.errors?.nombre}
+            className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
+          />
+        </AdminFormField>
         </div>
 
-        {/* Formato 4x12 */}
-        <div>
-          <AdminFormField variant="default" label="Formato" error={state?.errors?.formato?.[0]}>
-            <Input
-              id="formato"
-              name="formato"
-              type="text"
-              inputMode="numeric"
-              defaultValue={
-                initialData?.series && initialData?.repes
-                  ? `${initialData.series}x${initialData.repes}`
-                  : ""
-              }
-              placeholder="4x12"
-              className="seamless-input w-full placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280]"
-            />
-          </AdminFormField>
+        {/* Series */}
+        <div className="space-y-2">
+        <AdminFormField variant="default" label="Series *" error={state?.errors?.series?.[0]}>
+          <Input
+            id="series"
+            name="series"
+            type="number"
+            required
+            min={1}
+            max={999}
+            inputMode="numeric"
+            defaultValue={initialData?.series ?? ""}
+            placeholder="4"
+            error={!!state?.errors?.series}
+            className="seamless-input w-full text-center placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          />
+        </AdminFormField>
+        </div>
+
+        {/* Repes */}
+        <div className="space-y-2">
+        <AdminFormField variant="default" label="Repes *" error={state?.errors?.repes?.[0]}>
+          <Input
+            id="repes"
+            name="repes"
+            type="number"
+            required
+            min={1}
+            max={999}
+            inputMode="numeric"
+            defaultValue={initialData?.repes ?? ""}
+            placeholder="12"
+            error={!!state?.errors?.repes}
+            className="seamless-input w-full text-center placeholder:text-[#d1d5db] dark:placeholder:text-[#6b7280] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          />
+        </AdminFormField>
         </div>
       </div>
 

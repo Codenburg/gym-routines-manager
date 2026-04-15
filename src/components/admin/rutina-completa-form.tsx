@@ -392,6 +392,23 @@ export function RutinaCompletaForm() {
     [confirm, convertToFormData, router, form]
   );
 
+  // Handle form clear
+  const handleClearForm = useCallback(async () => {
+    const confirmed = await confirm({
+      title: "¿Limpiar formulario?",
+      description:
+        "Se perderán todos los datos ingresados. Esta acción no se puede deshacer.",
+      variant: "destructive",
+      confirmText: "Limpiar",
+      cancelText: "Cancelar",
+    });
+
+    if (confirmed) {
+      form.reset(defaultValues);
+      form.clear();
+    }
+  }, [confirm, form]);
+
   // Get current dias values for passing to DiaSection
   const diasValues = getValues("dias");
 
@@ -588,22 +605,32 @@ export function RutinaCompletaForm() {
         <div className="border-t border-border my-6" />
 
         {/* Submit */}
-        <div className="flex justify-end gap-3 p-4">
+        <div className="flex justify-between gap-3 p-4 border-t border-border">
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push("/admin")}
+            onClick={handleClearForm}
             className="border-[#e5e7eb] text-[#6b7280] hover:border-[#ef4444] hover:text-[#ef4444] hover:bg-[#fef2f2] cursor-pointer dark:border-[#2a2a2a] dark:text-[#9ca3af] dark:hover:border-[#E11D48] dark:hover:text-[#E11D48] dark:hover:bg-[#fef2f2]"
           >
-            Cancelar
+            Limpiar
           </Button>
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="rounded-xl bg-[#48b8c9] text-white hover:bg-[#3da4b3] hover:border-2 hover:border-black cursor-pointer font-semibold dark:bg-[#E11D48] dark:text-white dark:hover:bg-[#c01030] dark:hover:border-2 dark:hover:border-white"
-          >
-            {isSubmitting ? "Creando..." : "Crear Rutina"}
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/admin")}
+              className="border-[#e5e7eb] text-[#6b7280] hover:border-[#ef4444] hover:text-[#ef4444] hover:bg-[#fef2f2] cursor-pointer dark:border-[#2a2a2a] dark:text-[#9ca3af] dark:hover:border-[#E11D48] dark:hover:text-[#E11D48] dark:hover:bg-[#fef2f2]"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="rounded-xl bg-[#48b8c9] text-white hover:bg-[#3da4b3] hover:border-2 hover:border-black cursor-pointer font-semibold dark:bg-[#E11D48] dark:text-white dark:hover:bg-[#c01030] dark:hover:border-2 dark:hover:border-white"
+            >
+              {isSubmitting ? "Creando..." : "Crear Rutina"}
+            </Button>
+          </div>
         </div>
         {Dialog}
       </form>

@@ -4,6 +4,28 @@ Todos los cambios significativos del proyecto se documentan aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [0.11.0] - 2026-04-15
+
+### Added
+- SeriesRepsInput: nuevo componente para entrada de series/reps separados (3 columnas)
+- Tests para formato helpers (parseFormato, parseInitialFormat, combineToFormat)
+
+### Changed
+- Zod schemas: refactor de formato string (4x12) a campos separados series/repes
+- EjercicioForm: nuevo layout 3 columnas (nombre + series + repes) alineados por baseline
+- EjercicioRow: usa SeriesRepsInput en vez de input texto simple
+- Server actions (createEjercicio/updateEjercicio): usan schema flatten en vez de extraer formato
+- Grid de rutina-form: md:grid-cols-[1fr_auto] para distribución Nombre/Tipo correcta
+
+### Fixed
+- TagInput: Array.isArray check para prevenir TypeError cuando field.value no es array
+- SegmentedControl: comportamiento responsive mobile (scroll+Snap) / desktop (sin overflow), hover condicional en selected state
+
+### Docs
+- AGENTS.md: agregar frontend-design skill reference
+
+---
+
 ## [0.10.6] - 2026-04-14
 
 ### Fixed

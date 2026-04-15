@@ -59,15 +59,12 @@ export async function createEjercicio(
 
     const newOrden = (lastEjercicio?.orden ?? -1) + 1;
 
-    // Extract formato (series/repes) from parsed data
-    const { formato, ...rest } = parsed.data;
-    const formatoData = formato ?? { series: undefined, repes: undefined };
-
     const ejercicio = await prisma.ejercicio.create({
       data: {
-        ...rest,
-        series: formatoData.series,
-        repes: formatoData.repes,
+        nombre: parsed.data.nombre,
+        diaId: parsed.data.diaId,
+        series: parsed.data.series,
+        repes: parsed.data.repes,
         orden: newOrden,
       },
     });
@@ -140,16 +137,12 @@ export async function updateEjercicio(
       return { success: false, message: "Ejercicio no encontrado" };
     }
 
-    // Extract formato (series/repes) from parsed data
-    const { formato, ...rest } = parsed.data;
-    const formatoData = formato ?? { series: undefined, repes: undefined };
-
     const updatedEjercicio = await prisma.ejercicio.update({
       where: { id },
       data: {
-        ...rest,
-        series: formatoData.series,
-        repes: formatoData.repes,
+        nombre: parsed.data.nombre,
+        series: parsed.data.series,
+        repes: parsed.data.repes,
       },
     });
 

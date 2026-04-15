@@ -16,7 +16,34 @@ export function parseFormato(value: string | undefined): { series: number | unde
     series: Number(match[1]),
     repes: Number(match[2]),
   };
-};
+}
+
+/**
+ * Parse a "4x12" format string into its components.
+ * Used to populate split inputs when editing existing exercises.
+ */
+export function parseInitialFormat(value: string | undefined): { series: string; reps: string } {
+  if (!value) return { series: "", reps: "" };
+
+  const match = value.match(/^(\d+)x(\d+)$/);
+
+  if (!match) return { series: "", reps: "" };
+
+  return {
+    series: match[1],
+    reps: match[2],
+  };
+}
+
+/**
+ * Combine series and reps values into "4x12" format string.
+ * Returns "0x0" if both inputs are empty/invalid.
+ */
+export function combineToFormat(series: number | string, reps: number | string): string {
+  const s = Number(series) || 0;
+  const r = Number(reps) || 0;
+  return `${s}x${r}`;
+}
 
 // ======================
 // Ejercicio Schemas (Flat - for separate creation)
@@ -24,31 +51,15 @@ export function parseFormato(value: string | undefined): { series: number | unde
 
 export const ejercicioSchema = z.object({
   nombre: z.string().min(1, { error: "El nombre es requerido" }).max(100),
-  formato: z
-    .string()
-    .optional()
-    .refine((val) => !val || /^\d+x\d+$/.test(val), {
-      message: "Formato inválido (usar 4x12)",
-    })
-    .transform((val) => {
-      if (!val) return { series: undefined, repes: undefined };
-      return parseFormato(val);
-    }),
+  series: z.coerce.number().int().min(1, { error: "Las series son requeridas" }).max(999),
+  repes: z.coerce.number().int().min(1, { error: "Las repes son requeridas" }).max(999),
   diaId: z.string().uuid({ error: "ID de día inválido" }),
 });
 
 export const ejercicioUpdateSchema = z.object({
   nombre: z.string().min(1, { error: "El nombre es requerido" }).max(100),
-  formato: z
-    .string()
-    .optional()
-    .refine((val) => !val || /^\d+x\d+$/.test(val), {
-      message: "Formato inválido (usar 4x12)",
-    })
-    .transform((val) => {
-      if (!val) return { series: undefined, repes: undefined };
-      return parseFormato(val);
-    }),
+  series: z.coerce.number().int().min(1, { error: "Las series son requeridas" }).max(999),
+  repes: z.coerce.number().int().min(1, { error: "Las repes son requeridas" }).max(999),
   diaId: z.string().uuid({ error: "ID de día inválido" }),
 });
 
@@ -61,7 +72,7 @@ export type EjercicioUpdateInput = z.infer<typeof ejercicioUpdateSchema>;
 
 const ejercicioNestedSchema = z.object({
   nombre: z.string().min(1, { error: "El nombre del ejercicio es requerido" }).max(100),
-  formato: z.string().optional().default(""),
+  formato: z.string().min(1, { message: "Series y reps son requeridas" }).default(""),
 });
 
 export type EjercicioNestedInput = z.infer<typeof ejercicioNestedSchema>;

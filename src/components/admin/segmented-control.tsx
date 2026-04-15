@@ -95,13 +95,9 @@ export function SegmentedControl({
         role="tablist"
         aria-label={name || "Seleccionar opción"}
         className={cn(
-          // Background container - flex with horizontal scroll for mobile
-          "flex bg-muted rounded-lg p-1",
-          // Horizontal scroll, hide scrollbar, gap between items
+          "flex bg-muted rounded-lg p-1 gap-1",
+          "md:overflow-visible md:snap-none",
           "overflow-x-auto scrollbar-hide snap-x snap-mandatory",
-          // Horizontal layout with padding for edge clearance
-          "gap-1 px-1",
-          // Error state
           error && "ring-2 ring-destructive/50"
         )}
       >
@@ -124,19 +120,15 @@ export function SegmentedControl({
               onFocus={() => setFocusedIndex(index)}
               onBlur={() => setFocusedIndex(-1)}
               className={cn(
-                // Base styles - min-width for readability on mobile, snap to center
                 "inline-flex items-center gap-2 h-9 px-3 rounded-md text-sm font-medium transition-all duration-150 ease-out",
-                "flex-none whitespace-nowrap min-w-[80px] justify-center",
-                // Snap scroll - each button snaps to center when scrolled
-                "snap-center",
-                // Focus state - ring using semantic token
+                "whitespace-nowrap",
+                "flex-none md:flex-1",
+                "snap-center md:snap-none",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                // Disabled state
                 "disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
-                // Unselected state - semantic tokens
-                "text-muted-foreground bg-transparent hover:text-foreground hover:bg-accent",
-                // Selected state - primary token
-                isSelected && "bg-primary text-primary-foreground shadow-sm"
+                isSelected
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-muted"
               )}
             >
               {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}

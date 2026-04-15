@@ -4,6 +4,7 @@ import { memo } from "react";
 import { Controller } from "react-hook-form";
 import { GripVertical, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { SeriesRepsInput } from "@/components/ui/series-reps-input";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ export const EjercicioRow = memo(function EjercicioRow({
   const ejerciciosArrayErrors = errors as any;
   const ejercicioErrors = ejerciciosArrayErrors?.[index];
   const hasError = ejercicioErrors?.nombre;
+  const hasFormatoError = ejercicioErrors?.formato;
 
   const {
     attributes,
@@ -63,18 +65,17 @@ export const EjercicioRow = memo(function EjercicioRow({
       style={style}
       data-testid={`ejercicio-row-${index}`}
       className={cn(
-        "flex items-center gap-3 py-1.5 px-1 rounded-lg hover:bg-muted/30 transition-colors theme-transition",
+        "flex items-start gap-3 py-1.5 px-1 rounded-lg hover:bg-muted/30 transition-colors",
         isDragging && "ejercicio-row-dragging",
         isOver && "dropzone-placeholder"
       )}
     >
-      {/* Drag handle button - EXCLUSIVE listeners, no onClick */}
-      {/* touch-action: none prevents browser from intercepting touch for scroll */}
+      {/* Drag handle */}
       <button
         type="button"
         data-testid={`ejercicio-drag-handle-${index}`}
         className={cn(
-          "cursor-grab active:cursor-grabbing p-1 hover:bg-accent/50 rounded transition-colors shrink-0 touch-none",
+          "cursor-grab active:cursor-grabbing p-1 hover:bg-accent/50 rounded transition-colors shrink-0 touch-none mt-0.5",
           isDragging && "cursor-grabbing"
         )}
         {...attributes}
@@ -101,10 +102,7 @@ export const EjercicioRow = memo(function EjercicioRow({
               ref={field.ref}
               type="text"
               placeholder="Ej: Sentadillas con barra"
-              className={cn(
-                "focus-input h-8",
-                hasError && "border-destructive/50"
-              )}
+              className={cn("focus-input h-8", hasError && "border-destructive/50")}
             />
           )}
         />
@@ -115,31 +113,25 @@ export const EjercicioRow = memo(function EjercicioRow({
         )}
       </div>
 
-      {/* Formato 4x12 */}
-      <div className="w-20 flex-shrink-0">
-        <Controller
+      {/* SeriesRepsInput */}
+      <div className="shrink-0">
+        <SeriesRepsInput
           name={`${name}.formato`}
           control={control}
-          render={({ field: { onChange, onBlur, value, ref } }) => (
-            <Input
-              ref={ref}
-              onChange={onChange}
-              onBlur={onBlur}
-              value={value ?? ""}
-              type="text"
-              inputMode="numeric"
-              placeholder="4x12"
-              className="focus-input w-full h-8 text-center"
-            />
-          )}
+          value={undefined}
         />
+        {hasFormatoError && (
+          <p className="text-destructive text-xs mt-0.5 text-center">
+            {typeof hasFormatoError === "object" ? hasFormatoError.message : hasFormatoError}
+          </p>
+        )}
       </div>
 
       {/* Remove button */}
       <button
         type="button"
         onClick={onRemove}
-        className="p-1 text-muted-foreground/50 hover:text-destructive transition-colors shrink-0"
+        className="p-1 text-muted-foreground/50 hover:text-destructive transition-colors shrink-0 mt-0.5"
         title="Eliminar ejercicio"
       >
         <Trash2 className="h-4 w-4" />
