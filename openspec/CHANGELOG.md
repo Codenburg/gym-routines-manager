@@ -4,6 +4,13 @@ Todos los cambios significativos del proyecto se documentan aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [0.11.1] - 2026-04-15
+
+### Fixed
+- Pagination: separate where clause for trainer counts to enable multi-select on home page filters
+
+---
+
 ## [0.11.0] - 2026-04-15
 
 ### Added
