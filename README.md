@@ -94,8 +94,7 @@ src/
 ---
 
 ## Contribución
-
 Ver [CONTRIBUTING.md](./CONTRIBUTING.md)
+
 ---
-#### Mis Skills
-Ver [Repo de Skills](https://github.com/Codenburg/skills)
+## Mis Skills
