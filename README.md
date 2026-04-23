@@ -30,14 +30,6 @@ npm run db:seed             # opcional
 npm run dev                 # puerto 3000
 ```
 
-### Variables de entorno
-
-```env
-DATABASE_URL="postgresql://user:password@localhost:5432/gym_routines"
-BETTER_AUTH_SECRET="min-32-chars"
-BETTER_AUTH_URL="http://localhost:3000"
-```
-
 ---
 
 ## Scripts
