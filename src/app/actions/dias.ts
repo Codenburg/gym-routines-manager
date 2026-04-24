@@ -16,8 +16,7 @@ async function verifyAdmin(hdrs: Headers): Promise<{ authorized: boolean; messag
     if (!session) {
       return { authorized: false, message: "Debes iniciar sesión" };
     }
-    const user = session.user as { admin?: boolean } | undefined;
-    if (!user?.admin) {
+    if (session.user.role !== "ADMIN") {
       return { authorized: false, message: "No tienes permisos de administrador" };
     }
     return { authorized: true };
