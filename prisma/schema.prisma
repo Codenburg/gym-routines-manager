@@ -10,6 +10,12 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  ADMIN
+  TRAINER
+  USER
+}
+
 model Rutina {
   id          String   @id @default(uuid())
   nombre      String
@@ -76,8 +82,7 @@ model User {
   image          String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
-  admin          Boolean   @default(false)
-  role           String    @default("user")
+  role           Role      @default(USER)
   banned         Boolean   @default(false)
   // Soft delete timestamp - if set, user is considered deleted
   // All queries must filter: where: { deletedAt: null }

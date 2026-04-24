@@ -1,4 +1,4 @@
-import { PrismaClient } from '../generated/client';
+import { PrismaClient, Role } from '../generated/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import 'dotenv/config';
@@ -132,8 +132,6 @@ async function main() {
     // Create admin users
     const admins = [
       { name: 'Nando', dni: '11111111', password: process.env.SEED_ADMIN_PASSWORD_1 },
-      { name: 'Leo', dni: '22222222', password: process.env.SEED_ADMIN_PASSWORD_2 },
-      { name: 'Santi', dni: '33333333', password: process.env.SEED_ADMIN_PASSWORD_3 },
     ];
 
     for (const admin of admins) {
@@ -154,8 +152,7 @@ async function main() {
           email: null,
           dni: admin.dni,
           emailVerified: false,
-          admin: true,
-          role: 'admin',
+          role: Role.ADMIN,
           banned: false,
         },
       });
@@ -231,6 +228,104 @@ async function main() {
       }
 
       console.log(`Created 10 routines for ${admin.name}`);
+    }
+
+    // Seed Trainer users
+    const trainers = [
+      { name: 'Leo', dni: '22222222', password: process.env.SEED_TRAINER_PASSWORD_1 },
+      { name: 'Santi', dni: '33333333', password: process.env.SEED_TRAINER_PASSWORD_2 },
+      { name: 'Facu', dni: '44444444', password: process.env.SEED_TRAINER_PASSWORD_3 },
+    ];
+
+    for (const trainer of trainers) {
+      if (!trainer.password) {
+        console.error(`SEED_TRAINER_PASSWORD for ${trainer.name} is not set`);
+        throw new Error(`Missing SEED_TRAINER_PASSWORD for ${trainer.name}`);
+      }
+      if (trainer.password.length > 72) {
+        console.error(`Password for ${trainer.name} exceeds 72 bytes (bcrypt limit)`);
+        throw new Error(`Password too long for ${trainer.name}`);
+      }
+      const hashedPwd = await bcrypt.hash(trainer.password, 12);
+
+      const user = await tx.user.create({
+        data: {
+          name: trainer.name,
+          username: trainer.dni,
+          email: null,
+          dni: trainer.dni,
+          emailVerified: false,
+          role: Role.TRAINER,
+          banned: false,
+        },
+      });
+
+      await tx.account.create({
+        data: {
+          userId: user.id,
+          accountId: trainer.dni,
+          providerId: 'credential',
+          providerType: 'credential',
+          password: hashedPwd,
+        },
+      });
+
+      console.log(`Trainer ${trainer.name} created with DNI: ${trainer.dni}`);
+
+      // Create 5 routines for this trainer
+      const trainerTemplates = routineTemplates.slice(0, 5);
+      for (let i = 0; i < trainerTemplates.length; i++) {
+        const template = trainerTemplates[i];
+
+        const rutina = await tx.rutina.create({
+          data: {
+            nombre: `${template.nombre} - ${trainer.name}`,
+            tipo: template.tipo,
+            descripcion: template.descripcion,
+            creadorId: user.id,
+          },
+        });
+
+        await tx.ownershipTransfer.create({
+          data: {
+            rutinaId: rutina.id,
+            fromUserId: null,
+            toUserId: user.id,
+          },
+        });
+
+        // Create 2 days per routine
+        for (let d = 1; d <= 2; d++) {
+          const ejerciciosData = [
+            { nombre: 'Press de Banca', formato: '4x10', orden: 1 },
+            { nombre: 'Sentadillas', formato: '4x12', orden: 2 },
+            { nombre: 'Peso Muerto', formato: '3x8', orden: 3 },
+          ];
+
+          const ejercicios = ejerciciosData.map(ej => {
+            const { series, repes } = parseFormato(ej.formato);
+            return {
+              nombre: ej.nombre,
+              series,
+              repes,
+              orden: ej.orden,
+            };
+          });
+
+          await tx.dia.create({
+            data: {
+              musculosEnfocados: [template.tipo],
+              orden: d,
+              rutinaId: rutina.id,
+              ejercicios: {
+                create: ejercicios,
+              },
+            },
+          });
+        }
+      }
+
+      console.log(`Created 5 routines for ${trainer.name}`);
     }
 
     console.log('Seeding complete!');
