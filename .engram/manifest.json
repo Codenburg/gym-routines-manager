@@ -40,6 +40,14 @@
       "sessions": 2,
       "memories": 1,
       "prompts": 14
+    },
+    {
+      "id": "f2899733",
+      "created_by": "luffy",
+      "created_at": "2026-04-24T20:57:48Z",
+      "sessions": 4,
+      "memories": 2,
+      "prompts": 28
     }
   ]
 }
