@@ -4,6 +4,21 @@ Todos los cambios significativos del proyecto se documentan aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [0.14.0] - 2026-04-24
+
+### Added
+- TrainerDialog component with create/edit modes (Base UI Dialog)
+- Password visibility toggle on trainer create/edit forms
+- Dialog animations (fade-in, zoom-in) with backdrop blur matching project styles
+- DNI input: max 8 numeric characters with inputMode=numeric
+
+### Changed
+- Trainer manager refactored: inline forms replaced with dialog triggers
+- trainer-manager.tsx: 302→146 líneas (removed ~156 lines of inline form code)
+- Dialog-based UI replacing inline create/edit workflows
+
+---
+
 ## [0.13.0] - 2026-04-24
 
 ### Added

@@ -1,6 +1,6 @@
 # Roadmap
 
-_Last updated: 2026-04-24_ | _Version: 0.13.0_
+_Last updated: 2026-04-24_ | _Version: 0.14.0_
 
 ---
 
@@ -31,6 +31,7 @@ _Last updated: 2026-04-24_ | _Version: 0.13.0_
 - [x] Fix layout en DescuentoDuracionManager: separación de CreateMode/EditMode previene jump del Select (v0.10.5)
 - [x] Sistema de roles ADMIN/TRAINER/USER (v0.13.0)
 - [x] Trainer CRUD con soft-delete y aislamiento de rutinas propias (v0.13.0)
+- [x] Trainer manager: dialog-based UI para create/edit (v0.14.0)
 
 ### Técnico
 - [x] Next.js 16.1.6 + React 19.2.3
