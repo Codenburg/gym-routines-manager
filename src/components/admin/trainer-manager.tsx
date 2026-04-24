@@ -14,6 +14,27 @@ interface TrainerManagerProps {
   initialTrainers: Trainer[];
 }
 
+// Avatar color palette based on trainer id hash
+const AVATAR_COLORS = [
+  "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+  "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  "bg-purple-500/10 text-purple-600 dark:text-purple-400",
+  "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+  "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
+  "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
+  "bg-pink-500/10 text-pink-600 dark:text-pink-400",
+];
+
+function getAvatarColor(id: string): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = ((hash << 5) - hash) + id.charCodeAt(i);
+    hash = hash & hash;
+  }
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
 export function TrainerManager({ initialTrainers }: TrainerManagerProps) {
   const [trainers, setTrainers] = useState<Trainer[]>(initialTrainers);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -62,55 +83,55 @@ export function TrainerManager({ initialTrainers }: TrainerManagerProps) {
           </h3>
         </div>
 
-        <div className="p-4">
+        <div className="divide-y divide-border">
           {trainers.length === 0 ? (
             <p className="text-muted-foreground text-sm text-center py-8">
               No hay entrenadores registrados
             </p>
           ) : (
-            <div className="space-y-4">
-              {trainers.map((trainer) => (
-                <div
-                  key={trainer.id}
-                  className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-sm font-medium text-primary">
-                          {trainer.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">{trainer.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          @{trainer.username} • Creado el {new Date(trainer.createdAt).toLocaleDateString("es-AR")}
-                        </p>
-                      </div>
-                    </div>
+            trainers.map((trainer) => (
+              <div
+                key={trainer.id}
+                className="flex items-center justify-between px-6 py-4 hover:bg-muted/50 transition-colors group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getAvatarColor(trainer.id)}`}>
+                    <span className="text-sm font-medium">
+                      {trainer.name.charAt(0).toUpperCase()}
+                    </span>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => {
-                        setSelectedTrainer(trainer);
-                        setEditDialogOpen(true);
-                      }}
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleDelete(trainer.id, trainer.name)}
-                    >
-                      <Trash2 className="w-4 h-4 text-destructive" />
-                    </Button>
+                  <div>
+                    <p className="font-medium text-foreground">{trainer.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      @{trainer.username} • Creado el {new Date(trainer.createdAt).toLocaleDateString("es-AR")}
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
+                <div className="flex gap-1 opacity-100 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setSelectedTrainer(trainer);
+                      setEditDialogOpen(true);
+                    }}
+                    className="text-muted-foreground hover:text-foreground hover:bg-accent"
+                    title="Editar"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete(trainer.id, trainer.name)}
+                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    title="Eliminar"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ))
           )}
         </div>
       </AdminCard>
