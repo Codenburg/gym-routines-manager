@@ -4,6 +4,13 @@ Todos los cambios significativos del proyecto se documentan aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [0.14.1] - 2026-04-24
+
+### Fixed
+- updateTrainer: password ahora se hashea una sola vez y se actualiza solo en Account (no en User)
+
+---
+
 ## [0.14.0] - 2026-04-24
 
 ### Added
