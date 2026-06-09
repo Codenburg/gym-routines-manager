@@ -1,6 +1,6 @@
 # Roadmap
 
-_Last updated: 2026-04-24_ | _Version: 0.14.0_
+_Last updated: 2026-06-09_ | _Version: 0.15.1_
 
 ---
 
@@ -28,6 +28,13 @@ _Last updated: 2026-04-24_ | _Version: 0.14.0_
 - [x] Admin panel de promociones refactorizado con acciones atómicas y UI mejorada (v0.10.0)
 - [x] Mejora visual en tarjetas de promociones: borde izquierdo verde, jerarquía de título, badge de precio (v0.10.3)
 - [x] Mensajes de error en español para validación de precio en formularios Zod (v0.10.4)
+
+### Rendimiento y seguridad
+- [x] Notificación de feriados: throttle de 5min en window focus (v0.15.1)
+- [x] Home page: caching con unstable_cache + streaming con Suspense (v0.15.1)
+- [x] Proxy middleware: fix publicPaths para proteger rutas admin (v0.15.1)
+- [x] Dev server: migrado de webpack a Turbopack (v0.15.1)
+- [x] Eliminadas queries duplicadas de trainer counts (v0.15.1)
 - [x] Fix layout en DescuentoDuracionManager: separación de CreateMode/EditMode previene jump del Select (v0.10.5)
 - [x] Sistema de roles ADMIN/TRAINER/USER (v0.13.0)
 - [x] Trainer CRUD con soft-delete y aislamiento de rutinas propias (v0.13.0)

@@ -4,6 +4,22 @@ Todos los cambios significativos del proyecto se documentan aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [0.15.1] - 2026-06-09
+
+### Fixed
+- Proxy middleware: removed `"/"` from publicPaths so admin routes are properly protected (was matching all paths via startsWith)
+- Feriados notification: added 5-minute throttle to window.focus handler to prevent excessive refetches on alt+tab
+
+### Changed
+- Home page: extracted trainer counts into separate cached query (`getTrainerCounts`) to avoid duplicate groupBy + user lookup
+- Home page: moved paginated routine list into streaming Suspense boundary — header and search render immediately, cards stream with skeleton fallback
+- Cached `getRoutinesPaginated` with `unstable_cache` (30s TTL, shared "rutinas" tag with mutations)
+- loading.tsx: replaced dumbbell spinner with skeleton layout matching exact page structure (zero layout shift)
+- Dev server: removed `--webpack` flag — now uses Turbopack (compile times reduced from 18s to 3s)
+- Dev dependency: vitest `^4.1.1` → `^4.1.8`
+
+---
+
 ## [0.15.0] - 2026-06-08
 
 ### Changed
