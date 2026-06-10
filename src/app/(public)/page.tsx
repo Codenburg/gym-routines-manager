@@ -9,6 +9,8 @@ import { getRoutinesPaginated, getTrainerCounts, PAGE_SIZE } from "@/services/ro
 import { ErrorState } from "@/components/ui/error-state";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Pagination } from "@/components/ui/pagination";
+import { getGymConfigForServer } from "@/app/actions/gym";
+import { resolveGymName } from "@/lib/gym-display";
 
 interface SearchParams {
   page?: string;
@@ -29,6 +31,17 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
   // Lightweight query - streams immediately
   const trainerCounts = await getTrainerCounts(search);
 
+  // Resolve gym name via the same DB → env → "Gimnasio" chain used by
+  // the root metadata. Wrapped in try/catch so a DB outage falls through
+  // to the env/chain default instead of failing the page render.
+  let gymName: string;
+  try {
+    const gym = await getGymConfigForServer();
+    gymName = resolveGymName(gym?.nombre);
+  } catch {
+    gymName = resolveGymName(null);
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <main className="container mx-auto px-4 sm:px-8 py-8 sm:py-12 max-w-7xl pb-16 lg:pb-0">
@@ -37,7 +50,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
           <div className="flex items-center justify-between mb-8">
             <div className="flex-1 text-center">
               <h1 className="text-4xl sm:text-5xl font-bold text-foreground uppercase">
-                Champion Gym
+                {gymName}
               </h1>
               <p className="text-xs text-muted-foreground mt-1 lg:hidden">by Codenburg</p>
             </div>
