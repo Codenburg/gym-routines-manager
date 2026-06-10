@@ -174,12 +174,21 @@ model OwnershipTransfer {
 // ======================
 
 model Gym {
-  id        String   @id @default("gym")
-  price     Decimal  @db.Decimal(10, 2)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  feriados  Feriado[]
-  promociones Promocion[]
+  id              String   @id @default("gym")
+  price           Decimal  @db.Decimal(10, 2)
+
+  // Display fields (admin-managed, all nullable, additive)
+  nombre          String?  // Display name (DB → NEXT_PUBLIC_GYM_NAME env → "Gimnasio" generic)
+  horario         String?  @db.Text // Free-text, e.g. "8:00 a 22:00 — Lunes a viernes"
+  direccion       String?  @db.Text // Free-text physical address
+  mapsEmbedUrl    String?  @db.Text // Google Maps embed URL
+  socialInstagram String?  // Full Instagram URL
+  socialWhatsapp  String?  // wa.me URL
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  feriados        Feriado[]
+  promociones     Promocion[]
   descuentosDuracion DescuentoDuracion[]
 }
 
