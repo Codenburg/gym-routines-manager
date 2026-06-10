@@ -8,6 +8,7 @@ import { DurationDiscountsSection } from "@/components/informacion/DurationDisco
 import { HoursSection } from "@/components/informacion/HoursSection"
 import { AddressSection } from "@/components/informacion/AddressSection"
 import { SocialLinksSection } from "@/components/informacion/SocialLinksSection"
+import { getGymConfigForServer } from "@/app/actions/gym"
 
 interface Feriado {
   id: string
@@ -95,14 +96,59 @@ async function getDescuentos(): Promise<DataResult<DescuentoDuracion[]>> {
   }
 }
 
+/**
+ * Read the gym display fields (horario / direccion / mapsEmbedUrl /
+ * socialInstagram / socialWhatsapp) via the cached server reader.
+ * Returns `null` for any field the admin has not set — section
+ * components decide whether to render or hide based on these values.
+ *
+ * On error, returns an object with all-null fields so the page keeps
+ * rendering the other sections (price, promotions, discounts) instead
+ * of failing the whole page.
+ */
+async function getGymDisplay(): Promise<DataResult<{
+  horario: string | null
+  direccion: string | null
+  mapsEmbedUrl: string | null
+  socialInstagram: string | null
+  socialWhatsapp: string | null
+}>> {
+  try {
+    const gym = await getGymConfigForServer()
+    return ok({
+      horario: gym?.horario ?? null,
+      direccion: gym?.direccion ?? null,
+      mapsEmbedUrl: gym?.mapsEmbedUrl ?? null,
+      socialInstagram: gym?.socialInstagram ?? null,
+      socialWhatsapp: gym?.socialWhatsapp ?? null,
+    })
+  } catch {
+    return err({
+      horario: null,
+      direccion: null,
+      mapsEmbedUrl: null,
+      socialInstagram: null,
+      socialWhatsapp: null,
+    })
+  }
+}
+
 export default async function InformacionPage() {
-  const [feriadosResult, gymPriceResult, promocionesResult, descuentosResult] =
+  const [feriadosResult, gymPriceResult, promocionesResult, descuentosResult, gymDisplayResult] =
     await Promise.all([
       getFeriados(),
       getGymPrice(),
       getPromociones(),
       getDescuentos(),
+      // Read the gym display fields (horario / direccion / mapsEmbedUrl /
+      // socialInstagram / socialWhatsapp) via the cached server reader.
+      // Wrapped in a try/catch inside the helper so a DB outage
+      // resolves to all-null — sections render nothing instead of
+      // falling back to hardcoded values.
+      getGymDisplay(),
     ])
+
+  const display = gymDisplayResult.data
 
   return (
     <div className="min-h-screen bg-[var(--background)] flex flex-col items-center">
@@ -143,9 +189,15 @@ export default async function InformacionPage() {
             />
           </CollapsibleSection>
 
-          <HoursSection />
-          <AddressSection />
-          <SocialLinksSection />
+          <HoursSection horario={display?.horario ?? null} />
+          <AddressSection
+            direccion={display?.direccion ?? null}
+            mapsEmbedUrl={display?.mapsEmbedUrl ?? null}
+          />
+          <SocialLinksSection
+            socialInstagram={display?.socialInstagram ?? null}
+            socialWhatsapp={display?.socialWhatsapp ?? null}
+          />
         </div>
       </main>
     </div>

@@ -1,18 +1,37 @@
-const GOOGLE_MAPS_EMBED_URL =
-  "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3454.7185117518666!2d-59.53316112367533!3d-30.016238029970342!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x944c8a4e24ab8b61%3A0x4c1c5b4cf6707481!2sSgto.%20Cabral%20545%2C%20W3423%20Esquina%2C%20Corrientes!5e0!3m2!1ses!2sar!4v1776119715161!5m2!1ses!2sar"
+interface AddressSectionProps {
+  /**
+   * Street address as configured by the admin. `null` means not set.
+   */
+  direccion: string | null
+  /**
+   * Google Maps embed URL (the full `https://www.google.com/maps/embed?…`
+   * URL, ready to be used as an `<iframe src>`). `null` means not set.
+   */
+  mapsEmbedUrl: string | null
+}
 
-export function AddressSection() {
+/**
+ * Renders the address + Google Maps iframe.
+ *
+ * The section is rendered only when BOTH `direccion` and `mapsEmbedUrl`
+ * are set. Showing one without the other would be incomplete (a text
+ * address with no map, or a map with no address label) and is therefore
+ * treated as "not configured yet" → render nothing.
+ */
+export function AddressSection({ direccion, mapsEmbedUrl }: AddressSectionProps) {
+  if (!direccion || !mapsEmbedUrl) return null
+
   return (
     <section className="bg-[var(--button-secondary-bg)] border border-[var(--card-border)] rounded-xl p-5">
       <h2 className="text-lg font-semibold text-[var(--foreground)] mb-3">
         Dirección
       </h2>
       <p className="text-lg text-[var(--foreground)]">
-        Sargento Cabral 545, Esquina, Corrientes
+        {direccion}
       </p>
       <div className="mt-4 w-full overflow-hidden rounded-lg border border-[var(--card-border)]">
         <iframe
-          src={GOOGLE_MAPS_EMBED_URL}
+          src={mapsEmbedUrl}
           width="100%"
           height="200"
           style={{ border: 0 }}
