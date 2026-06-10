@@ -3,11 +3,12 @@
 import { useActionState, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Building2, Clock, Instagram, MapPin, MessageCircle, type LucideIcon } from "lucide-react";
+import { Building2, Instagram, MapPin, MessageCircle, type LucideIcon } from "lucide-react";
 import { updateGymField } from "@/app/actions/gym";
 import { DumbbellSpinner } from "@/components/ui/dumbbell-spinner";
 import { AdminCard } from "@/components/admin/admin-card";
 import { AdminFormField } from "@/components/admin/admin-form-field";
+import { WeeklyScheduleEditor } from "@/components/admin/WeeklyScheduleEditor";
 import type { FormState, GymDisplay, GymField } from "@/lib/schemas";
 
 /**
@@ -28,8 +29,12 @@ interface GymConfigManagerProps {
  * configuration object passed to `<FieldSubForm>` — the hook + shell
  * are shared, the per-field UI is a single `input`/`textarea` element.
  *
- * All sub-forms post to the same `updateGymField` server action; the
- * `field` hidden input discriminates which Gym column is written.
+ * The `horarioJson` sub-form is a special case: it is a composite
+ * editor (7 day cards with switches + time pickers) that bypasses the
+ * single-input `FieldConfig` shell and renders `<WeeklyScheduleEditor>`
+ * directly. All other sub-forms post to the same `updateGymField`
+ * server action; the `field` hidden input discriminates which Gym
+ * column is written.
  *
  * The action returns the saved `{ field, value }` in `state.data`,
  * which the input uses as `defaultValue` with a `key` so it resyncs
@@ -39,7 +44,7 @@ export function GymConfigManager({ initial }: GymConfigManagerProps) {
   return (
     <div className="space-y-6">
       <FieldSubForm config={IDENTITY_CONFIG} initialValue={initial.nombre} />
-      <FieldSubForm config={SCHEDULE_CONFIG} initialValue={initial.horario} />
+      <WeeklyScheduleEditor initial={initial.horarioJson} />
       <FieldSubForm config={DIRECCION_CONFIG} initialValue={initial.direccion} />
       <FieldSubForm
         config={MAPS_EMBED_URL_CONFIG}
@@ -95,18 +100,6 @@ const IDENTITY_CONFIG: FieldConfig = {
   maxLength: 80,
   placeholder: "Ej: Gimnasio Norte",
   saveLabel: "Guardar nombre",
-};
-
-const SCHEDULE_CONFIG: FieldConfig = {
-  field: "horario",
-  title: "Horarios",
-  description: "Cómo se muestra el horario de atención al público.",
-  icon: Clock,
-  inputLabel: "Horario de atención",
-  inputKind: "textarea",
-  maxLength: 200,
-  placeholder: "Ej: Lunes a viernes 7:00 a 22:00\nSábados 9:00 a 14:00",
-  saveLabel: "Guardar horarios",
 };
 
 const DIRECCION_CONFIG: FieldConfig = {
