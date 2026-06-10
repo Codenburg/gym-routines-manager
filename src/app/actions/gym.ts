@@ -197,7 +197,11 @@ export async function updateGymField(
       data: { [parsed.data.field]: parsed.data.value },
     });
 
-    revalidateTag("gym-config");
+    // Next 16 revalidateTag requires a profile arg; the existing project
+    // pattern (src/lib/rutinas.ts) is to cast to `any` and call with one
+    // arg. Follow the same idiom to keep the call site uniform.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (revalidateTag as any)("gym-config");
     revalidatePath("/");
     revalidatePath("/informacion");
     revalidatePath("/admin");
