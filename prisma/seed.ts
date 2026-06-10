@@ -58,16 +58,25 @@ async function main() {
     await tx.user.deleteMany();
 
     // Create/update singleton Gym config
+    // Display fields are intentionally NOT seeded with brand strings — admins
+    // configure them via the gym config page. Nullable defaults keep the
+    // singleton in a "no brand identity" state until the admin fills them in.
     await tx.gym.upsert({
       where: { id: 'gym' },
       update: {},
       create: {
         id: 'gym',
         price: 45000,
+        nombre: null,
+        horario: null,
+        direccion: null,
+        mapsEmbedUrl: null,
+        socialInstagram: null,
+        socialWhatsapp: null,
       },
     });
 
-    console.log('Gym config ensured with price: $45.000');
+    console.log('Gym config ensured with price: $45.000 (display fields null)');
 
     // Seed Promociones
     const promociones = [
