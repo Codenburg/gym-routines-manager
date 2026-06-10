@@ -8,7 +8,8 @@ import { DurationDiscountsSection } from "@/components/informacion/DurationDisco
 import { HoursSection } from "@/components/informacion/HoursSection"
 import { AddressSection } from "@/components/informacion/AddressSection"
 import { SocialLinksSection } from "@/components/informacion/SocialLinksSection"
-import { getGymConfigForServer } from "@/app/actions/gym"
+import { getGymDisplayForServer } from "@/app/actions/gym"
+import type { HorarioSemanal } from "@/lib/schemas"
 
 interface Feriado {
   id: string
@@ -97,7 +98,7 @@ async function getDescuentos(): Promise<DataResult<DescuentoDuracion[]>> {
 }
 
 /**
- * Read the gym display fields (horario / direccion / mapsEmbedUrl /
+ * Read the gym display fields (horarioJson / direccion / mapsEmbedUrl /
  * socialInstagram / socialWhatsapp) via the cached server reader.
  * Returns `null` for any field the admin has not set — section
  * components decide whether to render or hide based on these values.
@@ -107,16 +108,16 @@ async function getDescuentos(): Promise<DataResult<DescuentoDuracion[]>> {
  * of failing the whole page.
  */
 async function getGymDisplay(): Promise<DataResult<{
-  horario: string | null
+  horarioJson: HorarioSemanal | null
   direccion: string | null
   mapsEmbedUrl: string | null
   socialInstagram: string | null
   socialWhatsapp: string | null
 }>> {
   try {
-    const gym = await getGymConfigForServer()
+    const gym = await getGymDisplayForServer()
     return ok({
-      horario: gym?.horario ?? null,
+      horarioJson: gym?.horarioJson ?? null,
       direccion: gym?.direccion ?? null,
       mapsEmbedUrl: gym?.mapsEmbedUrl ?? null,
       socialInstagram: gym?.socialInstagram ?? null,
@@ -124,7 +125,7 @@ async function getGymDisplay(): Promise<DataResult<{
     })
   } catch {
     return err({
-      horario: null,
+      horarioJson: null,
       direccion: null,
       mapsEmbedUrl: null,
       socialInstagram: null,
@@ -189,7 +190,7 @@ export default async function InformacionPage() {
             />
           </CollapsibleSection>
 
-          <HoursSection horario={display?.horario ?? null} />
+          <HoursSection horario={display?.horarioJson ?? null} />
           <AddressSection
             direccion={display?.direccion ?? null}
             mapsEmbedUrl={display?.mapsEmbedUrl ?? null}
