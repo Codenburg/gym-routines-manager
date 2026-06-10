@@ -1,9 +1,9 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Building2 } from "lucide-react";
+import { Building2, Clock, MapPin, type LucideIcon } from "lucide-react";
 import { updateGymField } from "@/app/actions/gym";
 import { DumbbellSpinner } from "@/components/ui/dumbbell-spinner";
 import { AdminCard } from "@/components/admin/admin-card";
@@ -24,159 +24,277 @@ interface GymConfigManagerProps {
 /**
  * Admin-only form manager for the singleton Gym record.
  *
- * Phase 3 of the gym-config-admin change — Slice 2 currently wires up
- * the Identity sub-form (nombre). Subsequent commits in this slice
- * add the Schedule, Location, and Social sub-forms.
+ * Phase 3 of the gym-config-admin change. Each sub-form is a thin
+ * configuration object passed to `<FieldSubForm>` — the hook + shell
+ * are shared, the per-field UI is a single `input`/`textarea` element.
  *
- * Each sub-form has its own `useActionState` hook + server action call
- * so partial saves don't overwrite siblings with empty strings.
+ * All sub-forms post to the same `updateGymField` server action; the
+ * `field` hidden input discriminates which Gym column is written.
+ *
+ * The action returns the saved `{ field, value }` in `state.data`,
+ * which the input uses as `defaultValue` with a `key` so it resyncs
+ * after a save without a controlled/uncontrolled dance.
  */
 export function GymConfigManager({ initial }: GymConfigManagerProps) {
   return (
     <div className="space-y-6">
-      <IdentitySubForm initialValue={initial.nombre} />
+      <FieldSubForm config={IDENTITY_CONFIG} initialValue={initial.nombre} />
+      <FieldSubForm config={SCHEDULE_CONFIG} initialValue={initial.horario} />
+      <FieldSubForm config={DIRECCION_CONFIG} initialValue={initial.direccion} />
+      <FieldSubForm
+        config={MAPS_EMBED_URL_CONFIG}
+        initialValue={initial.mapsEmbedUrl}
+      />
     </div>
   );
 }
 
-interface SubFormShellProps {
+// ============================================================
+// Field config — declarative description of each editable field.
+// New fields are a single config object + an entry in GymConfigManager.
+// ============================================================
+
+interface FieldConfig {
+  /** Discriminant sent to `updateGymField` (matches GymField). */
+  field: GymField;
+  /** Section card title. */
   title: string;
+  /** Section card description. */
   description: string;
-  icon: React.ReactNode;
-  errorMessage: string | null;
-  success: boolean;
-  fieldError: string | null;
-  isPending: boolean;
-  onSubmit: (formData: FormData) => void;
-  children: React.ReactNode;
+  /** Lucide icon shown in the card header. */
+  icon: LucideIcon;
+  /** Label of the visible input. */
+  inputLabel: string;
+  /** Text input vs textarea (longer free-text values). */
+  inputKind: "text" | "textarea" | "url";
+  /** Max length forwarded to the input. */
+  maxLength: number;
+  /** Placeholder for the input. */
+  placeholder: string;
+  /** Submit button text. */
   saveLabel: string;
+  /** Optional section header rendered ABOVE the card (for grouped fields). */
+  sectionHeader?: { icon: LucideIcon; title: string; description: string };
 }
 
-/**
- * Shared chrome for the four sub-forms (Identity / Schedule / Location /
- * Social). Keeps the visual language consistent and the per-form
- * subcomponents focused on their inputs.
- */
-function SubFormShell({
-  title,
-  description,
-  icon,
-  errorMessage,
-  success,
-  fieldError,
-  isPending,
-  onSubmit,
-  children,
-  saveLabel,
-}: SubFormShellProps) {
-  const router = useRouter();
+const IDENTITY_CONFIG: FieldConfig = {
+  field: "nombre",
+  title: "Identidad",
+  description: "Nombre visible del gimnasio.",
+  icon: Building2,
+  inputLabel: "Nombre del gimnasio",
+  inputKind: "text",
+  maxLength: 80,
+  placeholder: "Ej: Gimnasio Norte",
+  saveLabel: "Guardar nombre",
+};
 
-  // Success toast + router refresh on save so the cached reader +
-  // revalidated paths resync across the app.
-  useEffect(() => {
-    if (!isPending && success) {
-      toast.success("Configuración actualizada");
-      router.refresh();
-    }
-  }, [isPending, success, router]);
+const SCHEDULE_CONFIG: FieldConfig = {
+  field: "horario",
+  title: "Horarios",
+  description: "Cómo se muestra el horario de atención al público.",
+  icon: Clock,
+  inputLabel: "Horario de atención",
+  inputKind: "textarea",
+  maxLength: 200,
+  placeholder: "Ej: Lunes a viernes 7:00 a 22:00\nSábados 9:00 a 14:00",
+  saveLabel: "Guardar horarios",
+};
 
-  return (
-    <AdminCard variant="standard">
-      <div className="flex items-start gap-3 mb-4">
-        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-          {icon}
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-          <p className="text-sm text-muted-foreground">{description}</p>
-        </div>
-      </div>
+const DIRECCION_CONFIG: FieldConfig = {
+  field: "direccion",
+  title: "Dirección",
+  description: "Calle, número, ciudad.",
+  icon: MapPin,
+  inputLabel: "Dirección",
+  inputKind: "text",
+  maxLength: 200,
+  placeholder: "Ej: Av. Siempre Viva 742, CABA",
+  saveLabel: "Guardar dirección",
+};
 
-      <form action={onSubmit} className="space-y-4">
-        {children}
+const MAPS_EMBED_URL_CONFIG: FieldConfig = {
+  field: "mapsEmbedUrl",
+  title: "Mapa (Google Maps embed)",
+  description:
+    "URL completa del <iframe> de Google Maps (Compartir > Insertar mapa).",
+  icon: MapPin,
+  inputLabel: "URL del embed de mapa",
+  inputKind: "url",
+  maxLength: 2000,
+  placeholder: "https://www.google.com/maps/embed?pb=...",
+  saveLabel: "Guardar mapa",
+  sectionHeader: {
+    icon: MapPin,
+    title: "Ubicación",
+    description:
+      "Dirección y enlace de Google Maps. Cada campo se guarda por separado.",
+  },
+};
 
-        {errorMessage && !fieldError && (
-          <p className="text-destructive text-sm" role="alert">
-            {errorMessage}
-          </p>
-        )}
+// ============================================================
+// Hook — wires useActionState to updateGymField and derives
+// server-resynced value + field error from the action state.
+// ============================================================
 
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={isPending}
-            className="px-4 py-2 bg-primary hover:opacity-90 disabled:opacity-50 text-primary-foreground rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
-          >
-            {isPending ? (
-              <>
-                <DumbbellSpinner size={16} />
-                Guardando...
-              </>
-            ) : (
-              saveLabel
-            )}
-          </button>
-        </div>
-      </form>
-    </AdminCard>
+interface UseGymFieldFormResult {
+  state: FieldFormState;
+  formAction: (formData: FormData) => void;
+  isPending: boolean;
+  displayedValue: string;
+  fieldError: string | null;
+  generalError: string | null;
+}
+
+function useGymFieldForm(field: GymField, initialValue: string | null): UseGymFieldFormResult {
+  const [state, formAction, isPending] = useActionState<FieldFormState, FormData>(
+    updateGymField,
+    { success: false, errors: undefined, message: undefined }
   );
+
+  // Server-returned value wins on success — the input resyncs
+  // even after edits in another tab.
+  const displayedValue =
+    state.success && state.data?.field === field
+      ? state.data.value
+      : initialValue ?? "";
+
+  const fieldError = state.errors?.[field]?.[0] ?? null;
+  const generalError =
+    !fieldError && !state.success ? state.message ?? null : null;
+
+  return { state, formAction, isPending, displayedValue, fieldError, generalError };
 }
 
-interface IdentitySubFormProps {
+// ============================================================
+// Sub-form shell + input primitives
+// ============================================================
+
+const INPUT_CLASS =
+  "w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring disabled:opacity-50";
+
+interface FieldSubFormProps {
+  config: FieldConfig;
   initialValue: string | null;
 }
 
 /**
- * Identity sub-form: gym name (`nombre`).
- *
- * Required field, max 80 chars. The server action returns
- * `errors.nombre?.[0]` on failure; we surface it next to the input.
+ * Generic sub-form for any single Gym display field. Renders the
+ * section header (if grouped), the AdminCard with icon/title/description,
+ * the input, and the submit button. Wires its own useGymFieldForm hook
+ * and triggers a sonner success toast + router.refresh on save.
  */
-function IdentitySubForm({ initialValue }: IdentitySubFormProps) {
-  const [state, formAction, isPending] = useActionState<FieldFormState, FormData>(
-    updateGymField,
-    { success: false }
+function FieldSubForm({ config, initialValue }: FieldSubFormProps) {
+  const { state, formAction, isPending, displayedValue, fieldError, generalError } =
+    useGymFieldForm(config.field, initialValue);
+
+  const router = useRouter();
+
+  // The server action already calls revalidatePath('/admin') and
+  // revalidateTag('gym-config') — but in the SAME session, those
+  // invalidations do not auto-re-render the current page. router.refresh()
+  // forces a fresh RSC render of the surrounding /admin layout (sidebar,
+  // etc.) so the saved value is visible across the panel immediately,
+  // matching the project pattern in ejercicio-list.tsx.
+  useEffect(() => {
+    if (!isPending && state.success) {
+      toast.success("Configuración actualizada");
+      router.refresh();
+    }
+  }, [isPending, state.success, router]);
+
+  const Icon = config.icon;
+  const input = (
+    <AdminFormField
+      variant="default"
+      label={config.inputLabel}
+      error={fieldError ?? undefined}
+    >
+      {renderInput(config, displayedValue, isPending)}
+    </AdminFormField>
   );
 
-  // Server-returned value wins on success, so the input resyncs
-  // even after edits in another tab.
-  const serverValue = state.success && state.data?.field === "nombre"
-    ? state.data.value
-    : null;
-  const displayedValue = serverValue ?? initialValue ?? "";
-
-  const fieldError = state.errors?.nombre?.[0] ?? null;
-  const generalError = !fieldError && !state.success ? state.message ?? null : null;
-
   return (
-    <SubFormShell
-      title="Identidad"
-      description="Nombre visible del gimnasio."
-      icon={<Building2 className="w-5 h-5" />}
-      errorMessage={generalError}
-      success={state.success}
-      fieldError={fieldError}
-      isPending={isPending}
-      onSubmit={formAction}
-      saveLabel="Guardar nombre"
-    >
-      <input type="hidden" name="field" value="nombre" />
-      <AdminFormField
-        variant="default"
-        label="Nombre del gimnasio"
-        error={fieldError ?? undefined}
-      >
-        <input
-          type="text"
-          name="value"
-          defaultValue={displayedValue}
-          key={displayedValue}
-          maxLength={80}
-          disabled={isPending}
-          placeholder="Ej: Gimnasio Norte"
-          className="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring disabled:opacity-50"
-        />
-      </AdminFormField>
-    </SubFormShell>
+    <>
+      {config.sectionHeader && <SectionHeader config={config.sectionHeader} />}
+      <AdminCard variant="standard">
+        <div className="flex items-start gap-3 mb-4">
+          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+            <Icon className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-foreground">{config.title}</h3>
+            <p className="text-sm text-muted-foreground">{config.description}</p>
+          </div>
+        </div>
+
+        <form action={formAction} className="space-y-4">
+          <input type="hidden" name="field" value={config.field} />
+          {input}
+
+          {generalError && (
+            <p className="text-destructive text-sm" role="alert">
+              {generalError}
+            </p>
+          )}
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={isPending}
+              className="px-4 py-2 bg-primary hover:opacity-90 disabled:opacity-50 text-primary-foreground rounded-lg transition-colors flex items-center gap-2"
+            >
+              {isPending ? (
+                <>
+                  <DumbbellSpinner size={16} />
+                  Guardando...
+                </>
+              ) : (
+                config.saveLabel
+              )}
+            </button>
+          </div>
+        </form>
+      </AdminCard>
+    </>
+  );
+}
+
+function renderInput(config: FieldConfig, displayedValue: string, isPending: boolean): ReactNode {
+  const common = {
+    name: "value",
+    defaultValue: displayedValue,
+    // Re-mount when server value changes so the input resyncs
+    // (controlled vs uncontrolled dance avoided).
+    key: displayedValue,
+    maxLength: config.maxLength,
+    disabled: isPending,
+    placeholder: config.placeholder,
+    className: INPUT_CLASS,
+  } as const;
+
+  if (config.inputKind === "textarea") {
+    return <textarea {...common} rows={3} className={`${INPUT_CLASS} resize-y`} />;
+  }
+  if (config.inputKind === "url") {
+    return <input type="url" {...common} />;
+  }
+  return <input type="text" {...common} />;
+}
+
+function SectionHeader({
+  config,
+}: {
+  config: NonNullable<FieldConfig["sectionHeader"]>;
+}) {
+  const Icon = config.icon;
+  return (
+    <div className="px-1">
+      <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+        <Icon className="w-5 h-5 text-primary" />
+        {config.title}
+      </h3>
+      <p className="text-sm text-muted-foreground">{config.description}</p>
+    </div>
   );
 }
