@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { auth, isAdmin } from "@/lib/auth";
+import { isAdmin } from "@/lib/auth";
+import { getAdminSession } from "@/lib/admin-session";
 import { getGymDisplayForServer } from "@/app/actions/gym";
 import { GymConfigManager } from "@/components/admin/GymConfigManager";
 import { PageHeader } from "@/components/admin/page-header";
@@ -23,7 +23,10 @@ export const dynamic = "force-dynamic";
  * revalidates the `gym-config` tag and the public paths.
  */
 export default async function AdminConfigPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  // Parent layout already validated the session; this call is memoized
+  // per request via React.cache(), so it dedupes with the layout's
+  // auth.api.getSession call within the same render pass.
+  const session = await getAdminSession();
 
   // Admin-only guard — TRAINER is redirected to /admin/rutinas.
   if (!isAdmin(session)) {

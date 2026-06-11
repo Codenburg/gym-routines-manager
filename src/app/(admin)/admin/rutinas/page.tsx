@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { getAdminSession } from "@/lib/admin-session";
 import { getRutinas } from "@/lib/rutinas";
 import { RutinasListClient } from "@/components/admin/rutinas-list-client";
 import { PageHeader } from "@/components/admin/page-header";
@@ -11,8 +10,10 @@ import { Plus } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export default async function AdminRutinasPage() {
-  const headersList = await headers();
-  const session = await auth.api.getSession({ headers: headersList });
+  // Parent layout already validated the session; this call is memoized
+  // per request via React.cache(), so it dedupes with the layout's
+  // auth.api.getSession call within the same render pass.
+  const session = await getAdminSession();
 
   // ADMIN: get all rutinas. TRAINER: get only their own rutinas.
   const ownerId = session?.user.role === "TRAINER" ? session.user.id : undefined;

@@ -1,6 +1,4 @@
-import { redirect, notFound } from "next/navigation";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { notFound } from "next/navigation";
 import { getCachedRutinaById } from "@/lib/rutinas";
 import { EjercicioList } from "@/components/admin/ejercicio-list";
 import { PageHeader } from "@/components/admin/page-header";
@@ -16,14 +14,9 @@ interface EjerciciosPageProps {
 }
 
 export default async function EjerciciosPage({ params }: EjerciciosPageProps) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    redirect("/admin/login");
-  }
-
+  // Auth is enforced by the parent admin layout (redirects unauthenticated
+  // users to /admin/login and non-admin/trainer users to "/"). No session
+  // call needed here.
   const { id, diaId } = await params;
   const rutina = await getCachedRutinaById(id);
 
