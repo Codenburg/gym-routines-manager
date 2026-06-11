@@ -1,11 +1,9 @@
-import prisma from '@/lib/prisma';
+import { getPromociones } from '@/lib/promociones';
 import { PromocionManager } from '@/components/admin/promocion-manager'
 import { PageHeader } from '@/components/admin/page-header'
 
 export default async function PromocionesAdminPage() {
-  const promociones = await prisma.promocion.findMany({
-    orderBy: { createdAt: 'desc' }
-  });
+  const promociones = await getPromociones();
 
   return (
     <div className="container py-8">
