@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { headers } from "next/headers";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
@@ -77,6 +77,14 @@ export async function createEjercicio(
     // Revalidate exact path to the day page
     revalidatePath(`/admin/rutinas/${dia?.rutinaId}/dias/${parsed.data.diaId}`);
 
+    // Invalidate the rutinas cache tag (getStats subscribes to it
+    // and so do getRoutinesPaginated / getTrainerCounts via the
+    // RUTINAS_CACHE_TAG key in src/services/routines/pagination.ts).
+    // Next 16 revalidateTag requires a profile arg; the existing
+    // project pattern is to cast to `any` and call with one arg.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (revalidateTag as any)("rutinas");
+
     return {
       success: true,
       data: { id: ejercicio.id },
@@ -148,6 +156,9 @@ export async function updateEjercicio(
     // Revalidate exact path to the day page
     revalidatePath(`/admin/rutinas/${ejercicio.dia.rutinaId}/dias/${ejercicio.diaId}`);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (revalidateTag as any)("rutinas");
+
     return {
       success: true,
       data: { id: updatedEjercicio.id },
@@ -201,6 +212,9 @@ export async function deleteEjercicio(
 
     // Revalidate exact path to the day page
     revalidatePath(`/admin/rutinas/${ejercicio.dia.rutinaId}/dias/${ejercicio.diaId}`);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (revalidateTag as any)("rutinas");
 
     return {
       success: true,
