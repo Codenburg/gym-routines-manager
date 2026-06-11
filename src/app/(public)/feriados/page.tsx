@@ -1,54 +1,40 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { House, Calendar, AlertCircle } from "lucide-react";
-import { DataResult, ok, err } from "@/lib/data-result";
+import type { DataResult } from "@/lib/data-result";
 import { MarkAsSeenWrapper } from "@/components/feriados/mark-as-seen-wrapper";
+import { getFeriados } from "@/lib/feriados";
 import { getToday } from "@/lib/dates";
+import prisma from "@/lib/prisma";
 
-interface Feriado {
-  id: string;
-  fecha: string;
-  todo_dia: boolean;
-  hora_inicio: string | null;
-  hora_fin: string | null;
-  createdAt: string;
-}
+/**
+ * Local type alias for the Feriado row, derived from the cached
+ * reader's return type. The list rendering (FeriadosWrapper) and the
+ * display helpers (formatDate, formatFeriadoDisplay) only use
+ * `fecha`, `todo_dia`, `hora_inicio`, and `hora_fin` — `createdAt` is
+ * surfaced separately via the `latestFeriadoDate` prop.
+ */
+type Feriado = Awaited<ReturnType<typeof getFeriados>>[number];
 
-async function getFeriados(): Promise<DataResult<Feriado[]>> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  try {
-    const response = await fetch(`${baseUrl}/api/feriados`, {
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      console.error("[getFeriados] API returned non-OK status:", response.status);
-      return err([]);
-    }
-
-    return ok(await response.json());
-  } catch (error) {
-    console.error("[getFeriados] Failed to fetch feriados:", error);
-    return err([]);
-  }
-}
-
+/**
+ * Direct Prisma query for the most recently created Feriado's
+ * `createdAt`, returned as an ISO 8601 string.
+ *
+ * Mirrors the previous `/api/feriados/latest` endpoint behavior. Kept
+ * as a direct Prisma read (not cached) so the "new" badge in
+ * `MarkAsSeenWrapper` reflects the freshest state — the cached
+ * `getFeriados()` list has a 30s TTL safety net (good enough for
+ * the visible list, but the badge signal needs to be live).
+ */
 async function getLatestFeriadoDate(): Promise<string | null> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
   try {
-    const response = await fetch(`${baseUrl}/api/feriados/latest`, {
-      cache: "no-store",
+    const latest = await prisma.feriado.findFirst({
+      orderBy: { createdAt: "desc" },
+      select: { createdAt: true },
     });
-
-    if (!response.ok) {
-      console.error("[getLatestFeriadoDate] API returned non-OK status:", response.status);
-      return null;
-    }
-
-    const data = await response.json();
-    return data.latestFeriadoDate ?? null;
+    return latest ? latest.createdAt.toISOString() : null;
   } catch (error) {
-    console.error("[getLatestFeriadoDate] Failed to fetch:", error);
+    console.error("[getLatestFeriadoDate] Failed to fetch latest feriado:", error);
     return null;
   }
 }
@@ -75,8 +61,35 @@ function formatFeriadoDisplay(feriado: Feriado): string {
 }
 
 export default async function FeriadosPage() {
-  const feriadosResult = await getFeriados();
-  const latestFeriadoDate = await getLatestFeriadoDate();
+  // Two parallel reads:
+  //   - `getFeriados` (cached, 30s TTL, tag "feriados") — full list
+  //   - `getLatestFeriadoDate` (direct query, fresh) — for the "new"
+  //     badge in `MarkAsSeenWrapper`
+  //
+  // `Promise.allSettled` is used so a single bad read does not block
+  // the other. The list's "error" state is the read's rejection; the
+  // latest-date read's failure is treated as "no new feriado" and
+  // silently returns null.
+  const [feriadosResultSettled, latestFeriadoDateSettled] = await Promise.allSettled([
+    getFeriados(),
+    getLatestFeriadoDate(),
+  ]);
+
+  if (feriadosResultSettled.status === "rejected") {
+    console.error("[FeriadosPage] getFeriados failed:", feriadosResultSettled.reason);
+  }
+  if (latestFeriadoDateSettled.status === "rejected") {
+    console.error("[FeriadosPage] getLatestFeriadoDate failed:", latestFeriadoDateSettled.reason);
+  }
+
+  const feriados =
+    feriadosResultSettled.status === "fulfilled" ? feriadosResultSettled.value : [];
+  const feriadosResult: DataResult<Feriado[]> = {
+    data: feriados,
+    error: feriadosResultSettled.status === "rejected",
+  };
+  const latestFeriadoDate =
+    latestFeriadoDateSettled.status === "fulfilled" ? latestFeriadoDateSettled.value : null;
 
   return (
     <div className="min-h-screen bg-[var(--background)] flex flex-col items-center">
