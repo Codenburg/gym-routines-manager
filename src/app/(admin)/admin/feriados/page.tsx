@@ -2,9 +2,6 @@ import { getFeriados } from "@/lib/feriados";
 import { FeriadoManager } from "@/components/admin/feriado-manager";
 import { PageHeader } from "@/components/admin/page-header";
 
-// Force dynamic rendering
-export const dynamic = "force-dynamic";
-
 export default async function AdminFeriadosPage() {
   const feriados = await getFeriados();
 
