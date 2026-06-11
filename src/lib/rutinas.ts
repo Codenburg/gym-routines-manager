@@ -1,4 +1,4 @@
-import { cacheTag, cacheLife, unstable_cache } from "next/cache";
+import { cacheTag, cacheLife } from "next/cache";
 import prisma from "@/lib/prisma";
 import { DataResult, ok, err } from "@/lib/data-result";
 
@@ -237,9 +237,18 @@ export interface RutinasStats {
 
 /**
  * Get cached stats for admin dashboard.
- * Uses unstable_cache for automatic invalidation via revalidateTag("rutinas").
+ *
+ * Migrated to Next.js 16 `use cache` + `cacheTag` + `cacheLife`.
+ * Declared `cacheTag("rutinas")` so any rutina / dia / ejercicio mutation
+ * that calls `revalidateTag("rutinas")` invalidates the stats too —
+ * this is the reader that the v0.19.0 audit called out for its
+ * dependency on a shared tag with the other rutinas readers.
  */
-async function fetchStatsFromDb(): Promise<RutinasStats> {
+export async function getStats(): Promise<RutinasStats> {
+  "use cache";
+  cacheTag(RUTINAS_CACHE_TAG);
+  cacheLife({ revalidate: 60 });
+
   const [rutinasCount, diasCount, ejerciciosCount] = await Promise.all([
     prisma.rutina.count(),
     prisma.dia.count(),
@@ -248,12 +257,3 @@ async function fetchStatsFromDb(): Promise<RutinasStats> {
 
   return { rutinasCount, diasCount, ejerciciosCount };
 }
-
-export const getStats = unstable_cache(
-  async () => fetchStatsFromDb(),
-  ["rutinas-stats"],
-  {
-    revalidate: 60,
-    tags: [RUTINAS_CACHE_TAG],
-  }
-);
