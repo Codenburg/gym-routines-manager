@@ -4,6 +4,16 @@ Todos los cambios significativos del proyecto se documentan aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [0.18.2] - 2026-06-11
+
+### Changed
+- **Per-page admin `loading.tsx` files** for 6 admin pages (`/admin` dashboard, `/admin/rutinas`, `/admin/feriados`, `/admin/promociones`, `/admin/descuentos-duracion`, `/admin/trainers`). Each composing the matching skeleton component (`AdminStatsGridSkeleton`, `AdminRutinasTableSkeleton`, `AdminFeriadoRowSkeleton`, `AdminPromocionCardSkeleton`, `AdminDescuentoRowSkeleton`, `AdminTrainerRowSkeleton`) plus a custom header skeleton (page title + actions placeholders). The user now sees a skeleton that matches the destination page during the route transition, instead of the generic `(admin)/loading.tsx` placeholder. The generic route-group loading remains as the fallback for the 2 detail/edit pages (`/admin/rutinas/[id]`, `/admin/rutinas/[id]/dias/[diaId]`) where the generic is acceptable.
+
+### Notes
+- This is a PATCH release — pure UX polish, no new features
+
+---
+
 ## [0.18.1] - 2026-06-11
 
 ### Changed
