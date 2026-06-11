@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { headers } from "next/headers";
 import bcrypt from "bcrypt";
 import prisma from "@/lib/prisma";
@@ -165,6 +165,15 @@ export async function createTrainer(
 
     revalidatePath("/admin/trainers");
 
+    // Invalidate the "users" cache tag — currently the trainers list
+    // read (getTrainers in this file) is NOT cached, but the tag
+    // wires the invalidation for any future cached reader that
+    // subscribes to user data (e.g. a cached getUsers reader).
+    // Next 16 revalidateTag requires a profile arg; cast to `any`
+    // to match the project pattern in src/lib/rutinas.ts.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (revalidateTag as any)("users");
+
     return {
       success: true,
       data: { id: trainer.id, username: trainer.username || "", name: trainer.name },
@@ -236,6 +245,9 @@ export async function updateTrainer(
 
     revalidatePath("/admin/trainers");
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (revalidateTag as any)("users");
+
     return { success: true, message: "Entrenador actualizado exitosamente" };
   } catch (error) {
     console.error("Error updating trainer:", error);
@@ -275,6 +287,9 @@ export async function deleteTrainer(
     });
 
     revalidatePath("/admin/trainers");
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (revalidateTag as any)("users");
 
     return { success: true, message: "Entrenador eliminado exitosamente" };
   } catch (error) {
