@@ -58,18 +58,22 @@ async function main() {
     await tx.user.deleteMany();
 
     // Create/update singleton Gym config
-    // Display fields are intentionally NOT seeded with brand strings — admins
-    // configure them via the gym config page. Nullable defaults keep the
-    // singleton in a "no brand identity" state until the admin fills them in.
+    // The default 'nombre' is a friendly placeholder ("Mi Gimnasio") so the
+    // dev environment shows something sensible on first boot. Admins
+    // overwrite this via the gym config page; production deployments should
+    // also set NEXT_PUBLIC_GYM_NAME as a deploy-time safety net.
+    // Other display fields stay null by design — unconfigured = "render
+    // nothing" UX (HoursSection, AddressSection, SocialLinksSection all
+    // hide themselves when their value is null).
     // `horarioJson` is the structured weekly schedule; null = unconfigured
     // (public HoursSection hides itself).
     await tx.gym.upsert({
       where: { id: 'gym' },
-      update: {},
+      update: {}, // don't touch existing fields — preserve admin edits
       create: {
         id: 'gym',
         price: 45000,
-        nombre: null,
+        nombre: 'Mi Gimnasio',
         // horarioJson: Prisma.JsonNull writes JSON null to the JSONB cell.
         // The read boundary Zod-validates against horarioSemanalSchema; a
         // JSON null is treated as "unconfigured" (public HoursSection hides).
@@ -81,7 +85,7 @@ async function main() {
       },
     });
 
-    console.log('Gym config ensured with price: $45.000 (display fields null)');
+    console.log('Gym config ensured with price: $45.000, nombre: "Mi Gimnasio" (or preserved if already set)');
 
     // Seed Promociones
     const promociones = [

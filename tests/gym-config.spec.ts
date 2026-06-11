@@ -66,6 +66,23 @@ const PAGE_TITLE = 'Configuración del Gimnasio';
 
 // Unique values used by the admin-flow test. Suffixes are unique per test
 // run so reruns don't conflict with persisted state from prior runs.
+//
+// ⚠️ NOTE: These E2E test values get WRITTEN to the real Gym singleton
+// in the dev database. If you run the test suite against a long-lived DB
+// (not a freshly-seeded one), the persisted values will be the LAST
+// RUN_ID's values until you either:
+//   1. Re-run `pnpm db:seed` to restore the defaults (including
+//      `nombre: 'Mi Gimnasio'` for the display name).
+//   2. Manually clean via `pnpm prisma studio` or a direct SQL update.
+//   3. Use a dedicated test database (recommended for CI: set
+//      DATABASE_URL to a separate schema and run `pnpm db:push` + seed
+//      there before tests).
+//
+// The 'Gym-E2E-${RUN_ID}' name pattern is intentional (timestamped, so
+// successive runs don't collide) but it does NOT auto-restore after the
+// test. This is a known limitation of the current setup; a follow-up
+// could add a `test.afterAll` hook to capture-and-restore the original
+// `gym.nombre` before/after the test runs.
 const RUN_ID = Date.now();
 const NEW_NOMBRE = `Gym-E2E-${RUN_ID}`;
 const NEW_DIRECCION = `Av. E2E ${RUN_ID}, CABA`;
