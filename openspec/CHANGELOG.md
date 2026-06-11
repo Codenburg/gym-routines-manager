@@ -4,6 +4,29 @@ Todos los cambios significativos del proyecto se documentan aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [0.18.0] - 2026-06-11
+
+### Added
+- **Generic `Skeleton` UI primitive** in `src/components/ui/skeleton.tsx` (`bg-muted animate-pulse rounded`, composable via className) — base for all page-shaped skeletons
+- **Route-group loading files** for page-shaped loading UX: `src/app/(public)/loading.tsx` (homepage shape), `src/app/(admin)/loading.tsx` (admin shape with sidebar + main)
+- **11 page-shaped skeleton components** (8 admin + 3 public): AdminStatsCardSkeleton, AdminStatsGridSkeleton, AdminRutinasTableSkeleton, AdminFeriadoRowSkeleton, AdminPromocionCardSkeleton, AdminDescuentoRowSkeleton, AdminTrainerRowSkeleton, AdminConfigSectionSkeleton, InformacionSkeleton, RoutineDetailSkeleton, DayDetailSkeleton
+- **`getAdminSession` helper** in `src/lib/admin-session.ts` using `React.cache()` for per-request session deduplication in admin pages
+- **4 new cached readers** using `unstable_cache` with `revalidateTag` for invalidation: `getGymPrice` (60s), `getPromociones` (60s), `getDescuentos` (60s), `getFeriados` (30s — for "new" badge freshness)
+
+### Changed
+- **Root `loading.tsx` rewritten** as a generic `<DumbbellSpinner />` centered fallback (was a homepage-shaped skeleton that incorrectly showed for every route, including admin pages)
+- **`(public)/informacion/page.tsx`** refactored: dropped 4 sequential HTTP self-fetches to the own API routes; now uses `getGymDisplayForServer` + `getPromociones` + `getDescuentos` + `getFeriados` via `Promise.allSettled` (5 HTTP round-trips → 1 parallel Prisma query with caching)
+- **`(public)/feriados/page.tsx`** refactored: dropped 2 sequential HTTP self-fetches; now uses cached `getFeriados` + direct Prisma query for latest date
+- **4 admin pages** dedup `auth.api.getSession` via `getAdminSession` (rutinas, rutinas/[id]/dias/[diaId], trainers, config) — one DB call per request instead of one per page
+- **3 server actions** call `revalidateTag` alongside `revalidatePath` for cache invalidation: `actions/promociones.ts` (tag `promociones`), `actions/descuentos-duracion.ts` (tag `descuentos-duracion`), `actions/feriados.ts` (tag `feriados`)
+- **Build improvement**: `/feriados` and `/informacion` are now `○ Static` (was `ƒ Dynamic`); the pre-existing `dynamic-server-usage` build warning is GONE
+
+### Fixed
+- E2E test 4.10 (homepage `.animate-pulse` visibility) — structurally fixed by adding `(public)/loading.tsx` which uses the `Skeleton` primitive
+- `/feriados` and `/informacion` were doing 5 and 2 uncached HTTP round-trips to their own API routes on every request; now hit cached Prisma readers
+
+---
+
 ## [0.17.0] - 2026-06-10
 
 ### Added
