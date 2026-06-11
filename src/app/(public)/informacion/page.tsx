@@ -1,156 +1,108 @@
-import Link from "next/link"
-import { House } from "lucide-react"
-import { DataResult, ok, err } from "@/lib/data-result"
-import { PriceSection } from "@/components/informacion/PriceSection"
-import { CollapsibleSection } from "@/components/informacion/CollapsibleSection"
-import { PlansSection } from "@/components/informacion/PlansSection"
-import { DurationDiscountsSection } from "@/components/informacion/DurationDiscountsSection"
-import { HoursSection } from "@/components/informacion/HoursSection"
-import { AddressSection } from "@/components/informacion/AddressSection"
-import { SocialLinksSection } from "@/components/informacion/SocialLinksSection"
-import { getGymDisplayForServer } from "@/app/actions/gym"
-import type { HorarioSemanal } from "@/lib/schemas"
+import Link from "next/link";
+import { House } from "lucide-react";
+import { PriceSection } from "@/components/informacion/PriceSection";
+import { CollapsibleSection } from "@/components/informacion/CollapsibleSection";
+import { PlansSection } from "@/components/informacion/PlansSection";
+import { DurationDiscountsSection } from "@/components/informacion/DurationDiscountsSection";
+import { HoursSection } from "@/components/informacion/HoursSection";
+import { AddressSection } from "@/components/informacion/AddressSection";
+import { SocialLinksSection } from "@/components/informacion/SocialLinksSection";
+import { getGymDisplayForServer } from "@/app/actions/gym";
+import { getGymPrice } from "@/lib/gym-price";
+import { getPromociones } from "@/lib/promociones";
+import { getDescuentos } from "@/lib/descuentos";
+import type { HorarioSemanal } from "@/lib/schemas";
 
-interface Feriado {
-  id: string
-  fecha: string
-  todo_dia: boolean
-  hora_inicio: string | null
-  hora_fin: string | null
-  createdAt: string
-}
-
-interface GymConfig {
-  id: string
-  price: number
-  createdAt: string
-  updatedAt: string
-}
-
-export interface Promocion {
-  id: string
-  titulo: string
-  descripcion: string
-  precio: string
-  activo: boolean
-  createdAt: string
-}
-
-export interface DescuentoDuracion {
-  id: number
-  meses: number
-  porcentaje: number
-}
-
-async function getFeriados(): Promise<DataResult<Feriado[]>> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-  try {
-    const response = await fetch(`${baseUrl}/api/feriados`, {
-      cache: "no-store",
-    })
-    if (!response.ok) return err([])
-    return ok(await response.json())
-  } catch {
-    return err([])
-  }
-}
-
-async function getGymPrice(): Promise<DataResult<number | null>> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-  try {
-    const response = await fetch(`${baseUrl}/api/gym`, {
-      cache: "no-store",
-    })
-    if (!response.ok) return err(null)
-    const gym: GymConfig = await response.json()
-    return ok(gym.price)
-  } catch {
-    return err(null)
-  }
-}
-
-async function getPromociones(): Promise<DataResult<Promocion[]>> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-  try {
-    const response = await fetch(`${baseUrl}/api/promociones`, {
-      cache: "no-store",
-    })
-    if (!response.ok) return err([])
-    const data = await response.json()
-    return ok(data.promociones)
-  } catch {
-    return err([])
-  }
-}
-
-async function getDescuentos(): Promise<DataResult<DescuentoDuracion[]>> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-  try {
-    const response = await fetch(`${baseUrl}/api/descuentos-duracion`, {
-      cache: "no-store",
-    })
-    if (!response.ok) return err([])
-    const data = await response.json()
-    return ok(data.descuentos)
-  } catch {
-    return err([])
-  }
-}
+/**
+ * Local type aliases for the section components. The section
+ * components (PriceSection, PlansSection, DurationDiscountsSection)
+ * import these from this file. Re-deriving them from the cached
+ * reader return types keeps the component contract in lockstep with
+ * the actual Prisma row shape (and avoids drift if the schema
+ * changes — the build fails at the read site).
+ */
+export type Promocion = Awaited<ReturnType<typeof getPromociones>>[number];
+export type DescuentoDuracion = Awaited<ReturnType<typeof getDescuentos>>[number];
 
 /**
  * Read the gym display fields (horarioJson / direccion / mapsEmbedUrl /
  * socialInstagram / socialWhatsapp) via the cached server reader.
- * Returns `null` for any field the admin has not set — section
- * components decide whether to render or hide based on these values.
  *
- * On error, returns an object with all-null fields so the page keeps
- * rendering the other sections (price, promotions, discounts) instead
- * of failing the whole page.
+ * The reader itself handles DB errors internally and returns `null`,
+ * so no try/catch is needed at this layer. Each individual read
+ * (price, promociones, descuentos, gym display) is wrapped in
+ * `Promise.allSettled` so a single bad read does not block the
+ * others — see the page body for the pattern.
  */
-async function getGymDisplay(): Promise<DataResult<{
-  horarioJson: HorarioSemanal | null
-  direccion: string | null
-  mapsEmbedUrl: string | null
-  socialInstagram: string | null
-  socialWhatsapp: string | null
-}>> {
-  try {
-    const gym = await getGymDisplayForServer()
-    return ok({
-      horarioJson: gym?.horarioJson ?? null,
-      direccion: gym?.direccion ?? null,
-      mapsEmbedUrl: gym?.mapsEmbedUrl ?? null,
-      socialInstagram: gym?.socialInstagram ?? null,
-      socialWhatsapp: gym?.socialWhatsapp ?? null,
-    })
-  } catch {
-    return err({
-      horarioJson: null,
-      direccion: null,
-      mapsEmbedUrl: null,
-      socialInstagram: null,
-      socialWhatsapp: null,
-    })
-  }
+type GymDisplay = NonNullable<Awaited<ReturnType<typeof getGymDisplayForServer>>>;
+
+function normalizeGymDisplay(
+  gym: GymDisplay | null
+): {
+  horarioJson: HorarioSemanal | null;
+  direccion: string | null;
+  mapsEmbedUrl: string | null;
+  socialInstagram: string | null;
+  socialWhatsapp: string | null;
+} {
+  return {
+    horarioJson: gym?.horarioJson ?? null,
+    direccion: gym?.direccion ?? null,
+    mapsEmbedUrl: gym?.mapsEmbedUrl ?? null,
+    socialInstagram: gym?.socialInstagram ?? null,
+    socialWhatsapp: gym?.socialWhatsapp ?? null,
+  };
 }
 
 export default async function InformacionPage() {
-  const [feriadosResult, gymPriceResult, promocionesResult, descuentosResult, gymDisplayResult] =
-    await Promise.all([
-      getFeriados(),
+  // Four parallel reads, each one cached (60s TTL safety net, plus
+  // `revalidateTag` invalidation in the corresponding server action).
+  // `Promise.allSettled` is used instead of `Promise.all` so a single
+  // bad read surfaces as a rejection without blocking the others —
+  // graceful degradation per the page spec.
+  //
+  // The previous implementation made 4 sequential HTTP self-fetches
+  // (`/api/feriados`, `/api/gym`, `/api/promociones`,
+  // `/api/descuentos-duracion`) plus the cached `getGymDisplayForServer`
+  // call. All 4 HTTP calls are now direct Prisma reads through the
+  // cached readers. The `/api/feriados` call was a dead fetch (its
+  // result was awaited but never rendered) and is dropped.
+  const [gymDisplayResult, gymPriceResult, promocionesResult, descuentosResult] =
+    await Promise.allSettled([
+      getGymDisplayForServer(),
       getGymPrice(),
       getPromociones(),
       getDescuentos(),
-      // Read the gym display fields (horario / direccion / mapsEmbedUrl /
-      // socialInstagram / socialWhatsapp) via the cached server reader.
-      // Wrapped in a try/catch inside the helper so a DB outage
-      // resolves to all-null — sections render nothing instead of
-      // falling back to hardcoded values.
-      getGymDisplay(),
-    ])
+    ]);
 
-  const display = gymDisplayResult.data
+  // Surface failures for observability but never fail the page.
+  if (gymDisplayResult.status === "rejected") {
+    console.error("[InformacionPage] getGymDisplayForServer failed:", gymDisplayResult.reason);
+  }
+  if (gymPriceResult.status === "rejected") {
+    console.error("[InformacionPage] getGymPrice failed:", gymPriceResult.reason);
+  }
+  if (promocionesResult.status === "rejected") {
+    console.error("[InformacionPage] getPromociones failed:", promocionesResult.reason);
+  }
+  if (descuentosResult.status === "rejected") {
+    console.error("[InformacionPage] getDescuentos failed:", descuentosResult.reason);
+  }
 
+  // Extract values with safe defaults. Cached readers already return
+  // safe defaults on error (null / []) but the `.status === "fulfilled"`
+  // guard makes the contract explicit at the read site.
+  const gymDisplay = gymDisplayResult.status === "fulfilled" ? gymDisplayResult.value : null;
+  const price = gymPriceResult.status === "fulfilled" ? gymPriceResult.value : null;
+  const promociones = promocionesResult.status === "fulfilled" ? promocionesResult.value : [];
+  const descuentos = descuentosResult.status === "fulfilled" ? descuentosResult.value : [];
+  const display = normalizeGymDisplay(gymDisplay);
+
+  // The `error` flag on the section components is now always `false`:
+  // the cached readers handle their own errors and the
+  // `Promise.allSettled` guard above prevents throws from escaping.
+  // The empty-data state (`null` for price, `[]` for lists) drives
+  // the "No disponible" / "No hay X" messages in each section.
   return (
     <div className="min-h-screen bg-[var(--background)] flex flex-col items-center">
       <main className="w-full max-w-4xl px-4 py-6">
@@ -169,38 +121,29 @@ export default async function InformacionPage() {
         </div>
 
         <div className="grid gap-6">
-          <PriceSection
-            price={gymPriceResult.data}
-            error={gymPriceResult.error}
-          />
+          <PriceSection price={price} error={false} />
 
           {/* Plans / Promociones — collapsible */}
           <CollapsibleSection title="Promociones">
-            <PlansSection
-              promociones={promocionesResult.data}
-              error={promocionesResult.error}
-            />
+            <PlansSection promociones={promociones} error={false} />
           </CollapsibleSection>
 
           {/* Descuentos — collapsible */}
           <CollapsibleSection title="Descuentos">
-            <DurationDiscountsSection
-              descuentos={descuentosResult.data}
-              error={descuentosResult.error}
-            />
+            <DurationDiscountsSection descuentos={descuentos} error={false} />
           </CollapsibleSection>
 
-          <HoursSection horario={display?.horarioJson ?? null} />
+          <HoursSection horario={display.horarioJson} />
           <AddressSection
-            direccion={display?.direccion ?? null}
-            mapsEmbedUrl={display?.mapsEmbedUrl ?? null}
+            direccion={display.direccion}
+            mapsEmbedUrl={display.mapsEmbedUrl}
           />
           <SocialLinksSection
-            socialInstagram={display?.socialInstagram ?? null}
-            socialWhatsapp={display?.socialWhatsapp ?? null}
+            socialInstagram={display.socialInstagram}
+            socialWhatsapp={display.socialWhatsapp}
           />
         </div>
       </main>
     </div>
-  )
+  );
 }
