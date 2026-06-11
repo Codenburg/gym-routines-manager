@@ -1,4 +1,4 @@
-import { unstable_cache } from "next/cache";
+import { cacheTag, cacheLife } from "next/cache";
 import prisma from "@/lib/prisma";
 
 const RUTINAS_CACHE_TAG = "rutinas";
@@ -49,53 +49,53 @@ export interface PaginationResult {
 /**
  * Lightweight query for trainer counts only (used outside Suspense).
  * Cached with the same tag so invalidation stays in sync.
+ *
+ * Migrated to Next.js 16 `use cache` + `cacheTag` + `cacheLife`.
+ * `search` is passed as a function argument (not a runtime API call),
+ * so Next.js can derive a stable cache key from the args.
  */
-export function getTrainerCounts(search: string): Promise<TrainerCount[]> {
-  const key = ["rutinas-trainer-counts", search];
+export async function getTrainerCounts(search: string): Promise<TrainerCount[]> {
+  "use cache";
+  cacheTag(RUTINAS_CACHE_TAG);
+  cacheLife({ revalidate: 30 });
 
-  return unstable_cache(
-    async () => {
-      try {
-        const where: Record<string, unknown> = {};
-        if (search.trim()) {
-          where.nombre = {
-            contains: search.trim(),
-            mode: "insensitive",
-          };
-        }
+  try {
+    const where: Record<string, unknown> = {};
+    if (search.trim()) {
+      where.nombre = {
+        contains: search.trim(),
+        mode: "insensitive",
+      };
+    }
 
-        const [trainerCountsRaw] = await Promise.all([
-          prisma.rutina.groupBy({
-            by: ["creadorId"],
-            where,
-            _count: { id: true },
-          }),
-        ]);
+    const [trainerCountsRaw] = await Promise.all([
+      prisma.rutina.groupBy({
+        by: ["creadorId"],
+        where,
+        _count: { id: true },
+      }),
+    ]);
 
-        const groupedTrainerIds = trainerCountsRaw.map((t) => t.creadorId);
-        const trainersMap = new Map<string, string>();
+    const groupedTrainerIds = trainerCountsRaw.map((t) => t.creadorId);
+    const trainersMap = new Map<string, string>();
 
-        if (groupedTrainerIds.length > 0) {
-          const trainersData = await prisma.user.findMany({
-            where: { id: { in: groupedTrainerIds } },
-            select: { id: true, name: true },
-          });
-          trainersData.forEach((t) => trainersMap.set(t.id, t.name));
-        }
+    if (groupedTrainerIds.length > 0) {
+      const trainersData = await prisma.user.findMany({
+        where: { id: { in: groupedTrainerIds } },
+        select: { id: true, name: true },
+      });
+      trainersData.forEach((t) => trainersMap.set(t.id, t.name));
+    }
 
-        return trainerCountsRaw.map((t) => ({
-          trainerId: t.creadorId,
-          nombre: trainersMap.get(t.creadorId) || "Unknown",
-          count: t._count.id,
-        }));
-      } catch (error) {
-        console.error("[getTrainerCounts] Failed to fetch:", error);
-        return [];
-      }
-    },
-    key,
-    { revalidate: 30, tags: [RUTINAS_CACHE_TAG] }
-  )();
+    return trainerCountsRaw.map((t) => ({
+      trainerId: t.creadorId,
+      nombre: trainersMap.get(t.creadorId) || "Unknown",
+      count: t._count.id,
+    }));
+  } catch (error) {
+    console.error("[getTrainerCounts] Failed to fetch:", error);
+    return [];
+  }
 }
 
 /**
@@ -106,104 +106,101 @@ export function getTrainerCounts(search: string): Promise<TrainerCount[]> {
  * IMPORTANT: trainers param accepts trainer NAMES (not IDs) since that's what the URL stores.
  * The service resolves names to IDs internally for database queries.
  *
- * Cached with unstable_cache using RUTINAS_CACHE_TAG.
- * Invalidated automatically when routines are created/updated/deleted.
+ * Migrated to Next.js 16 `use cache` + `cacheTag` + `cacheLife`.
+ * The full params object becomes the cache key automatically, so
+ * different page/search/trainers combos produce different cache entries.
+ * Invalidated automatically when any `revalidateTag("rutinas")` is called.
  */
-export function getRoutinesPaginated(
+export async function getRoutinesPaginated(
   params: PaginationParams
 ): Promise<PaginationResult> {
+  "use cache";
+  cacheTag(RUTINAS_CACHE_TAG);
+  cacheLife({ revalidate: 30 });
+
   const { page, pageSize, search, trainers } = params;
-  const key = ["rutinas-list", page, search ?? "", (trainers ?? []).sort().join(",")];
 
-  return unstable_cache(
-    async () => {
-      const skip = (page - 1) * pageSize;
-
-      // Resolve trainer names to IDs if provided
-      let trainerIds: string[] | undefined;
-      if (trainers && trainers.length > 0) {
-        const trainerUsers = await prisma.user.findMany({
-          where: {
-            name: {
-              in: trainers,
-              mode: "insensitive",
-            },
-          },
-          select: { id: true },
-        });
-        trainerIds = trainerUsers.map((u) => u.id);
-      }
-
-      // Build WHERE clause for data query (includes all filters)
-      const where: Record<string, unknown> = {};
-
-      // Search filter on nombre
-      if (search?.trim()) {
-        where.nombre = {
-          contains: search.trim(),
+  // Resolve trainer names to IDs if provided
+  let trainerIds: string[] | undefined;
+  if (trainers && trainers.length > 0) {
+    const trainerUsers = await prisma.user.findMany({
+      where: {
+        name: {
+          in: trainers,
           mode: "insensitive",
-        };
-      }
+        },
+      },
+      select: { id: true },
+    });
+    trainerIds = trainerUsers.map((u) => u.id);
+  }
 
-      // Trainer filter on creadorId (the FK field) using resolved IDs
-      if (trainerIds && trainerIds.length > 0) {
-        where.creadorId = {
-          in: trainerIds,
-        };
-      }
+  // Build WHERE clause for data query (includes all filters)
+  const where: Record<string, unknown> = {};
 
-      try {
-        // Query 1: findMany with pagination
-        const data = await prisma.rutina.findMany({
-          where,
-          select: {
-            id: true,
-            nombre: true,
-            tipo: true,
-            descripcion: true,
-            creadorId: true,
-            createdAt: true,
-            updatedAt: true,
-            _count: {
-              select: { dias: true },
-            },
-            creadorUser: {
-              select: { id: true, name: true },
-            },
-          },
-          take: pageSize,
-          skip,
-          orderBy: { createdAt: "desc" },
-        });
+  // Search filter on nombre
+  if (search?.trim()) {
+    where.nombre = {
+      contains: search.trim(),
+      mode: "insensitive",
+    };
+  }
 
-        // Transform data with ISO strings (cache-safe)
-        const transformedData = data.map((rutina) => ({
-          id: rutina.id,
-          nombre: rutina.nombre,
-          tipo: rutina.tipo,
-          descripcion: rutina.descripcion,
-          creadorId: rutina.creadorId,
-          diasCount: rutina._count.dias,
-          createdAt: rutina.createdAt.toISOString(),
-          updatedAt: rutina.updatedAt.toISOString(),
-          creadorUser: rutina.creadorUser,
-        }));
+  // Trainer filter on creadorId (the FK field) using resolved IDs
+  if (trainerIds && trainerIds.length > 0) {
+    where.creadorId = {
+      in: trainerIds,
+    };
+  }
 
-        // Query 2: count with same where (no take/skip)
-        const total = await prisma.rutina.count({ where });
+  try {
+    // Query 1: findMany with pagination
+    const data = await prisma.rutina.findMany({
+      where,
+      select: {
+        id: true,
+        nombre: true,
+        tipo: true,
+        descripcion: true,
+        creadorId: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: {
+          select: { dias: true },
+        },
+        creadorUser: {
+          select: { id: true, name: true },
+        },
+      },
+      take: pageSize,
+      skip: (page - 1) * pageSize,
+      orderBy: { createdAt: "desc" },
+    });
 
-        // Trainer counts are fetched separately via getTrainerCounts
-        // (avoiding duplicated groupBy + user lookup)
-        return { data: transformedData, total };
-      } catch (error) {
-        return {
-          data: [],
-          total: 0,
-          error: error instanceof Error ? error.message : "Unknown error",
-        };
-      }
-    },
-    key,
-    { revalidate: 30, tags: [RUTINAS_CACHE_TAG] }
-  )();
+    // Transform data with ISO strings (cache-safe)
+    const transformedData = data.map((rutina) => ({
+      id: rutina.id,
+      nombre: rutina.nombre,
+      tipo: rutina.tipo,
+      descripcion: rutina.descripcion,
+      creadorId: rutina.creadorId,
+      diasCount: rutina._count.dias,
+      createdAt: rutina.createdAt.toISOString(),
+      updatedAt: rutina.updatedAt.toISOString(),
+      creadorUser: rutina.creadorUser,
+    }));
+
+    // Query 2: count with same where (no take/skip)
+    const total = await prisma.rutina.count({ where });
+
+    // Trainer counts are fetched separately via getTrainerCounts
+    // (avoiding duplicated groupBy + user lookup)
+    return { data: transformedData, total };
+  } catch (error) {
+    return {
+      data: [],
+      total: 0,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
 }
