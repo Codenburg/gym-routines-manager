@@ -1,4 +1,4 @@
-import { unstable_cache } from "next/cache";
+import { cacheTag, cacheLife } from "next/cache";
 import prisma from "@/lib/prisma";
 
 /**
@@ -14,24 +14,21 @@ import prisma from "@/lib/prisma";
  * distinguish "unconfigured" from "free". The admin dashboard's
  * `GymPriceEditor` treats `null` as "no initial price".
  *
- * Note: uses `unstable_cache` (Next 15.x). The migration path to
- * `use cache` + `cacheTag` + `cacheLife` is documented in the design
- * and will be applied when `cacheComponents: true` is enabled in
- * next.config.ts.
+ * Migrated to Next.js 16 `use cache` + `cacheTag` + `cacheLife`.
  */
-export const getGymPrice = unstable_cache(
-  async (): Promise<number | null> => {
-    try {
-      const gym = await prisma.gym.findUnique({
-        where: { id: "gym" },
-        select: { price: true },
-      });
-      return gym ? Number(gym.price) : null;
-    } catch (error) {
-      console.error("[getGymPrice] Failed to fetch gym price:", error);
-      return null;
-    }
-  },
-  ["gym-price"],
-  { tags: ["gym-config"], revalidate: 60 }
-);
+export async function getGymPrice(): Promise<number | null> {
+  "use cache";
+  cacheTag("gym-config");
+  cacheLife({ revalidate: 60 });
+
+  try {
+    const gym = await prisma.gym.findUnique({
+      where: { id: "gym" },
+      select: { price: true },
+    });
+    return gym ? Number(gym.price) : null;
+  } catch (error) {
+    console.error("[getGymPrice] Failed to fetch gym price:", error);
+    return null;
+  }
+}
