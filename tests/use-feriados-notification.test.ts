@@ -16,7 +16,7 @@ import { useFeriadosNotification } from '@/hooks/use-feriados-notification'
 // Mock localStorage with proper typing
 const localStorageMock = {
   store: {} as Record<string, string>,
-  getItem: vi.fn((_key: string) => localStorageMock.store[_key] ?? null as string | null),
+  getItem: vi.fn((_key: string): string | null => localStorageMock.store[_key] ?? null),
   setItem: vi.fn((key: string, value: string) => { localStorageMock.store[key] = value }),
   removeItem: vi.fn((key: string) => { delete localStorageMock.store[key] }),
   clear: vi.fn(() => { localStorageMock.store = {} }),
