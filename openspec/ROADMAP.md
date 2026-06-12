@@ -97,6 +97,7 @@ _Last updated: 2026-06-11_ | _Version: 0.18.0_
 - [ ] **Pre-existing TypeScript errors (13)** — en `rutina-completa-form.tsx`, `pagination.ts`, `check-*.ts`, `promocion-schemas.test.ts`, `use-feriados-notification.test.ts`, `verify-password.ts`. Project-wide, no introducidos por cambios recientes. Cleanup en change aparte (v0.17.0 follow-up)
 - [ ] **Pre-existing lint issues (460 errors, 730 warnings)** — incluye `as any` en `revalidateTag`, `console.error` en data layer, `z.coerce.number().min(1).min(1000)` chain en `priceSchema`. Cleanup en change aparte (v0.17.0 follow-up)
 - [ ] **Prisma migration workflow** — el proyecto usa `db push` + `migrate resolve --applied` en vez de `migrate dev` por shadow database issues. Documentar el patrón como estándar del equipo (v0.17.0 follow-up)
+- [ ] **`GGA-FOLLOWUP-1`**: `Promise.all` en `src/app/(admin)/admin/page.tsx` sin `try/catch` o `error.tsx` boundary (pre-existente de v0.18.0 Slice 1). Pre-existente, no introducido por cambios recientes. Cleanup en change aparte
 - [ ] **`prisma.feriado.findFirst` duplicate-pre-check outside try/catch** en `actions/feriados.ts:75-82, 155-163`. Pre-existente, fix de admin-panel cleanup (v0.18.0 follow-up)
 - [ ] **`formData.get("id") as string` cast hides null** en `actions/feriados.ts:110,189,245`. Pre-existente, fix de admin-panel cleanup (v0.18.0 follow-up)
 - [ ] **Return-type inconsistency en `actions/feriados.ts`** (`deleteFeriado: Promise<FormState>` vs `createFeriado`/`updateFeriado: Promise<FormState<{ id: string }>>`). Pre-existente (v0.18.0 follow-up)
