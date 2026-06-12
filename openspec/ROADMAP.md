@@ -130,11 +130,17 @@ Habilita `cacheComponents: true` en `next.config.ts` y migra los 11 `unstable_ca
 
 ---
 
-### Recomendación 2: `1.0-prep: fix pre-existing TypeScript errors + remove ignoreBuildErrors` (Alta Prioridad para 1.0)
+### Recomendación 2: ~~`1.0-prep: fix pre-existing TypeScript errors + remove ignoreBuildErrors`~~ ✅ **COMPLETED in v0.20.0**
 
-Resuelve los 15 errores TypeScript pre-existentes en archivos no tocados por los cambios recientes (`rutina-completa-form.tsx`, `pagination.ts`, `check-*.ts` debug scripts, `promocion-schemas.test.ts`, `use-feriados-notification.test.ts`, `verify-password.ts`). **Saca `ignoreBuildErrors: true` de `next.config.ts`** después.
+Resuelve los 14 errores TypeScript pre-existentes (1 en `src/`, 13 en `tests/`) en archivos no tocados por los cambios recientes (`rutina-completa-form.tsx`, `check-*.ts` debug scripts, `promocion-schemas.test.ts`, `use-feriados-notification.test.ts`, `verify-password.ts`). **Saca `ignoreBuildErrors: true` de `next.config.ts`**.
 
 **Severidad**: Alta. Un proyecto 1.0 no compila con errores + `ignoreBuildErrors` activo es una banda.
+
+**Status**: ✅ **COMPLETED in v0.20.0**. Detalles completos en `openspec/changes/archive/2026-06-12-fix-pre-existing-ts-errors-remove-ignorebuilderrors/archive-report.md`.
+
+**Follow-ups nuevos descubiertos durante el fix**:
+- `GGA-FOLLOWUP-4` (Medium): pre-existing E2E flakiness on `5.1.1` y `5.1.4` en `gym-config.spec.ts`. Root cause: `fullyParallel: true` + timing pollution on `saveField` server actions. Fix sugerido: `retries: 1` en Playwright config.
+- `GGA-FOLLOWUP-5` (Low): E2E test execution tarda 5-8 minutos en este shell environment. Pre-starting dev server con `pnpm dev` en background funciona.
 
 **Slices estimados**: 1-2 slices (audit + fix + remove flag).
 

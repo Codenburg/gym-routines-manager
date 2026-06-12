@@ -4,6 +4,36 @@ Todos los cambios significativos del proyecto se documentan aquí.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [0.20.0] - 2026-06-12
+
+### Changed
+- **Removed `typescript.ignoreBuildErrors: true` from `next.config.ts`**. The project's build is now strict — any new TypeScript error will fail `next build` immediately. The safety net that was hiding 14 pre-existing TypeScript errors is gone.
+- **`pnpm tsc --noEmit` must report 0 errors** for any commit that lands on `main`. This is the new project invariant.
+
+### Fixed
+- **14 pre-existing TypeScript errors** fixed across 7 files:
+  - 1 in `src/`: removed dead `cancelText` field from `useConfirm` call in `rutina-completa-form.tsx` (the field was being passed but never read by the `ConfirmDialog`)
+  - 2 in `tests/`: wrong import paths in `tests/check-db-accounts.ts` and `tests/verify-password.ts` (was `'./generated/client'`, now `'../generated/client'`)
+  - 2 in `tests/`: duplicate function names in `tests/check-detail-page2.ts` and `tests/check-full-body.ts` (both defined `async function main()` at top-level; fixed by wrapping in IIFE)
+  - 4 in `tests/`: discriminated union narrowings in `tests/promocion-schemas.test.ts`
+  - 5 in `tests/`: missing `string | null` return type in `tests/use-feriados-notification.test.ts` mock (the actual hook already handles `null` correctly; the test mock was the only piece that needed widening)
+
+### Notes
+- This is a **MINOR** version bump in pre-1.0 semver. The build safety-net removal is the most user-facing-impactful change since 0.19.0 (the cache migration).
+- The 14 errors were pre-existing — the project was building fine with the `ignoreBuildErrors` safety net, but that safety net was hiding type errors from the developer. Now the project is honest about its type safety state.
+- Verified with a sanity test: introducing a temporary TypeScript error caused `pnpm build` to fail (proving the safety net is definitively gone, not a placebo).
+- 2 new GGA follow-ups registered:
+  - `GGA-FOLLOWUP-4` (Medium): pre-existing E2E flakiness on `5.1.1` and `5.1.4` in `gym-config.spec.ts` — fix: add `retries: 1` to Playwright config
+  - `GGA-FOLLOWUP-5` (Low): E2E test execution takes 5-8 minutes in this shell environment — consider a shell script to pre-start the dev server
+
+### After this change
+The remaining 1.0 prep items are:
+- #3: E2E coverage for critical flows
+- #4: GGA pre-commit hook diff-only
+- Plus the carryover GGA follow-ups (#1 error handling, #2 revalidateTag casts, #3 Prisma Decimal serialization, #4-#5 new)
+
+---
+
 ## [0.19.0] - 2026-06-11
 
 ### Changed
