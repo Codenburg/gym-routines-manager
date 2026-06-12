@@ -400,7 +400,6 @@ export function RutinaCompletaForm() {
         "Se perderán todos los datos ingresados. Esta acción no se puede deshacer.",
       variant: "destructive",
       confirmText: "Limpiar",
-      cancelText: "Cancelar",
     });
 
     if (confirmed) {
