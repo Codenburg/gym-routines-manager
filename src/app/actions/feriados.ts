@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { headers } from "next/headers";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { GYM_SINGLETON_ID } from "@/lib/gym-constants";
 import { normalizeToDate, getToday } from "@/lib/dates";
 import { createFeriadoSchema, updateFeriadoSchema, idSchema, type FormState } from "@/lib/schemas";
 
@@ -75,10 +76,10 @@ export async function createFeriado(
   }
 
   // Pre-check for duplicate (UX optimization before DB constraint check)
-  // Note: gymId defaults to "gym" since there's only one gym
+  // Note: gymId defaults to the single-gym constant since there's only one gym
   const existing = await prisma.feriado.findFirst({
     where: {
-      gymId: "gym",
+      gymId: GYM_SINGLETON_ID,
       fecha: normalizedFecha, // String comparison directly
     },
   });
@@ -183,11 +184,11 @@ export async function updateFeriado(
   }
 
   // Pre-check for duplicate (excluding current record)
-  // Note: gymId defaults to "gym" since there's only one gym
+  // Note: gymId defaults to the single-gym constant since there's only one gym
   if (normalizedFecha) {
     const existing = await prisma.feriado.findFirst({
       where: {
-        gymId: "gym",
+        gymId: GYM_SINGLETON_ID,
         fecha: normalizedFecha, // String comparison directly
         NOT: { id: parsedId.data },
       },

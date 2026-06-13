@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { headers } from "next/headers";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { GYM_SINGLETON_ID } from "@/lib/gym-constants";
 import {
   createPromocionSchema,
   updatePromocionContentSchema,
@@ -102,7 +103,7 @@ export async function createPromocion(
 
   try {
     const promocion = await prisma.promocion.create({
-      data: { ...parsed.data, gymId: "gym" },
+      data: { ...parsed.data, gymId: GYM_SINGLETON_ID },
     });
 
     // Next 16 revalidateTag requires a profile arg; the existing project
