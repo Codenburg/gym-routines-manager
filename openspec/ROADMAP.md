@@ -83,7 +83,7 @@ _Last updated: 2026-06-11_ | _Version: 0.18.0_
 - [ ] Cache warming cron para SEO
 - [x] **Migrar `unstable_cache` → `use cache` (Next 16 Cache Components)** — habilitar `cacheComponents: true` en `next.config.ts` y reescribir TODOS los readers con `'use cache'` + `cacheTag` + `cacheLife`. **También remover los 6 `export const dynamic = "force-dynamic"`** de las admin pages. Verificar que cada server action de mutación llame `revalidateTag` además de `revalidatePath`. **COMPLETED in v0.19.0** — pero con 2 follow-ups nuevos descubiertos:
   - `GGA-FOLLOWUP-2` (Medium): replace `(revalidateTag as any)` casts project-wide con `revalidateTag("tag", "max")` (Next 16 two-arg signature)
-  - `GGA-FOLLOWUP-3` (Low): Prisma Decimal serialization en `getGymConfigForServer` para client components
+  - [x] `GGA-FOLLOWUP-3` (Low): Prisma Decimal serialization en `getGymConfigForServer` para client components. **RESUELTO** commit `5f05a8e` — `getGymConfigForServer` reemplazado por `getGymNameForServer(): Promise<string | null>` (usa `select: { nombre: true }`). Bug venía de `"use cache"` cacheando el return value completo.
 - [ ] **Git index corruption recurrente** — `git fsck` reporta missing blobs en `openspec/changes/<new>/*` después de cada cambio nuevo. Workaround actual: `git update-index --force-remove` + re-add. Root cause probable en `.engram/config.json` o interacción con GGA hook. Investigar y resolver de raíz (v0.17.0 follow-up)
 - [ ] **E2E test 5.2.3 isolation issue** — `tests/gym-config.spec.ts:5.2.3` falla cuando corre después de 5.2.1 en el mismo suite (5.2.1 muta `gym.nombre` a un test value, 5.2.3 espera "Gimnasio" fallback). Pasa en aislamiento. Fix: `test.describe.configure({ mode: 'serial' })` + reset state en 5.2.3 (v0.17.0 follow-up)
 - [ ] **`revalidatePath("/admin/descuentos")` no matchea la ruta real** en `actions/descuentos-duracion.ts:94,138,167` — la ruta es `/admin/descuentos-duracion`. Pre-existente, no introducido por este cambio (v0.18.0 follow-up)
@@ -127,7 +127,7 @@ Habilita `cacheComponents: true` en `next.config.ts` y migra los 11 `unstable_ca
 
 **Follow-ups nuevos descubiertos durante la migración**:
 - `GGA-FOLLOWUP-2` (Medium): replace `(revalidateTag as any)` casts project-wide con `revalidateTag("tag", "max")` (Next 16 two-arg signature)
-- `GGA-FOLLOWUP-3` (Low): Prisma Decimal serialization en `getGymConfigForServer` para client components
+- [x] `GGA-FOLLOWUP-3` (Low): Prisma Decimal serialization en `getGymConfigForServer` para client components. **RESUELTO** commit `5f05a8e` — ver detalles en la sección ⏳ Pendiente.
 
 ---
 
