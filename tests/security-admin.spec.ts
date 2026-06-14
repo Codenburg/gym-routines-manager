@@ -64,7 +64,7 @@ async function loginAsNonAdmin(page: Page, dni: string, password: string): Promi
 // Test Group: Unauthenticated Access (3 tests)
 // ============================================
 
-test.describe('Auth Bypass - Unauthenticated Access', () => {
+test.describe('Auth Bypass - Unauthenticated Access', { tag: '@slow' }, () => {
   
   test('2.1 - Unauthenticated user accessing /admin redirects to login', async ({ page }) => {
     // Navigate to admin without authentication
@@ -104,7 +104,7 @@ test.describe('Auth Bypass - Unauthenticated Access', () => {
 // Non-admin user flows cannot be tested without a sign-up mechanism.
 // ============================================
 
-test.describe('Auth Bypass - Non-Admin User Access', () => {
+test.describe('Auth Bypass - Non-Admin User Access', { tag: '@slow' }, () => {
   
   test.skip('2.4 - Non-admin user accessing /admin redirects to home', async ({ page }) => {
     // SKIPPED: Requires user registration which doesn't exist in this app
@@ -166,7 +166,7 @@ test.describe('Auth Bypass - Non-Admin User Access', () => {
 // Phase 3: Input Validation Tests (12 tests)
 // ============================================
 
-test.describe('Input Validation - SQL Injection', () => {
+test.describe('Input Validation - SQL Injection', { tag: '@slow' }, () => {
   
   test('3.1 - SQL injection in API query parameter is sanitized', async ({ page }) => {
     // Test SQL injection via search query parameter
@@ -215,7 +215,7 @@ test.describe('Input Validation - SQL Injection', () => {
 
 });
 
-test.describe('Input Validation - XSS Attacks', () => {
+test.describe('Input Validation - XSS Attacks', { tag: '@slow' }, () => {
   
   test('3.3 - XSS payload in routine name field is sanitized', async ({ page }) => {
     // Login as admin first
@@ -315,7 +315,7 @@ test.describe('Input Validation - XSS Attacks', () => {
 
 });
 
-test.describe('Input Validation - Invalid Data', () => {
+test.describe('Input Validation - Invalid Data', { tag: '@slow' }, () => {
   
   test('3.6 - Invalid UUID format in API params returns 400', async ({ page }) => {
     // Test various invalid UUID formats
@@ -486,7 +486,7 @@ test.describe('Input Validation - Invalid Data', () => {
 // Phase 4: Authorization Tests (6 tests)
 // ============================================
 
-test.describe('Authorization - verifyAdmin Bypass Prevention', () => {
+test.describe('Authorization - verifyAdmin Bypass Prevention', { tag: '@slow' }, () => {
   
   test.skip('4.1 - verifyAdmin bypass attempt via forged headers is rejected', async ({ page }) => {
     // SKIPPED: Test uses incorrect endpoint (/api/rutinas doesn't support POST)
@@ -505,7 +505,7 @@ test.describe('Authorization - verifyAdmin Bypass Prevention', () => {
 
 });
 
-test.describe('Authorization - Cross-User Access Prevention', () => {
+test.describe('Authorization - Cross-User Access Prevention', { tag: '@slow' }, () => {
   
   test.skip('4.4 - Cross-user data access prevention returns 403', async ({ page }) => {
     // SKIPPED: Requires user registration which doesn't exist in this app
@@ -521,7 +521,7 @@ test.describe('Authorization - Cross-User Access Prevention', () => {
 
 });
 
-test.describe('Authorization - Cookie Replay Attack Prevention', () => {
+test.describe('Authorization - Cookie Replay Attack Prevention', { tag: '@slow' }, () => {
   
   test('4.7 - Cookie replay attack with expired cookie is prevented', async ({ page }) => {
     // Simulate cookie replay attack using an expired cookie
@@ -588,7 +588,7 @@ test.describe('Authorization - Cookie Replay Attack Prevention', () => {
 // Phase 5: Session Management Tests (5 tests)
 // ============================================
 
-test.describe('Session Management - Session Expiration', () => {
+test.describe('Session Management - Session Expiration', { tag: '@slow' }, () => {
   
   test('5.1 - Expired session cookie redirects to login', async ({ page }) => {
     // First login as admin to establish a session
@@ -624,7 +624,7 @@ test.describe('Session Management - Session Expiration', () => {
 
 });
 
-test.describe('Session Management - Concurrent Sessions', () => {
+test.describe('Session Management - Concurrent Sessions', { tag: '@slow' }, () => {
   
   test('5.3 - Concurrent session behavior is handled correctly', async ({ page }) => {
     // This test verifies that the system handles multiple sessions properly
@@ -659,7 +659,7 @@ test.describe('Session Management - Concurrent Sessions', () => {
 
 });
 
-test.describe('Session Management - Logout', () => {
+test.describe('Session Management - Logout', { tag: '@slow' }, () => {
   
   test('5.4 - Logout properly invalidates session', async ({ page }) => {
     // Login as admin first
@@ -690,7 +690,7 @@ test.describe('Session Management - Logout', () => {
 
 });
 
-test.describe('Session Management - Session Fixation', () => {
+test.describe('Session Management - Session Fixation', { tag: '@slow' }, () => {
   
   test('5.5 - Session fixation prevention - new session on login', async ({ page }) => {
     // Before login, set a potential session fixation cookie
@@ -739,7 +739,7 @@ test.describe('Session Management - Session Fixation', () => {
 
 });
 
-test.describe('Session Management - Remember Me / Persistent Session', () => {
+test.describe('Session Management - Remember Me / Persistent Session', { tag: '@slow' }, () => {
   
   test('5.6 - Persistent session survives page refresh', async ({ page }) => {
     // Login as admin

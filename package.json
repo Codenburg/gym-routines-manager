@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "playwright test",
+    "test:fast": "concurrently -k -n dev,test -c blue,green \"pnpm dev\" \"wait-on http://localhost:3000 && pnpm test --grep-invert @slow\"",
     "test:ui": "playwright test --ui",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
@@ -56,6 +57,7 @@
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.1",
     "bcryptjs": "^3.0.3",
+    "concurrently": "^9.1.2",
     "dotenv": "^16.6.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
@@ -66,6 +68,7 @@
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.8",
+    "wait-on": "^8.0.1"
   }
 }
