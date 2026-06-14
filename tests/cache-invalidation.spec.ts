@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { loginAsAdmin } from './helpers';
 
 // ============================================
 // Cache & Performance E2E Test Suite
@@ -237,13 +238,7 @@ test.describe('Cache Behavior', () => {
 
 test.describe('Cache Invalidation After Mutations', () => {
   // Helper to login as admin using DNI (from seed)
-  async function loginAsAdmin(page: Page) {
-    await page.goto('/admin/login');
-    await page.getByPlaceholder('12345678').fill('11111111');
-    await page.getByPlaceholder('••••••••').fill('nando123');
-    await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
-    await page.waitForURL(/\/admin/, { timeout: 10000 });
-  }
+  // — provided by tests/helpers.ts (T0.1)
 
   test('5.1 - after creating routine via API, data reflects immediately', async ({ page }) => {
     // First, get initial count

@@ -1,29 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-
-// Test admin credentials (from seed)
-const ADMIN_DNI = '11111111';
-const ADMIN_PASSWORD = 'nando123';
-
-// Helper function to login as admin
-async function loginAsAdmin(page: Page) {
-  await page.goto('/admin/login');
-  
-  // Wait for page to fully load first
-  await page.waitForLoadState('domcontentloaded');
-  
-  // Wait for the form to be ready
-  await page.waitForSelector('input[id="dni"]', { timeout: 15000 });
-  
-  // Fill in credentials
-  await page.fill('input[id="dni"]', ADMIN_DNI);
-  await page.fill('input[id="password"]', ADMIN_PASSWORD);
-  
-  // Submit the form
-  await page.click('button[type="submit"]');
-  
-  // Wait for redirect to admin page
-  await page.waitForURL('/admin', { timeout: 15000 });
-}
+import { loginAsAdmin, ADMIN_DNI, ADMIN_PASSWORD } from './helpers';
 
 // Helper to get a routine ID from API
 async function getFirstRoutineId(page: Page): Promise<string | null> {

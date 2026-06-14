@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { loginAsAdmin } from './helpers';
 
 // Next.js 16 + Turbopack dev server compiles routes on first request, and
 // the homepage/admin compile takes 10-30s on a cold cache. The Playwright
@@ -28,10 +29,6 @@ test.setTimeout(120_000);
  * process.env, and asserts the homepage h1 either contains that value
  * (when the env var is set) or the generic "Gimnasio" (when it isn't).
  */
-
-// Test admin credentials (from prisma/seed.ts).
-const ADMIN_DNI = '11111111';
-const ADMIN_PASSWORD = 'nando123';
 
 // Public-facing selectors.
 const HOME_H1 = 'main h1';
@@ -89,26 +86,6 @@ const NEW_DIRECCION = `Av. E2E ${RUN_ID}, CABA`;
 const NEW_MAPS_URL = 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1000!2d1000!3d1000!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zM!5e0!3m2!1sen!2sar!4v1700000000000';
 const NEW_INSTAGRAM = `https://www.instagram.com/gym_e2e_${RUN_ID}`;
 const NEW_WHATSAPP = `https://wa.me/5491100000${String(RUN_ID).slice(-4)}`;
-
-/**
- * Login as the seeded admin. Mirrors the helper in
- * `tests/security-admin.spec.ts` so we don't introduce a parallel pattern.
- */
-async function loginAsAdmin(page: Page): Promise<void> {
-  await page.goto('/admin/login');
-  await page.waitForSelector('input[id="dni"]', { timeout: 15000 });
-  await page.fill('input[id="dni"]', ADMIN_DNI);
-  await page.fill('input[type="password"]', ADMIN_PASSWORD);
-  await page.click('button[type="submit"]');
-  await page.waitForURL('/admin', { timeout: 30000 });
-  // Wait for the admin layout to fully render so subsequent navigations
-  // to /admin/config don't race the sidebar hydration. The dashboard h1
-  // is "Panel de Administración" (with capital A and Ó) — we match a
-  // case-insensitive regex to be lenient.
-  await expect(page.getByRole('heading', { name: /Panel de Administr/i })).toBeVisible({
-    timeout: 15000,
-  });
-}
 
 /**
  * Best-effort cleanup after the admin-flow tests. The gym display fields

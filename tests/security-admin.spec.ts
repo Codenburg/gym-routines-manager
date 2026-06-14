@@ -1,12 +1,9 @@
 import { test, expect, Page } from '@playwright/test';
+import { loginAsAdmin } from './helpers';
 
 // ============================================
 // Security Tests - Auth Bypass (Phase 2)
 // ============================================
-
-// Test credentials (from seed)
-const ADMIN_DNI = '11111111';
-const ADMIN_PASSWORD = 'nando123';
 
 // Helper to create nonadmin user
 async function createNonAdminUser(): Promise<{ dni: string; password: string }> {
@@ -61,23 +58,7 @@ async function loginAsNonAdmin(page: Page, dni: string, password: string): Promi
   await page.waitForURL('/', { timeout: 10000 });
 }
 
-// Helper to login as admin
-async function loginAsAdmin(page: Page): Promise<void> {
-  await page.goto('/admin/login');
-  
-  // Wait for the form to be ready
-  await page.waitForSelector('input[id="dni"]', { timeout: 10000 });
-  
-  // Fill in credentials
-  await page.fill('input[id="dni"]', ADMIN_DNI);
-  await page.fill('input[type="password"]', ADMIN_PASSWORD);
-  
-  // Submit the form
-  await page.click('button[type="submit"]');
-  
-  // Wait for redirect to admin page
-  await page.waitForURL('/admin', { timeout: 10000 });
-}
+// Helper to login as admin — provided by tests/helpers.ts (T0.1)
 
 // ============================================
 // Test Group: Unauthenticated Access (3 tests)

@@ -1,16 +1,5 @@
-import { test, expect, Page } from "@playwright/test";
-
-const ADMIN_DNI = "11111111";
-const ADMIN_PASSWORD = "nando123";
-
-async function loginAsAdmin(page: Page) {
-  await page.goto("/admin/login");
-  await page.waitForSelector('input[id="dni"]', { timeout: 15000 });
-  await page.fill('input[id="dni"]', ADMIN_DNI);
-  await page.fill('input[id="password"]', ADMIN_PASSWORD);
-  await page.click('button[type="submit"]');
-  await page.waitForURL("/admin", { timeout: 20000 });
-}
+import { test, expect } from "@playwright/test";
+import { loginAsAdmin } from "./helpers";
 
 /**
  * DnD Tests - skipped due to Playwright/React state timing issues.

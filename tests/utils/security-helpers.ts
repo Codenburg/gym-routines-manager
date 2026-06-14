@@ -25,29 +25,12 @@ interface Rutina {
 }
 
 // Test credentials
-const ADMIN_DNI = '12345678';
-const ADMIN_PASSWORD = 'admin123';
-
-/**
- * Login as admin user
- * Used for admin-only tests
- */
-export async function loginAsAdmin(page: Page): Promise<void> {
-  await page.goto('/admin/login');
-  
-  // Wait for the form to be ready
-  await page.waitForSelector('input[id="dni"]', { timeout: 10000 });
-  
-  // Fill in credentials
-  await page.fill('input[id="dni"]', ADMIN_DNI);
-  await page.fill('input[id="password"]', ADMIN_PASSWORD);
-  
-  // Submit the form
-  await page.click('button[type="submit"]');
-  
-  // Wait for redirect to admin page
-  await page.waitForURL('/admin', { timeout: 10000 });
-}
+// Note: The previous `loginAsAdmin` helper lived here but used WRONG
+// credentials (`12345678/admin123`) that do not match the seed. It was
+// never imported by any spec (the 6 spec files all defined their own
+// `loginAsAdmin` with the correct `11111111/nando123`). Removed in
+// `e2e-coverage-critical-flows` T0.1 — the canonical helper is now
+// `tests/helpers.ts:loginAsAdmin`.
 
 /**
  * Login as regular (non-admin) user

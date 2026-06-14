@@ -8,21 +8,7 @@
  */
 
 import { test, expect, Page } from '@playwright/test'
-
-// Test admin credentials (from seed)
-const ADMIN_DNI = '11111111'
-const ADMIN_PASSWORD = 'nando123'
-
-// Helper function to login as admin
-async function loginAsAdmin(page: Page) {
-  await page.goto('/admin/login')
-  await page.waitForLoadState('domcontentloaded')
-  await page.waitForSelector('input[id="dni"]', { timeout: 15000 })
-  await page.fill('input[id="dni"]', ADMIN_DNI)
-  await page.fill('input[id="password"]', ADMIN_PASSWORD)
-  await page.click('button[type="submit"]')
-  await page.waitForURL('/admin', { timeout: 15000 })
-}
+import { loginAsAdmin } from './helpers'
 
 // Helper to create a promocion via API for testing
 async function createTestPromocion(page: Page, titulo: string, precio: number) {
