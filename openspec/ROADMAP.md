@@ -160,6 +160,12 @@ Completa la cobertura E2E de los flujos críticos que faltan. Lo que está cubie
 
 **Slices estimados**: 2-3 slices (rutinas, feriados+promos+descuentos, trainers+auth).
 
+**Status (2026-06-13)**: SDD cycle `e2e-coverage-critical-flows` en progreso, stacked-to-main chain.
+- **PR 1 — Test infra refactor** ✅ PUSHEADO con `size:exception` (4 commits, +1682/-143, forecast era +816/-50, 2.1× por `pnpm-lock.yaml` +222 y T0.2 actual 756 LOC vs 590 estimado). Archivos: `tests/helpers.ts` (loginAsAdmin con 15s hydration guard + cleanTestData + waitForToast + waitForServerAction), `tests/pages/{base-page,AuthPage,RoutineAdminPage,FeriadoAdminPage,PromocionAdminPage,DescuentoAdminPage,TrainerAdminPage}.ts` (6 page objects + BasePage), `playwright.config.ts` (`retries: 1` GGA-FOLLOWUP-4 fix), `package.json` (`test:fast` script con pre-start dev server), `tests/README.md` (test conventions). 6 specs modificados para usar el helper. Broken `loginAsAdmin` en `security-helpers.ts` borrado. 151/151 unit tests pass, tsc clean, GGA passed los 3 commits.
+- **PR 2 — Rutinas E2E** ⏳ Pendiente (T1.1: data-testids + spec, 217 líneas estimadas).
+- **PR 3 — Feriados + Promos + Descuentos E2E** ⏳ Pendiente (T2.1–T2.3, 510 líneas estimadas, marginal sobre budget).
+- **PR 4 — Trainers + Auth E2E** ⏳ Pendiente (T3.1–T3.4, 378 líneas estimadas, incluye 5.2.3 isolation fix).
+
 ---
 
 ### Recomendación 4: ~~`1.0-prep: GGA pre-commit hook diff-only + fix false positives`~~ ✅ **COMPLETED en v0.20.1**
