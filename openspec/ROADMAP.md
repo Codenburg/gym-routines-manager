@@ -75,12 +75,15 @@ _Last updated: 2026-06-15_ | _Version: 0.20.1_
 ## ⏳ Pendiente
 
 ### Alta Prioridad
-- [x] **Tests E2E con cobertura completa (Playwright)** — 5 critical flows (rutinas, feriados, promociones, descuentos, trainers) + auth happy-path. 30+ new test cases, helpers + page objects + fixtures layer. **COMPLETED in v0.20.1** — see Recomendación 3.
+- [ ] Tests E2E con cobertura completa (Playwright) — Fase 4
 - [ ] Documentación de API (MDX-based)
 
 ### Media Prioridad
 - [ ] Generación de PDF por rutina (@react-pdf/renderer)
 - [ ] Cache warming cron para SEO
+- [x] GGA-FOLLOWUP-1 (`Promise.all` en `src/app/(admin)/admin/page.tsx` sin `try/catch` o `error.tsx` boundary. Pre-existente de v0.18.0 Slice 1). **RESUELTO** en commit `8300e2d` (tech debt cleanup batch) — wrap con try/catch + ErrorState fallback.
+- [x] GGA-FOLLOWUP-7 (Prisma migration workflow documentation, Baja). **RESUELTO** en commit `8300e2d` — documentado en `CONTRIBUTING.md` §"Workflow de migraciones (no estándar)".
+- [x] GGA-FOLLOWUP-13 (Return-type inconsistency en `actions/feriados.ts` — `deleteFeriado: Promise<FormState>` vs `createFeriado`/`updateFeriado: Promise<FormState<{ id: string }>>`). **RESUELTO** en commit `8300e2d` — unificado a `Promise<FormState<{ id: string }>>`, caller type inference (no annotation).
 - [x] **Migrar `unstable_cache` → `use cache` (Next 16 Cache Components)** — habilitar `cacheComponents: true` en `next.config.ts` y reescribir TODOS los readers con `'use cache'` + `cacheTag` + `cacheLife`. **También remover los 6 `export const dynamic = "force-dynamic"`** de las admin pages. Verificar que cada server action de mutación llame `revalidateTag` además de `revalidatePath`. **COMPLETED in v0.19.0** — pero con 2 follow-ups nuevos descubiertos:
   - `GGA-FOLLOWUP-2` (Medium): replace `(revalidateTag as any)` casts project-wide con `revalidateTag("tag", "max")` (Next 16 two-arg signature)
   - [x] `GGA-FOLLOWUP-3` (Low): Prisma Decimal serialization en `getGymConfigForServer` para client components. **RESUELTO** commit `5f05a8e` — `getGymConfigForServer` reemplazado por `getGymNameForServer(): Promise<string | null>` (usa `select: { nombre: true }`). Bug venía de `"use cache"` cacheando el return value completo.
