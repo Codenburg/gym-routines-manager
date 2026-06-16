@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 (async () => {
   const response = await fetch('http://localhost:3000/api/rutinas');
   const result = await response.json();

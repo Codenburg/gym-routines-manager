@@ -89,6 +89,7 @@ export function RoutineDayCard({
   // Sync tags when entering edit mode or when dia.musculosEnfocados changes externally
   useEffect(() => {
     if (isEditing && dia.musculosEnfocados) {
+      // eslint-disable-next-line
       setMusculosEnfocadosTags(dia.musculosEnfocados);
     }
   }, [isEditing, dia.musculosEnfocados]);

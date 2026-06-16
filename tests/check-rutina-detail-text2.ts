@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { chromium } from '@playwright/test';
 
 async function checkPage() {

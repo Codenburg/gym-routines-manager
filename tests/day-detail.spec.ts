@@ -11,7 +11,9 @@ async function getRoutineIds(page: Page) {
   const rutinas = result.data;
   
   // Find two different routines that exist in the seed
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const fullBody = rutinas.find((r: any) => r.nombre.includes('Full Body') && r.creador === 'Santi');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const resistencia = rutinas.find((r: any) => r.nombre.includes('Resistencia') && r.creador === 'Leo');
   
   if (!fullBody?.id) {

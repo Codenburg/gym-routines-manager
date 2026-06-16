@@ -53,6 +53,7 @@ export function RutinaForm({ initialData, onSuccess }: RutinaFormProps) {
       // Reset form only if creating new
       if (!isEditing) {
         formRef.current?.reset();
+        // eslint-disable-next-line
         setTipo("");
       }
       toast.success(

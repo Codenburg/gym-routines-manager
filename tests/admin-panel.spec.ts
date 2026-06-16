@@ -214,6 +214,7 @@ test.describe('Admin Profile Dropdown', () => {
   test('7.6.3 - Admin layout component has profile button structure', async ({ page }) => {
     // Verify the component file has the correct accessibility attributes
     // This is a static verification since we can't test without auth
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const fs = require('fs');
     const layoutContent = fs.readFileSync('src/components/admin/admin-layout.tsx', 'utf8');
     
@@ -227,6 +228,7 @@ test.describe('Admin Profile Dropdown', () => {
 
   test('7.6.4 - Admin layout excludes login page', async ({ page }) => {
     // Verify the layout properly checks for login path
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const fs = require('fs');
     const layoutContent = fs.readFileSync('src/app/admin/layout.tsx', 'utf8');
     
@@ -237,6 +239,7 @@ test.describe('Admin Profile Dropdown', () => {
 
   test('7.6.5 - Dropdown has proper accessibility', async ({ page }) => {
     // Static verification of accessibility attributes
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const fs = require('fs');
     const layoutContent = fs.readFileSync('src/components/admin/admin-layout.tsx', 'utf8');
     
@@ -247,6 +250,7 @@ test.describe('Admin Profile Dropdown', () => {
 
   test('7.6.6 - Logout redirects to login', async ({ page }) => {
     // Static verification of redirect logic
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const fs = require('fs');
     const layoutContent = fs.readFileSync('src/components/admin/admin-layout.tsx', 'utf8');
     

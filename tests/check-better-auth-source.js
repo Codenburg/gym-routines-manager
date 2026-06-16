@@ -1,4 +1,4 @@
-const path = require('path');
+/* eslint-disable @typescript-eslint/no-require-imports */const path = require('path');
 const betterAuthPath = require.resolve('better-auth');
 console.log('Better Auth location:', betterAuthPath);
 

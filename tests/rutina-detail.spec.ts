@@ -17,9 +17,11 @@ async function fetchRoutineIds(page: Page): Promise<{
   const rutinas = result.data;
   
   // Find routines from seed data
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const fullBody = rutinas.find((r: any) => 
     r.nombre.includes('Full Body') && !r.nombre.includes('Ligero') && r.creador === 'Santi'
   );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pecho = rutinas.find((r: any) => 
     r.nombre.includes('Pecho') && r.creador === 'Santi'
   );

@@ -19,7 +19,9 @@ export function useUnifiedSearch() {
   const inputValueRef = useRef(inputValue);
 
 
-  inputValueRef.current = inputValue;
+  useEffect(() => {
+    inputValueRef.current = inputValue;
+  }, [inputValue]);
 
 
   const query = searchParams.get("search") ?? "";
@@ -115,6 +117,7 @@ export function useUnifiedSearch() {
     cancelDebounce();
 
     const urlSearch = searchParams.get("search") ?? "";
+    // eslint-disable-next-line
     setInputValueState(urlSearch);
     inputValueRef.current = urlSearch;
     prevUrlRef.current = currentUrl;

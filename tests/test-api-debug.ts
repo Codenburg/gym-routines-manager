@@ -1,6 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const TEST_USERNAME = process.env.TEST_LOGIN_USERNAME ?? "11111111";
+const TEST_PASSWORD = process.env.TEST_LOGIN_PASSWORD ?? "nando123";
+
 async function testLoginAPI() {
   try {
-    console.log('Testing login API...');
+    console.log('Testing login API with user:', TEST_USERNAME);
     
     const response = await fetch('http://localhost:3000/api/auth/sign-in/username', {
       method: 'POST',
@@ -8,8 +12,8 @@ async function testLoginAPI() {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        username: '11111111',
-        password: 'nando123'
+        username: TEST_USERNAME,
+        password: TEST_PASSWORD
       })
     });
     

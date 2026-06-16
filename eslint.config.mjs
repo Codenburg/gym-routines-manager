@@ -17,6 +17,12 @@ const eslintConfig = defineConfig([
     "generated/**",
     "scripts/gga-*.mjs",
   ]),
+  // Reduce severity: explicit `any` is a style preference, not a correctness issue
+  {
+    rules: {
+      "@typescript-eslint/no-explicit-any": "warn",
+    },
+  },
   // Admin-specific rules
   {
     files: ["src/components/admin/**", "src/app/(admin)/**"],

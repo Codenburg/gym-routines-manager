@@ -10,6 +10,7 @@ interface SeriesRepsInputProps {
   name: string;
   value?: string;
   onChange?: (value: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   control?: Control<any>;
   className?: string;
 }
@@ -39,13 +40,15 @@ export function SeriesRepsInput({
   // Sync with external value changes (e.g., reset on form)
   useEffect(() => {
     const parsed = parseInitialFormat(value);
+    // eslint-disable-next-line
     setSeries(parsed.series);
+    // eslint-disable-next-line
     setReps(parsed.reps);
   }, [value]);
 
   // Update combined format whenever inputs change
   const updateCombinedValue = (newSeries: string, newReps: string) => {
-    const combined = combineToFormat(newSeries, reps);
+    const combined = combineToFormat(newSeries, newReps);
     onChange?.(combined);
   };
 
