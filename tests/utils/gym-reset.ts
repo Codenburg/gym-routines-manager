@@ -46,7 +46,7 @@ export async function resetGymNombre(): Promise<void> {
   } catch (error) {
     // Best-effort. If the DB is unreachable, the test continues —
     // the 5.2.3 isolation issue is a soft signal, not a hard fail.
-    // eslint-disable-next-line no-console
+     
     console.warn('[gym-reset] Failed to reset gym.nombre:', error);
   }
 }
