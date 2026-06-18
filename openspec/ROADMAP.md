@@ -312,12 +312,19 @@ El hook actual revisa el WHOLE file y flagea código pre-existente, causando `--
 
 ## 🐛 Pending fixes accumulating for next patch bump
 
-Tracking de `fix:` commits post-1.0.0. Cuando se llega a **3 fixes de severidad media+** → patch bump (`1.0.0` → `1.0.1`). Los `feat:` siguen criterio aparte (se acumulan para un minor bump en batches).
+Tracking de `fix:` commits post-1.0.0. Los `feat:` siguen criterio aparte (minor bump en batches).
 
-**Estado actual**: **2/3** fixes acumulados. Falta 1 fix de severidad media+ para bumpear.
+**Criterio de bump** (cualquiera de los 3 gatilla patch bump `1.0.0` → `1.0.1`):
+
+- 🔴 **1 hotfix** — bug crítico de producción (data loss, security, crash, funcionalidad core caída)
+- 🟡 **2 fixes de severidad media** — bugs de validación, lifecycle, race conditions, UI parcialmente rota
+- 🟢 **3 fixes de severidad baja** — polish UX, copy, accesibilidad, refactors menores
+
+**Estado actual**: 1 media + 1 baja → **ningún criterio cumplido todavía**, seguimos acumulando.
 
 | # | SHA | Severidad | Descripción |
 | --- | --- | --- | --- |
-| 1 | `76e160f` | Media | `fix(admin): disable save on empty name, prevent double toast on re-mount` — 2 bugs reales (validación + lifecycle) |
-| 2 | (próximo commit) | Baja-Media | `fix(admin): replace floating mobile hamburger with proper fixed header bar` — UX polish mobile, sin cambio de lógica |
-| 3 | ⏳ | — | Slot libre — próximo fix de severidad media+ cierra el ciclo |
+| 1 | `76e160f` | 🟡 Media | `fix(admin): disable save on empty name, prevent double toast on re-mount` — 2 bugs reales (validación + lifecycle) |
+| 2 | `75ec9d1` | 🟢 Baja | `fix(admin): replace floating mobile hamburger with proper fixed header bar` — UX polish mobile, sin cambio de lógica |
+| — | ⏳ | 🟡 Media | 1 fix de media más cierra el criterio media |
+| — | ⏳ | 🟢 Baja | 2 fixes de baja más cierran el criterio baja |
