@@ -91,6 +91,8 @@ _Last updated: 2026-06-18_ | _Version: 1.0.1_
 - [x] **E2E test 5.2.3 isolation issue** — `tests/gym-config.spec.ts:5.2.3` falla cuando corre después de 5.2.1 en el mismo suite. **RESUELTO en v0.20.1** — `test.describe.configure({ mode: 'serial' })` + file-level `test.afterEach(resetGymConfig)` con `tests/utils/gym-reset.ts` (direct prisma access, scoped + JSDoc'd). Ver Recomendación 3.
 - [x] **`revalidatePath("/admin/descuentos")` no matchea la ruta real** en `actions/descuentos-duracion.ts:94,138,167` — la ruta es `/admin/descuentos-duracion`. Pre-existente, no introducido por este cambio. **RESUELTO en v0.20.1** (GGA hook cycle PR 2 / T11) — los 3 sites actualizados.
 
+- [x] **Admin panel responsive: polish mobile en todas las pages (pc-first → mobile-friendly)** — el admin está diseñado desktop-first y rompe la polish en mobile. **Síntoma más visible**: el `<Button variant="ghost" size="icon">` del hamburguesa en `src/components/admin/admin-sidebar.tsx:240-247` queda flotando "fantasma" arriba a la izquierda (sin posicionamiento, sin header, sin fondo) en vez de tener un header mobile dedicado. **Slice (a) RESUELTO**: el toggle ahora vive adentro de un `<header fixed top-0 inset-x-0 z-40 h-14 bg-background border-b>` con el botón (`aria-label="Abrir menú de navegación"`) + nombre del gym en uppercase. El wrapper redundante `fixed top-4 left-4 z-50` del layout fue removido. **Slice (b) PENDIENTE**: audit responsive del resto de las pages admin (rutinas CRUD, feriados, promociones, descuentos, trainers, config) — tablas anchas, grids multi-columna, forms side-by-side probablemente asumen viewport desktop. Pendiente de próximo ciclo si querés encararlo.
+
 ### Lint warnings (160 remaining, 0 errors)
 - [ ] **no-unused-vars (118 warnings)** — El más grande (~258 source files). Bulk approach: agregar `argsIgnorePattern: "^_"` y `varsIgnorePattern: "^_"` a `@typescript-eslint/no-unused-vars` en eslint.config.mjs. ⚠️ algunas vars sin prefijo `_` podrían ser bugs reales (imports no usados, variables olvidadas). Hacer grep de `import.*from` sin uso después del cambio.
 - [ ] **no-hardcoded-colors (11 warnings)** — Admin plugin rule. Migrar colores CSS hardcodeados a design tokens (`primary`, `secondary`, `muted`, `border`, etc). ⚠️ algunos `hover:` / `focus:` states pueden necesitar tokens nuevos o extenderse via Tailwind config. Contexto: `openspec/ROADMAP.md` § Recomendación BONUS.
@@ -178,6 +180,40 @@ Los 4 sub-forms opcionales del admin (`Dirección`, `Mapa` Google Maps embed, `I
 **Severidad**: Baja-Media. Mejora UX pura, no toca datos ni server.
 
 **Slices estimados**: 1 (toca 1 archivo principal: `GymConfigManager.tsx` + los 4 `FieldConfig`; sin server action ni schema ni migración). Tests: 1 E2E nuevo en `gym-config.spec.ts`.
+
+### Mostrar precio descontado en admin y público (post-1.0)
+
+Hoy los `DescuentoDuracion` muestran solo el porcentaje (`{descuento.porcentaje}%`), tanto en el admin (`descuento-duracion-manager.tsx:357-358`) como en la página pública `/informacion` (`DurationDiscountsSection.tsx:60-61`). El usuario no ve el cálculo real ni en el panel ni en la página de info. La idea es mostrar el **precio final descontado** junto al %, tomando como base el `Gym.price` singleton (ya disponible vía `getGymPrice()` con cache tag `gym-config`).
+
+**Ejemplo concreto**: gym base = $50.000, descuento configurado = 10% sobre 3 meses → el admin ve "Descuento del 10% · Precio final $45.000" y el usuario en `/informacion` ve la misma fila con el cálculo hecho.
+
+**Scope inicial (idea del usuario)**:
+- La fila de cada descuento (admin + público) gana un campo con el **precio final** = `gym.price * (1 - porcentaje/100)`, redondeado según estrategia a definir en SDD.
+- El admin puede ver de un vistazo cuánto queda cada descuento en plata, sin hacer la cuenta mental.
+- El usuario en `/informacion` ve exactamente el mismo número que ve el admin (consistencia), con el % explícito para entender el cálculo.
+- Si `gym.price` es `null` (precio base no configurado), la sección sigue mostrando los % pero oculta el cálculo (no se rompe nada).
+- Reutilizar `formatPriceARS()` que ya existe (lo usa `PlansSection.tsx:47`).
+- Sin schema change, sin migración, sin nuevo modelo — el cálculo es puro sobre datos existentes.
+
+**Recomendación UX propuesta** (a confirmar en SDD):
+- **Admin**: agregar un segundo renglón al item (`descuento-duracion-manager.tsx:351-361`) bajo "Descuento del X%" → "Precio final: **$45.000**" en `text-foreground font-medium` con el precio base tachado al lado en `text-muted-foreground line-through` tipo ecommerce.
+- **Público**: agregar una 3ª columna "Precio final" a la tabla en `DurationDiscountsSection.tsx` (alined right, misma prominencia que "Descuento"), o un chip al lado del % según cómo se vea mejor en mobile.
+- Formato: `De $50.000 a $45.000` (strikethrough + nuevo), o `$45.000 (-10%)` — a resolver en design phase.
+
+**Pendiente**: necesita SDD cycle (`/sdd-new descuento-precio-final`) — proposal + design + tasks + apply + verify + archive.
+
+**Open questions** (a resolver en la fase de proposal):
+- [ ] **UX pattern del cálculo**: ¿strikethrough del precio base + precio final prominente (estilo ecommerce), o flecha "$50.000 → $45.000", o columnas separadas (Duración / % / Precio final), o chip "$45.000 (-10%)"? Asumir strikethrough + precio prominente salvo que se discuta.
+- [ ] **Precio base faltante**: si `gym.price === null`, ¿ocultar la columna del cálculo, mostrar el % solo, o bloquear la creación del descuento hasta que haya precio base? Asumir ocultar la columna / cálculo (no rompe nada).
+- [ ] **Round strategy**: ¿`Math.round` (estándar), `Math.floor` (favorece al gym), o redondear a múltiplos de $100/$1000 para prolijidad visual? Hoy los precios son `int()` en ARS.
+- [ ] **Cache invalidation cross-tag**: cuando cambia `gym.price` (tag `gym-config`), ¿revalidar también `descuentos-duracion` para que el cálculo se refresque? Hoy son tags separados. Viceversa: cuando cambia un descuento, ¿revalidar `gym-config`? Probablemente no necesario (un descuento nuevo no invalida el precio base), pero confirmar.
+- [ ] **Live preview en admin**: ¿el admin ve el cálculo actualizarse en vivo al escribir `porcentaje` en el form (con watch de react-hook-form), o solo después de guardar? Asumir live preview — es lo que el usuario espera de un form.
+- [ ] **Scope de la feature**: ¿aplica SOLO a `DescuentoDuracion`, o también a `Promocion`? Hoy `promocion.precio` es absoluto (no usa % sobre base), así que no aplica. Confirmar scope acotado.
+- [ ] **Reutilización de `formatPriceARS()`**: ya existe y lo usa `PlansSection.tsx`. ¿Es la utility correcta, o crear `formatPrecioConDescuento(base, porcentaje)` para encapsular el cálculo + format juntos?
+
+**Severidad**: Media-Alta. Hoy el admin tiene que hacer la cuenta a mano para saber cuánto le queda cada combo de meses; el usuario público ve solo el % sin ancla concreta. Mejora UX importante, no toca DB ni server actions.
+
+**Slices estimados**: 1 (toca 2 componentes — `descuento-duracion-manager.tsx` y `DurationDiscountsSection.tsx` — + pasa `getGymPrice()` como prop desde sus pages server-side; sin schema, sin migración, sin nueva server action). Tests: 1 unit test del cálculo puro + 1 E2E nuevo en `gym-config.spec.ts` o `descuentos.spec.ts` que verifique el cálculo con gym price fijo.
 
 ---
 
@@ -271,3 +307,17 @@ El hook actual revisa el WHOLE file y flagea código pre-existente, causando `--
 5. **Cleanup bonus** — se puede hacer en cualquier momento, no bloquea 1.0
 
 **🎉 1.0 prep COMPLETO (4/4 recomendaciones delivered).** Pendiente: release bump a 1.0.0 + cleanup opcional de los follow-ups nuevos (GGA-FOLLOWUP-2, dead locators, etc.).
+
+---
+
+## 🐛 Pending fixes accumulating for next patch bump
+
+Tracking de `fix:` commits post-1.0.0. Cuando se llega a **3 fixes de severidad media+** → patch bump (`1.0.0` → `1.0.1`). Los `feat:` siguen criterio aparte (se acumulan para un minor bump en batches).
+
+**Estado actual**: **2/3** fixes acumulados. Falta 1 fix de severidad media+ para bumpear.
+
+| # | SHA | Severidad | Descripción |
+| --- | --- | --- | --- |
+| 1 | `76e160f` | Media | `fix(admin): disable save on empty name, prevent double toast on re-mount` — 2 bugs reales (validación + lifecycle) |
+| 2 | (próximo commit) | Baja-Media | `fix(admin): replace floating mobile hamburger with proper fixed header bar` — UX polish mobile, sin cambio de lógica |
+| 3 | ⏳ | — | Slot libre — próximo fix de severidad media+ cierra el ciclo |

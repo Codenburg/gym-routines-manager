@@ -224,6 +224,22 @@ export function AdminSidebar({
 
   return (
     <>
+      {/* Mobile top header — fixed bar with hamburger + gym name */}
+      <header className="lg:hidden fixed top-0 inset-x-0 z-40 h-14 bg-background border-b border-border flex items-center px-4 gap-3">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setMobileOpen(true)}
+          className="cursor-pointer -ml-2"
+          aria-label="Abrir menú de navegación"
+        >
+          <Menu className="w-5 h-5" />
+        </Button>
+        <span className="font-bold text-base text-foreground uppercase truncate">
+          {gymName}
+        </span>
+      </header>
+
       {/* Mobile Drawer - Sheet wraps content */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="left" className="w-72 p-0">
@@ -235,16 +251,6 @@ export function AdminSidebar({
           />
         </SheetContent>
       </Sheet>
-
-      {/* Hamburger Button - controls sheet state directly */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setMobileOpen(true)}
-        className="lg:hidden cursor-pointer"
-      >
-        <Menu className="w-5 h-5" />
-      </Button>
 
       {/* Desktop Sidebar - fixed left, always visible */}
       <aside

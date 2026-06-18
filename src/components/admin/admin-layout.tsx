@@ -48,8 +48,8 @@ export function AdminLayout({ children, username, role, gymName }: AdminLayoutPr
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Mobile: floating hamburger top-left */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
+      {/* Mobile: AdminSidebar renders its own fixed top header */}
+      <div className="lg:hidden">
         <AdminSidebar username={userName} role={role} gymName={gymName} />
       </div>
 
