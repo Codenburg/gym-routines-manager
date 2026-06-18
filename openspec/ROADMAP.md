@@ -75,6 +75,34 @@ _Last updated: 2026-06-18_ | _Version: 1.0.1_
 ## ⏳ Pendiente
 
 ### Alta Prioridad
+- [ ] **Multi-tenant SaaS — path a `gymflow`** — convertir el proyecto actual (single-tenant con `gymId: "gym"` hardcoded en todos lados) en una plataforma SaaS multi-tenant que pueda ofrecer el producto a múltiples gimnasios. El nombre del proyecto pasa de `gym-routines-manager` a `gymflow` como parte de este ciclo (mejor branding, no ata el producto a "rutinas" solamente).
+
+  **Scope inicial (idea del usuario)**:
+  - Todos los modelos Prisma ganan `gymId` foreign key (rutinas, feriados, promociones, descuentos, trainers, gym config, etc).
+  - Sistema de tenant resolution (cómo el request identifica a qué gym pertenece — ver open questions).
+  - Auth multi-tenant: un user puede pertenecer a N gyms con roles por gym.
+  - Migración de datos existentes: la DB actual tiene un solo gym con `id: "gym"` — se convierte al primer tenant.
+  - Cache invalidation con tenant context (`cacheTag("gym:{gymId}:...")` pattern).
+  - UI admin: gym selector si el user pertenece a varios gyms; branding por gym (nombre, logo, colores básicos).
+  - Cara pública: cada gym tiene su propia `/informacion` + listado de rutinas, accesibles por su subdominio/path.
+
+  **Pendiente**: necesita SDD cycle propio (`/sdd-new multi-tenant-gymflow`) — proposal + design + tasks + apply + verify + archive. **Slice 0 (pre-requisito aislado)**: rename del proyecto a `gymflow` (package.json, imports, docs, GitHub repo rename, remote URL, deploy configs). No toca lógica, se puede hacer en PR chico aparte antes del ciclo principal.
+
+  **Open questions** (a resolver en la fase de proposal):
+  - [ ] **Tenant resolution strategy**: ¿subdominio (`gymA.gymflow.app`)? ¿path-based (`/g/gymA/...`)? ¿custom domain (`gymA.com` → gymflow)? Asumir subdominio como default (más simple, mejor branding, SEO-friendly), custom domain como stretch goal.
+  - [ ] **User ↔ gym relationship**: ¿un user pertenece a N gyms con roles por gym (`UserGymMembership { userId, gymId, role }`), o siempre 1 gym por login (gym scopado en sesión)? Multi-membership es más flexible, single-gym es más simple.
+  - [ ] **Roles por gym o globales**: relacionado al anterior. Si multi-membership, los roles (ADMIN/TRAINER) son por gym o son globales? Asumir per-gym.
+  - [ ] **Super-admin / platform owner**: ¿hay un rol "platform admin" que gestiona todos los gyms (onboarding, billing, suspension)? Necesario para SaaS.
+  - [ ] **Pricing/billing desde día 1**: ¿se cobra desde el primer gym onboarded, o se arranca free/beta y billing se agrega después? Sugerido: free durante el multi-tenant cycle, billing en ciclo aparte.
+  - [ ] **Migración de datos existentes**: ¿se mantiene el gym actual con `id: "gym"` como el primer tenant (`gymId` slug = `"gym"` o renombrar a slug real), o se hace fresh start? Sugerido: mantener y renombrar a un slug real (`"codenburg"` o el nombre del cliente actual).
+  - [ ] **Branding per-gym**: ¿solo nombre + logo, o también color theme por gym (CSS vars por tenant)? Fase 1: nombre + logo. Theme por gym: stretch.
+  - [ ] **Cache strategy**: cambiar todos los `cacheTag` actuales de `"gym-config"` a `"gym:{gymId}:config"` (o similar). Impacto: cada reader pasa a tomar `gymId` como parámetro.
+  - [ ] **DNS / SSL para subdominios wildcard**: si se elige subdominio, configurar `*.gymflow.app` con wildcard SSL. Depende del host (Vercel lo soporta out-of-the-box).
+  - [ ] **Tests E2E multi-tenant**: nuevo suite `tests/multi-tenant.spec.ts` que verifique isolation (gym A no ve datos de gym B), onboarding flow, super-admin flow.
+
+  **Severidad**: Alta. Es el path a producto comercial — sin esto, el proyecto se queda en single-tenant para un solo cliente. Alineado con el deseo del usuario de ofrecer el producto a varios gyms.
+
+  **Slices estimados**: 6-8 slices (rename → schema → tenant resolution → auth → cache → UI selector → branding → tests → billing opcional).
 - [ ] Tests E2E con cobertura completa (Playwright) — Fase 4
 - [ ] Documentación de API (MDX-based)
 
@@ -102,7 +130,6 @@ _Last updated: 2026-06-18_ | _Version: 1.0.1_
 - [ ] Exportación CSV de rutinas
 - [ ] i18n (multi-idioma)
 - [ ] PWA support (offline PDF access)
-- [ ] Multi-gym support
 - [ ] **GGA pre-commit hook falsos positivos** — el hook revisa el WHOLE file (no solo el diff) y flagea código pre-existente (`console.error`, `as any` casts) que no fue cambiado. Causa `--no-verify` recurrente. Fix: que el hook revise diff-only, o agregar `.gga-ignore` para issues pre-existentes. **RESUELTO en v0.20.1** (GGA hook cycle, Recomendación 4) — wrapper script con diff-only post-filter + `.gga-ignore` escape hatch.
 - [ ] **Pre-existing TypeScript errors (13)** — en `rutina-completa-form.tsx`, `pagination.ts`, `check-*.ts`, `promocion-schemas.test.ts`, `use-feriados-notification.test.ts`, `verify-password.ts`. Project-wide, no introducidos por cambios recientes. Cleanup en change aparte. **RESUELTO en v0.20.0** (fix-pre-existing-ts-errors-remove-ignorebuilderrors cycle, 14 errors). + 3 más resueltos en tech debt batch (`tests/gga-diff-filter.test.ts`).
 - [ ] **Pre-existing lint issues (460 errors, 730 warnings)** — incluye `as any` en `revalidateTag`, `console.error` en data layer, `z.coerce.number().min(1).min(1000)` chain en `priceSchema`. Cleanup en change aparte. Parcialmente RESUELTO en tech debt batch (GGA-FOLLOWUP-2, 21 `as any` casts en `revalidateTag` removidos, queda el resto).
