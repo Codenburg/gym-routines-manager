@@ -1,7 +1,7 @@
 # E2E Test Suite
 
 This directory holds the Playwright E2E test suite for the
-`gym-routines-manager` app, plus shared test infrastructure (helpers +
+`gymflow` app, plus shared test infrastructure (helpers +
 page objects).
 
 ## Quick start

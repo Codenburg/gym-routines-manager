@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This spec defines the requirements and behavior for the Admin Panel feature of the gym-routines-manager application.
+This spec defines the requirements and behavior for the Admin Panel feature of the gymflow application.
 
 ---
 

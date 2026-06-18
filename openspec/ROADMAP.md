@@ -75,7 +75,7 @@ _Last updated: 2026-06-18_ | _Version: 1.0.1_
 ## ⏳ Pendiente
 
 ### Alta Prioridad
-- [ ] **Multi-tenant SaaS — path a `gymflow`** — convertir el proyecto actual (single-tenant con `gymId: "gym"` hardcoded en todos lados) en una plataforma SaaS multi-tenant que pueda ofrecer el producto a múltiples gimnasios. El nombre del proyecto pasa de `gym-routines-manager` a `gymflow` como parte de este ciclo (mejor branding, no ata el producto a "rutinas" solamente).
+- [ ] **Multi-tenant SaaS — path a `gymflow`** — convertir el proyecto actual (single-tenant con `gymId: "gym"` hardcoded en todos lados) en una plataforma SaaS multi-tenant que pueda ofrecer el producto a múltiples gimnasios. El proyecto ahora se llama `gymflow` (anteriormente `gym-routines-manager`, renombrado como Slice 0 de este cycle — mejor branding, no ata el producto a "rutinas" solamente).
 
   **Scope inicial (idea del usuario)**:
   - Todos los modelos Prisma ganan `gymId` foreign key (rutinas, feriados, promociones, descuentos, trainers, gym config, etc).
