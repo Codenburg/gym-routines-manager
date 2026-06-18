@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/hooks/use-confirm";
 import { Plus, Percent, Trash2, Edit2, X, Check } from "lucide-react";
 import type { FormState } from "@/lib/schemas";
+import { formatPriceARS } from "@/lib/format";
 
 interface DescuentoDuracion {
   id: number;
@@ -22,6 +23,13 @@ interface DescuentoDuracion {
 
 interface DescuentoDuracionManagerProps {
   initialDescuentos: DescuentoDuracion[];
+  /**
+   * Current `Gym.price` used to compute the final price for each
+   * descuento list item (`gymPrice * (1 - porcentaje/100)`). When
+   * `null`, the list item renders the literal
+   * `"Sin precio configurado"` in place of a computed price.
+   */
+  initialGymPrice: number | null;
 }
 
 const MESES_OPTIONS = [
@@ -33,6 +41,7 @@ const MESES_OPTIONS = [
 
 export function DescuentoDuracionManager({
   initialDescuentos,
+  initialGymPrice,
 }: DescuentoDuracionManagerProps) {
   const [descuentos, setDescuentos] = useState<DescuentoDuracion[]>(
     initialDescuentos
@@ -205,7 +214,7 @@ export function DescuentoDuracionManager({
 
             {/* Grid fijo: select + input + botones en una línea estable */}
             <div className="grid gap-3">
-              <div className="flex gap-4 items-end">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3 sm:gap-4">
                 {/* Duración — disabled, sin helper text dentro del flujo */}
                 <div className="w-40">
                   <label className="text-muted-foreground text-sm font-medium mb-2 block">
@@ -281,7 +290,7 @@ export function DescuentoDuracionManager({
               </div>
             )}
 
-            <div className="flex gap-4 items-end">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3 sm:gap-4">
               <AdminFormField variant="default" label="Duración">
                 <select
                   data-testid="descuento-min-meses-input"
@@ -356,6 +365,19 @@ export function DescuentoDuracionManager({
                       Descuento del{" "}
                       <span className="text-emerald-600 font-medium">
                         {descuento.porcentaje}%
+                      </span>
+                    </p>
+                    <p className="text-muted-foreground text-sm">
+                      Precio final:{" "}
+                      <span
+                        data-testid="descuento-precio-final"
+                        className="text-foreground font-medium"
+                      >
+                        {initialGymPrice === null
+                          ? "Sin precio configurado"
+                          : formatPriceARS(
+                              initialGymPrice * (1 - descuento.porcentaje / 100)
+                            )}
                       </span>
                     </p>
                   </div>
