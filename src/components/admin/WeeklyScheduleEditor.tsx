@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Clock } from "lucide-react";
@@ -94,19 +94,31 @@ export function WeeklyScheduleEditor({ initial }: WeeklyScheduleEditorProps) {
   // setState is intentional: the server is the source of truth on save,
   // and Zod may have normalized the payload (e.g. coerced nullish times
   // to null). Same pattern as GymPriceEditor — see the disable comment.
+  //
+  // Only fire the toast + resync on the pending → done transition. The
+  // previous pattern (chequear `state.success` en cada render) leaked
+  // toasts across router.refresh / re-mount / cache revalidation.
+  const wasPendingRef = useRef(false);
   useEffect(() => {
-    if (!isPending && state.success) {
-      const saved = state.data?.value;
-      if (saved && typeof saved === "object") {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSchedule(saved as HorarioSemanal);
+    if (wasPendingRef.current && !isPending) {
+      if (state.success) {
+        const saved = state.data?.value;
+        if (saved && typeof saved === "object") {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setSchedule(saved as HorarioSemanal);
+        }
+        toast.success("Horarios actualizados");
+        router.refresh();
+      } else if (state.message) {
+        toast.error(state.message);
       }
-      toast.success("Horarios actualizados");
-      router.refresh();
-    } else if (!isPending && !state.success && state.message) {
-      toast.error(state.message);
     }
-  }, [isPending, state, router]);
+    wasPendingRef.current = isPending;
+    // Explicit deps: the effect reads `state.success`, `state.message`,
+    // and `state.data?.value` — listing each field (instead of the full
+    // state object) makes the intent clearer and avoids re-runs on
+    // unrelated state-shape changes.
+  }, [isPending, state.success, state.message, state.data?.value, router]);
 
   // Pre-serialize the schedule to JSON so the hidden input carries a string
   // (matching the gymFieldSchema horarioJson variant — which receives the

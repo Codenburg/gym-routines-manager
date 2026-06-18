@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, type ReactNode } from "react";
+import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Building2, Instagram, MapPin, MessageCircle, type LucideIcon } from "lucide-react";
@@ -94,6 +94,12 @@ interface FieldConfig {
   saveLabel: string;
   /** Optional section header rendered ABOVE the card (for grouped fields). */
   sectionHeader?: { icon: LucideIcon; title: string; description: string };
+  /**
+   * When true, the input is rendered as a controlled component and the
+   * submit button is disabled while the value is empty. Used for fields
+   * where empty is not a valid persisted state (e.g. gym name).
+   */
+  requiredValue?: boolean;
 }
 
 const IDENTITY_CONFIG: FieldConfig = {
@@ -106,6 +112,7 @@ const IDENTITY_CONFIG: FieldConfig = {
   maxLength: 80,
   placeholder: "Ej: Gimnasio Norte",
   saveLabel: "Guardar nombre",
+  requiredValue: true,
 };
 
 const DIRECCION_CONFIG: FieldConfig = {
@@ -190,6 +197,19 @@ interface UseGymFieldFormResult {
   generalError: string | null;
 }
 
+/**
+ * Module-level type guard. The `updateGymField` server action returns
+ * `value: unknown` so the same action can carry both the string variants
+ * (nombre, direccion, mapsEmbedUrl, socialInstagram, socialWhatsapp) and
+ * the structured `horarioJson` variant (which is a `HorarioSemanal`).
+ * The callers below narrow with a discriminant check on `field`, then
+ * use this guard to assert the runtime shape. Without it, every call
+ * site would need a TypeScript-lying `as string` cast.
+ */
+function isStringValue(v: unknown): v is string {
+  return typeof v === "string";
+}
+
 function useGymFieldForm(field: GymField, initialValue: string | null): UseGymFieldFormResult {
   const [state, formAction, isPending] = useActionState<FieldFormState, FormData>(
     updateGymField,
@@ -197,16 +217,12 @@ function useGymFieldForm(field: GymField, initialValue: string | null): UseGymFi
   );
 
   // Server-returned value wins on success — the input resyncs
-  // even after edits in another tab.
-  //
-  // The hook is only used by the 5 string sub-forms; the action's wider
-  // `value: unknown` covers the structured `horarioJson` case which is
-  // owned by `<WeeklyScheduleEditor>`. Narrow with a string assertion
-  // since the discriminant check above guarantees we only reach this
-  // branch for a string-typed field.
+  // even after edits in another tab. The discriminant on `field` plus
+  // the `isStringValue` runtime guard narrow the `unknown` payload to
+  // `string` without a `as` cast at the call site.
   const displayedValue =
-    state.success && state.data?.field === field
-      ? (state.data.value as string)
+    state.success && state.data?.field === field && isStringValue(state.data.value)
+      ? state.data.value
       : initialValue ?? "";
 
   const fieldError = state.errors?.[field]?.[0] ?? null;
@@ -239,19 +255,51 @@ function FieldSubForm({ config, initialValue }: FieldSubFormProps) {
     useGymFieldForm(config.field, initialValue);
 
   const router = useRouter();
+  const wasPendingRef = useRef(false);
 
-  // The server action already calls revalidatePath('/admin') and
-  // revalidateTag('gym-config') — but in the SAME session, those
-  // invalidations do not auto-re-render the current page. router.refresh()
-  // forces a fresh RSC render of the surrounding /admin layout (sidebar,
-  // etc.) so the saved value is visible across the panel immediately,
-  // matching the project pattern in ejercicio-list.tsx.
+  // For fields that require a non-empty value (currently: nombre), mirror
+  // the input in local state so the submit button can be disabled while
+  // the field is blank. The server-returned value still wins on a
+  // successful save — the useEffect below resyncs after each save.
+  // Same `useState` + sync pattern as WeeklyScheduleEditor.
+  const isRequired = !!config.requiredValue;
+  const [controlledValue, setControlledValue] = useState<string>(displayedValue);
   useEffect(() => {
-    if (!isPending && state.success) {
-      toast.success("Configuración actualizada");
-      router.refresh();
+    if (
+      state.success &&
+      state.data?.field === config.field &&
+      isStringValue(state.data.value)
+    ) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setControlledValue(state.data.value);
     }
-  }, [isPending, state.success, router]);
+  }, [state, config.field]);
+
+  const isValueEmpty = isRequired && controlledValue.trim() === "";
+  const onInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setControlledValue(e.target.value);
+  };
+
+  // Only fire the toast on the pending → done transition. The previous
+  // pattern (chequear `state.success` en cada render) leaked toasts across
+  // router.refresh / re-mount / cache revalidation — every sub-form that
+  // had `state.success` lingering from a prior save would toast again on
+  // re-hydration. There are 5 of these in the same tree, hence the
+  // "se guardó todo de nuevo" feeling on navigation.
+  useEffect(() => {
+    if (wasPendingRef.current && !isPending) {
+      if (state.success) {
+        toast.success("Configuración actualizada");
+        router.refresh();
+      } else if (state.message) {
+        toast.error(state.message);
+      }
+    }
+    wasPendingRef.current = isPending;
+    // Explicit deps: the effect only reads `state.success` / `state.message`,
+    // not the full state object. Listing the exact fields we read makes the
+    // intent clearer and avoids re-runs on unrelated state-shape changes.
+  }, [isPending, state.success, state.message, router]);
 
   const Icon = config.icon;
   const input = (
@@ -260,7 +308,13 @@ function FieldSubForm({ config, initialValue }: FieldSubFormProps) {
       label={config.inputLabel}
       error={fieldError ?? undefined}
     >
-      {renderInput(config, displayedValue, isPending)}
+      {renderInput(
+        config,
+        displayedValue,
+        isPending,
+        isRequired ? controlledValue : undefined,
+        isRequired ? onInputChange : undefined,
+      )}
     </AdminFormField>
   );
 
@@ -291,7 +345,7 @@ function FieldSubForm({ config, initialValue }: FieldSubFormProps) {
           <div className="flex justify-end">
             <button
               type="submit"
-              disabled={isPending}
+              disabled={isPending || isValueEmpty}
               className="px-4 py-2 bg-primary hover:opacity-90 disabled:opacity-50 text-primary-foreground rounded-lg transition-colors flex items-center gap-2"
             >
               {isPending ? (
@@ -310,14 +364,25 @@ function FieldSubForm({ config, initialValue }: FieldSubFormProps) {
   );
 }
 
-function renderInput(config: FieldConfig, displayedValue: string, isPending: boolean): ReactNode {
+function renderInput(
+  config: FieldConfig,
+  displayedValue: string,
+  isPending: boolean,
+  controlledValue?: string,
+  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void,
+): ReactNode {
+  // For required fields the input is controlled (so the submit button
+  // can react to the current value). For the rest it stays uncontrolled
+  // with the original `key={displayedValue}` re-mount pattern.
+  //
   // NOTE: `key` MUST be passed directly to JSX, not via spread.
   // React 19+ throws a console error if `key` is in a spread object.
-  // We re-mount when server value changes so the input resyncs
-  // (controlled vs uncontrolled dance avoided).
+  const isControlled = controlledValue !== undefined && onChange !== undefined;
   const common = {
     name: "value",
-    defaultValue: displayedValue,
+    ...(isControlled
+      ? { value: controlledValue, onChange }
+      : { defaultValue: displayedValue }),
     maxLength: config.maxLength,
     disabled: isPending,
     placeholder: config.placeholder,
@@ -325,12 +390,18 @@ function renderInput(config: FieldConfig, displayedValue: string, isPending: boo
   } as const;
 
   if (config.inputKind === "textarea") {
-    return <textarea key={displayedValue} {...common} rows={3} className={`${INPUT_CLASS} resize-y`} />;
+    return isControlled
+      ? <textarea {...common} rows={3} className={`${INPUT_CLASS} resize-y`} />
+      : <textarea key={displayedValue} {...common} rows={3} className={`${INPUT_CLASS} resize-y`} />;
   }
   if (config.inputKind === "url") {
-    return <input key={displayedValue} type="url" {...common} />;
+    return isControlled
+      ? <input {...common} type="url" />
+      : <input key={displayedValue} {...common} type="url" />;
   }
-  return <input key={displayedValue} type="text" {...common} />;
+  return isControlled
+    ? <input {...common} type="text" />
+    : <input key={displayedValue} {...common} type="text" />;
 }
 
 function SectionHeader({

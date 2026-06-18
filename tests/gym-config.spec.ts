@@ -490,6 +490,60 @@ test.describe('Gym Config — Admin flow', () => {
       { timeout: 15000 }
     );
   });
+
+  test('5.1.6 - no duplicate "Configuración actualizada" toast on re-mount', async ({ page }) => {
+    // Regression for the double-toast bug: the previous useEffect checked
+    // `state.success` on every render, so the toast fired again whenever
+    // the GymConfigManager remounted (sidebar navigation, cache revalidation,
+    // router.refresh from a sibling sub-form). The fix detects the
+    // `pending → done` transition via `useRef`, so the toast must appear
+    // exactly once per save — even after navigating away and back.
+    await loginAsAdmin(page);
+    await page.goto('/admin/config');
+    await expect(page.getByRole('heading', { name: PAGE_TITLE })).toBeVisible({
+      timeout: 10000,
+    });
+
+    // Save a known name — expect one success toast.
+    const nombreInput = page.locator(`${IDENTITY_FORM} input[name="value"]`);
+    await nombreInput.clear();
+    const noToastName = `Gym-NoDoubleToast-${RUN_ID}`;
+    await nombreInput.fill(noToastName);
+    await page.locator(`${IDENTITY_FORM} button[type="submit"]`).click();
+    await expect(nombreInput).toHaveValue(noToastName, { timeout: 10000 });
+
+    // Exactly one toast must appear after the save.
+    const successToast = page.locator('[data-sonner-toast]', {
+      hasText: 'Configuración actualizada',
+    });
+    await expect(successToast).toHaveCount(1, { timeout: 5000 });
+
+    // Wait for it to dismiss (sonner default ~4s, give it 10s headroom)
+    // so the post-navigation count check is unambiguous.
+    await expect(successToast).toHaveCount(0, { timeout: 10000 });
+
+    // Navigate away and back — the bug surfaced specifically on re-mount
+    // because useActionState state is rebuilt with `success: false` on a
+    // fresh component, but the useEffect ran on the re-mount render too,
+    // seeing `success: false` was false on the second check... actually
+    // the bug fired on EVERY render where `state.success` was `true` in
+    // any saved sub-form — navigation rehydrates the page and re-runs
+    // the effect for every sub-form whose last save had succeeded.
+    await page.goto('/admin');
+    await page.goto('/admin/config');
+    await expect(page.getByRole('heading', { name: PAGE_TITLE })).toBeVisible({
+      timeout: 10000,
+    });
+
+    // Give the (hypothetical) bug a chance to fire the toast on re-mount.
+    await page.waitForTimeout(500);
+
+    // The toast must NOT reappear on re-mount.
+    const reAppeared = page.locator('[data-sonner-toast]', {
+      hasText: 'Configuración actualizada',
+    });
+    await expect(reAppeared).toHaveCount(0);
+  });
 });
 
 // ============================================
