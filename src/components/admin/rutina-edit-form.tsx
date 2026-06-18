@@ -641,7 +641,7 @@ export function RutinaEditFormV2({ initialData, onSuccess }: RutinaEditFormProps
         <div className="border-t border-border my-6" />
 
         {/* Submit */}
-        <div className="flex justify-end gap-3 p-4">
+        <div className="flex flex-col sm:flex-row sm:justify-end gap-3 p-4">
           <Button
             type="button"
             variant="outline"

@@ -146,7 +146,7 @@ export function EjercicioList({ diaId, diaNombre, rutinaId, ejercicios }: Ejerci
                     </div>
                   </div>
 
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => setEditingId(editingId === ejercicio.id ? null : ejercicio.id)}
                       className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"

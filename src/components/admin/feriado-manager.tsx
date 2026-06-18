@@ -154,7 +154,7 @@ export function FeriadoManager({ initialFeriados }: FeriadoManagerProps) {
           </div>
         )}
 
-        <div className="flex gap-4 items-end">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3 sm:gap-4">
           <div className="flex-1">
             <AdminFormField variant="default" label="Fecha del feriado">
               <input

@@ -259,7 +259,7 @@ export function RutinasListClient({ rutinas }: RutinasListClientProps) {
         id: "acciones",
         header: "",
         cell: ({ row }) => (
-          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex justify-end gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
             <TableDuplicateButton rutinaId={row.original.id} />
             <Link
               href={`/admin/rutinas/${row.original.id}`}

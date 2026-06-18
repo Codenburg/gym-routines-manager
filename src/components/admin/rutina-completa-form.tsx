@@ -610,7 +610,7 @@ export function RutinaCompletaForm() {
         <div className="border-t border-border my-6" />
 
         {/* Submit */}
-        <div className="flex justify-between gap-3 p-4 border-t border-border">
+        <div className="flex flex-col sm:flex-row sm:justify-between gap-3 p-4 border-t border-border">
           <Button
             type="button"
             variant="outline"
