@@ -17,6 +17,12 @@
  * possible change to fix a real test-isolation bug. It's marked
  * test-only by its location in `tests/utils/`.
  *
+ * The `setGymPrice` function is a similar Prisma direct-access
+ * escape hatch for the `descuento-precio-final` E2E scenario,
+ * which needs a deterministic `gym.price` to assert the
+ * computed final price. It is NOT a test-isolation bug fix but
+ * follows the same singleton pattern.
+ *
  * The prisma client is a singleton (reused across calls) and is
  * disconnected on `closeGymReset()` for graceful teardown.
  */
@@ -46,8 +52,30 @@ export async function resetGymNombre(): Promise<void> {
   } catch (error) {
     // Best-effort. If the DB is unreachable, the test continues —
     // the 5.2.3 isolation issue is a soft signal, not a hard fail.
-     
+      
     console.warn('[gym-reset] Failed to reset gym.nombre:', error);
+  }
+}
+
+/**
+ * Set `gym.price` to a known value. Best-effort — never throws.
+ * Used by the `descuento-precio-final` E2E scenario to assert the
+ * computed final price deterministically. Callers should record the
+ * previous price and restore it in `afterEach` if the existing price
+ * is part of other tests' contract.
+ *
+ * @param price - The new `Gym.price` (clamped to a non-negative
+ *   integer by the DB schema's `Decimal(10, 2)` column).
+ */
+export async function setGymPrice(price: number): Promise<void> {
+  try {
+    const prisma = getPrisma();
+    await prisma.gym.update({
+      where: { id: 'gym' },
+      data: { price },
+    });
+  } catch (error) {
+    console.warn('[gym-reset] Failed to set gym.price:', error);
   }
 }
 

@@ -11,6 +11,7 @@
  *   S2.D.1 - create descuento (happy path)
  *   S2.D.2 - create descuento with porcentaje > 100 (validation error)
  *   S2.D.3 - delete descuento
+ *   S2.D.4 - descuento list item shows computed final price (descuento-precio-final)
  *
  * The 15 new data-testid attributes (8 in promocion-{card,form,manager}
  * + 7 in descuento-duracion-manager) are the test contract — added
@@ -24,6 +25,10 @@
  *     is set via setError (inline error div at the top of the form).
  *   - Delete uses the React `useConfirm` hook → AlertDialog with
  *     "Eliminar" button (NOT a native `confirm()`).
+ *   - `descuento-precio-final` is a NEW testid (descuento-precio-final
+ *     change) added inside the list item. The literal `15%` stays
+ *     adjacent to the number in a separate `<span>` so the existing
+ *     `:has-text("15%")` selectors (lines 67, 267) keep matching.
  *
  * Cleanup: the /api/promociones and /api/descuentos-duracion REST
  * endpoints have NO DELETE route (per helpers.ts comment). The
@@ -38,6 +43,7 @@ import { PromocionAdminPage } from './pages/PromocionAdminPage';
 import { DescuentoAdminPage } from './pages/DescuentoAdminPage';
 import { createPromocionFixture } from './fixtures/promocion.fixture';
 import { createDescuentoFixture } from './fixtures/descuento.fixture';
+import { setGymPrice } from './utils/gym-reset';
 
 test.setTimeout(120_000);
 
@@ -266,5 +272,45 @@ test.describe('Promociones + Descuentos CRUD', () => {
     await expect(
       page.locator('[data-testid="descuento-list-item"]').filter({ hasText: `${fixture.porcentaje}%` })
     ).toHaveCount(0, { timeout: 15_000 });
+  });
+
+  test('S2.D.4 - descuento list item shows computed Precio final', async ({ page }) => {
+    // Deterministic price anchor: 50000 ARS base, 15% off → 50000 * 0.85
+    // = 42500 (after `Intl.NumberFormat` rounds the float noise).
+    // We set the gym price BEFORE the test navigates so the admin
+    // page picks it up on its initial RSC render.
+    await setGymPrice(50000);
+
+    await loginAsAdmin(page);
+    const descuentoPage = new DescuentoAdminPage(page);
+    const fixture = createDescuentoFixture({ meses: 3, porcentaje: 15 });
+
+    await descuentoPage.goto();
+    await descuentoPage.expectVisible();
+
+    await descuentoPage.fillPorcentaje(fixture.porcentaje);
+    await descuentoPage.submitCreate();
+    await descuentoPage.expectInList(fixture.porcentaje);
+
+    // The NEW testid MUST be visible inside the list item, with the
+    // expected formatted ARS string. The expected value mirrors
+    // `formatPriceARS(50000 * (1 - 15/100))`.
+    const item = page
+      .locator('[data-testid="descuento-list-item"]')
+      .filter({ hasText: `${fixture.porcentaje}%` })
+      .first();
+    const precioFinal = item.getByTestId('descuento-precio-final');
+    await expect(precioFinal).toBeVisible({ timeout: 10_000 });
+    // es-AR currency: "$ 42.500" (whitespace may be NBSP — we match
+    // the digits so the assertion is robust to ICU/Node variations).
+    await expect(precioFinal).toContainText('42.500');
+    await expect(precioFinal).toContainText('$');
+
+    // Regression: the existing `:has-text("15%")` selector MUST
+    // continue to match the parent list item (R1 in
+    // openspec/changes/descuento-precio-final/tasks.md).
+    await expect(item).toContainText('15%');
+
+    createdDescuentoKeys.push({ meses: fixture.meses, porcentaje: fixture.porcentaje });
   });
 });
