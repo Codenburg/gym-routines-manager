@@ -154,94 +154,6 @@ test.describe('Public Routine Detail', () => {
 });
 
 // ============================================
-// Public Day Detail Tests
-// ============================================
-
-test.describe('Public Day Detail', () => {
-  async function getFirstDayId(page: Page): Promise<{ rutinaId: string; diaId: string } | null> {
-    const response = await page.request.get('/api/rutinas');
-    const result = await response.json();
-    const rutinas = result.data;
-    
-    if (rutinas.length === 0 || !rutinas[0].dias || rutinas[0].dias.length === 0) {
-      return null;
-    }
-    
-    return {
-      rutinaId: rutinas[0].id,
-      diaId: rutinas[0].dias[0].id
-    };
-  }
-
-  test('9.3.1 - Day detail page loads', async ({ page }) => {
-    const dayData = await getFirstDayId(page);
-    if (!dayData) {
-      test.skip();
-      return;
-    }
-    
-    await page.goto(`/rutinas/${dayData.rutinaId}/dias/${dayData.diaId}`);
-    await page.waitForTimeout(3000);
-    
-    expect(page.url()).toContain('/dias/');
-  });
-
-  test('9.3.2 - Shows exercises list', async ({ page }) => {
-    const dayData = await getFirstDayId(page);
-    if (!dayData) {
-      test.skip();
-      return;
-    }
-    
-    await page.goto(`/rutinas/${dayData.rutinaId}/dias/${dayData.diaId}`);
-    await page.waitForTimeout(3000);
-    
-    // Should show exercises content
-    const content = await page.content();
-    expect(content.length).toBeGreaterThan(0);
-  });
-
-  test('9.3.3 - Shows exercise details (name, series)', async ({ page }) => {
-    const dayData = await getFirstDayId(page);
-    if (!dayData) {
-      test.skip();
-      return;
-    }
-    
-    await page.goto(`/rutinas/${dayData.rutinaId}/dias/${dayData.diaId}`);
-    await page.waitForTimeout(3000);
-    
-    // Should see exercise information
-    const response = await page.request.get(`/api/rutinas/${dayData.rutinaId}/dias/${dayData.diaId}`);
-    const data = await response.json();
-    
-    if (data.ejercicios && data.ejercicios.length > 0) {
-      const content = await page.content();
-      expect(content).toContain(data.ejercicios[0].nombre);
-    }
-  });
-
-  test('9.3.4 - Back button returns to routine', async ({ page }) => {
-    const dayData = await getFirstDayId(page);
-    if (!dayData) {
-      test.skip();
-      return;
-    }
-    
-    await page.goto(`/rutinas/${dayData.rutinaId}/dias/${dayData.diaId}`);
-    await page.waitForTimeout(3000);
-    
-    // Look for back button
-    const backLink = page.locator('a[href*="/rutinas/"]').first();
-    if (await backLink.isVisible()) {
-      await backLink.click();
-      await page.waitForTimeout(2000);
-      expect(page.url()).toContain(`/rutinas/${dayData.rutinaId}`);
-    }
-  });
-});
-
-// ============================================
 // API Tests
 // ============================================
 
@@ -260,34 +172,18 @@ test.describe('Public API Endpoints', () => {
     const listResponse = await page.request.get('/api/rutinas');
     const result = await listResponse.json();
     const rutinas = result.data;
-    
+
     if (rutinas.length > 0) {
       const response = await page.request.get(`/api/rutinas/${rutinas[0].id}`);
       expect(response.status()).toBe(200);
-      
+
       const data = await response.json();
       expect(data).toHaveProperty('nombre');
       expect(data).toHaveProperty('tipo');
     }
   });
 
-  test('9.4.3 - GET /api/rutinas/[id]/dias/[diaId] returns day', async ({ page }) => {
-    // First get a day ID
-    const listResponse = await page.request.get('/api/rutinas');
-    const result = await listResponse.json();
-    const rutinas = result.data;
-    
-    if (rutinas.length > 0 && rutinas[0].dias && rutinas[0].dias.length > 0) {
-      const dia = rutinas[0].dias[0];
-      const response = await page.request.get(`/api/rutinas/${rutinas[0].id}/dias/${dia.id}`);
-      expect(response.status()).toBe(200);
-      
-      const data = await response.json();
-      expect(data).toHaveProperty('nombre');
-    }
-  });
-
-  test('9.4.4 - Invalid routine ID returns 404', async ({ page }) => {
+  test('9.4.3 - Invalid routine ID returns 404', async ({ page }) => {
     const response = await page.request.get('/api/rutinas/invalid-id');
     expect(response.status()).toBe(404);
   });

@@ -75,8 +75,8 @@ export async function createEjercicio(
       select: { rutinaId: true },
     });
 
-    // Revalidate exact path to the day page
-    revalidatePath(`/admin/rutinas/${dia?.rutinaId}/dias/${parsed.data.diaId}`);
+    // Revalidate the routine edit page (days + exercises are rendered inline there)
+    revalidatePath(`/admin/rutinas/${dia?.rutinaId}`);
 
     // Invalidate the rutinas cache tag (getStats subscribes to it
     // and so do getRoutinesPaginated / getTrainerCounts via the
@@ -153,8 +153,8 @@ export async function updateEjercicio(
       },
     });
 
-    // Revalidate exact path to the day page
-    revalidatePath(`/admin/rutinas/${ejercicio.dia.rutinaId}/dias/${ejercicio.diaId}`);
+    // Revalidate the routine edit page (days + exercises are rendered inline there)
+    revalidatePath(`/admin/rutinas/${ejercicio.dia.rutinaId}`);
 
     revalidateTag("rutinas", "max");
 
@@ -209,8 +209,8 @@ export async function deleteEjercicio(
       where: { id },
     });
 
-    // Revalidate exact path to the day page
-    revalidatePath(`/admin/rutinas/${ejercicio.dia.rutinaId}/dias/${ejercicio.diaId}`);
+    // Revalidate the routine edit page (days + exercises are rendered inline there)
+    revalidatePath(`/admin/rutinas/${ejercicio.dia.rutinaId}`);
 
     revalidateTag("rutinas", "max");
 
