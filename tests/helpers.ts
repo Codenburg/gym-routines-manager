@@ -182,6 +182,30 @@ export async function waitForServerAction(
 export const setExpiredCookie = setExpiredCookieFromSecurity;
 
 // ============================================
+// UI helpers — AlertDialog confirm
+// ============================================
+
+/**
+ * Clicks the "Eliminar" button inside the React `AlertDialog` rendered
+ * by the `useConfirm` hook (see `src/hooks/use-confirm.tsx`).
+ *
+ * Playwright's `page.once('dialog', ...)` only fires for NATIVE browser
+ * dialogs (`alert`, `confirm`, `prompt`, `beforeunload`). It does NOT
+ * fire for React-rendered modals/AlertDialogs, so page objects that
+ * delete rows via the UI MUST call this helper AFTER clicking the row's
+ * delete button.
+ *
+ * Relocated from `tests/promociones-descuentos.spec.ts:50-55` so page
+ * objects (which can't import from spec files without a circular
+ * dependency) can use it directly.
+ */
+export async function clickConfirmDelete(page: Page): Promise<void> {
+  const confirmButton = page.getByRole('button', { name: /^Eliminar$/ });
+  await expect(confirmButton).toBeVisible({ timeout: 10_000 });
+  await confirmButton.click();
+}
+
+// ============================================
 // Gym config reset (T3.4 — 5.2.3 isolation fix)
 // ============================================
 

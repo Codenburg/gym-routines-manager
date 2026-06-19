@@ -38,7 +38,7 @@
  */
 
 import { test, expect, type Page } from '@playwright/test';
-import { loginAsAdmin } from './helpers';
+import { loginAsAdmin, clickConfirmDelete } from './helpers';
 import { PromocionAdminPage } from './pages/PromocionAdminPage';
 import { DescuentoAdminPage } from './pages/DescuentoAdminPage';
 import { createPromocionFixture } from './fixtures/promocion.fixture';
@@ -46,13 +46,6 @@ import { createDescuentoFixture } from './fixtures/descuento.fixture';
 import { setGymPrice } from './utils/gym-reset';
 
 test.setTimeout(120_000);
-
-/** Clicks the "Eliminar" button in the React AlertDialog. */
-async function clickConfirmDelete(page: Page): Promise<void> {
-  const confirmButton = page.getByRole('button', { name: /^Eliminar$/ });
-  await expect(confirmButton).toBeVisible({ timeout: 10_000 });
-  await confirmButton.click();
-}
 
 /** Deletes a promocion list item by titulo via the UI. */
 async function deletePromocionByTitulo(page: Page, titulo: string): Promise<void> {

@@ -26,6 +26,7 @@
 
 import { expect, type Locator, type Page } from '@playwright/test';
 import { BasePage } from './base-page';
+import { clickConfirmDelete } from '../helpers';
 
 export class PromocionAdminPage extends BasePage {
   readonly pageHeading: Locator;
@@ -102,12 +103,12 @@ export class PromocionAdminPage extends BasePage {
     await expect(this.listItem(titulo)).toBeVisible({ timeout: 10_000 });
   }
 
-  /** Click delete on a list item by titulo, accept any confirm dialog. */
+  /** Click delete on a list item by titulo, confirm the AlertDialog. */
   async deleteByTitulo(titulo: string): Promise<void> {
     const item = this.listItem(titulo);
-    this.page.once('dialog', (d) => d.accept());
     const deleteButton = item.getByTestId('promocion-delete-button');
     await deleteButton.click();
+    await clickConfirmDelete(this.page);
   }
 
   /** Assert a promocion is no longer visible in the list. */
