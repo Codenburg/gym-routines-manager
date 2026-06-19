@@ -30,6 +30,7 @@
 
 import { expect, type Locator, type Page } from '@playwright/test';
 import { BasePage } from './base-page';
+import { clickConfirmDelete } from '../helpers';
 
 export class DescuentoAdminPage extends BasePage {
   readonly pageHeading: Locator;
@@ -78,12 +79,12 @@ export class DescuentoAdminPage extends BasePage {
     await expect(this.listItem(String(porcentaje))).toBeVisible({ timeout: 10_000 });
   }
 
-  /** Click delete on a list item by porcentaje, accept any confirm dialog. */
+  /** Click delete on a list item by porcentaje, confirm the AlertDialog. */
   async deleteByPorcentaje(porcentaje: number): Promise<void> {
     const item = this.listItem(String(porcentaje));
-    this.page.once('dialog', (d) => d.accept());
     const deleteButton = item.getByTestId('descuento-delete-button');
     await deleteButton.click();
+    await clickConfirmDelete(this.page);
   }
 
   /**
