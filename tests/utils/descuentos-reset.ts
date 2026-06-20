@@ -26,12 +26,18 @@
  */
 
 import { PrismaClient } from '../../generated/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import pg from 'pg';
 
 let prismaSingleton: PrismaClient | null = null;
 
 function getPrisma(): PrismaClient {
   if (!prismaSingleton) {
-    prismaSingleton = new PrismaClient();
+    // Prisma 7 requires either an adapter or accelerateUrl.
+    // Mirror the project's production pattern (`src/lib/prisma.ts`).
+    const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+    const adapter = new PrismaPg(pool);
+    prismaSingleton = new PrismaClient({ adapter });
   }
   return prismaSingleton;
 }
@@ -56,7 +62,8 @@ const SEED_DESCUENTOS = [
 export async function resetDescuentos(): Promise<void> {
   try {
     const prisma = getPrisma();
-    await prisma.descuentoDuracion.deleteMany({});
+    // Prisma 7 requires explicit `where: {}` for deleteMany.
+    await prisma.descuentoDuracion.deleteMany({ where: {} });
     for (const seed of SEED_DESCUENTOS) {
       await prisma.descuentoDuracion.create({
         data: { ...seed, gymId: 'gym' },
