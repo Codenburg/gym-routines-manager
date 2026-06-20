@@ -1,4 +1,4 @@
-import { cacheTag, cacheLife } from "next/cache";
+import { unstable_cache } from "next/cache";
 import prisma from "@/lib/prisma";
 import { DataResult, ok, err } from "@/lib/data-result";
 
@@ -130,12 +130,13 @@ async function fetchRutinasListFromDb(ownerId?: string): Promise<Rutina[]> {
  * `ownerId` is part of the function signature so it becomes part of
  * the auto-generated cache key (different ownerId = different cache entry).
  */
+// Migrated from `use cache` to `unstable_cache` — see openspec/changes/fix-use-cache-prisma-rsc-errors/.
 export async function getRutinas(ownerId?: string) {
-  "use cache";
-  cacheTag(RUTINAS_CACHE_TAG);
-  cacheLife({ revalidate: 60 });
-
-  return fetchRutinasListFromDb(ownerId);
+  return unstable_cache(
+    async (oid: string | undefined) => fetchRutinasListFromDb(oid),
+    ["rutinas-list"],
+    { tags: [RUTINAS_CACHE_TAG], revalidate: 60 }
+  )(ownerId);
 }
 
 // Cache tag for manual revalidation
@@ -210,11 +211,11 @@ async function fetchRutinaById(id: string): Promise<RutinaDetail | null> {
 }
 
 export async function getCachedRutinaById(id: string): Promise<RutinaDetail | null> {
-  "use cache";
-  cacheTag(RUTINAS_CACHE_TAG);
-  cacheLife({ revalidate: 60 });
-
-  return fetchRutinaById(id);
+  return unstable_cache(
+    async (rutinaId: string) => fetchRutinaById(rutinaId),
+    ["rutina-by-id"],
+    { tags: [RUTINAS_CACHE_TAG], revalidate: 60 }
+  )(id);
 }
 
 /**
@@ -243,16 +244,19 @@ export interface RutinasStats {
  * this is the reader that the v0.19.0 audit called out for its
  * dependency on a shared tag with the other rutinas readers.
  */
+// Migrated from `use cache` to `unstable_cache` — see openspec/changes/fix-use-cache-prisma-rsc-errors/.
 export async function getStats(): Promise<RutinasStats> {
-  "use cache";
-  cacheTag(RUTINAS_CACHE_TAG);
-  cacheLife({ revalidate: 60 });
+  return unstable_cache(
+    async () => {
+      const [rutinasCount, diasCount, ejerciciosCount] = await Promise.all([
+        prisma.rutina.count(),
+        prisma.dia.count(),
+        prisma.ejercicio.count(),
+      ]);
 
-  const [rutinasCount, diasCount, ejerciciosCount] = await Promise.all([
-    prisma.rutina.count(),
-    prisma.dia.count(),
-    prisma.ejercicio.count(),
-  ]);
-
-  return { rutinasCount, diasCount, ejerciciosCount };
+      return { rutinasCount, diasCount, ejerciciosCount };
+    },
+    ["rutinas-stats"],
+    { tags: [RUTINAS_CACHE_TAG], revalidate: 60 }
+  )();
 }
