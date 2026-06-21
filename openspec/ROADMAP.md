@@ -2,25 +2,7 @@
 
 _Last updated: 2026-06-21_ | _Version: 1.0.2_
 
----
-
-## ✅ Completado
-
-Release history resumido (1 línea por release, detalles completos en `openspec/CHANGELOG.md`). Items pre-v0.6 y tech stack están en CHANGELOG/README — no se duplican acá per la convención docs-guardian v1.2 (ROADMAP pending-only, CHANGELOG es audit trail).
-
-- [x] **v1.0.2** — Excluir 1 mes de MESES_OPTIONS (2026-06-21) — `35603fd`
-- [x] **v1.0.1** — Post-merge bugs 1 y 2 del descuento-precio-final (2026-06-21) — `73a2932` + `412e3a7`
-- [x] **v1.0.0** — Public site con `Precio final` calculado en admin y `/informacion` para descuentos por duración — `cfd2ba4` + `203c4bf` + `266f7eb`
-- [x] **v0.20.x** — Migración `unstable_cache` → `'use cache'`; fix 14 TS errors + `ignoreBuildErrors` removido; E2E coverage de flujos críticos; GGA pre-commit hook con diff-only
-- [x] **v0.18.0** — Page loading overhaul: `Skeleton` primitive + 11 page-shaped skeletons; 4 cached readers nuevos con `unstable_cache` + `revalidateTag`
-- [x] **v0.17.0** — Horario estructurado (form por día, 7 day cards Lun-Dom) + render app-controlled; Zod-validated `HorarioSemanal` + 15 unit tests
-- [x] **v0.16.0** — Configuración de gimnasio desde admin (nombre, horarios, dirección, redes, precio); fallback chain `DB → env var → "Gimnasio"`
-- [x] **v0.15.1** — Notificación feriados throttle 5min; home caching + Suspense; proxy middleware (publicPaths); webpack → Turbopack
-- [x] **v0.14.0** — Trainer manager: dialog-based UI para create/edit
-- [x] **v0.13.0** — Sistema de roles ADMIN/TRAINER/USER; trainer CRUD con soft-delete
-- [x] **v0.10.0–v0.10.5** — Admin promociones refactor (acciones atómicas); errores en español; fix jump del Select
-- [x] **v0.7.0–v0.8.0** — Sidebar admin: nav con drawer mobile + footer con user dropdown / theme toggle / logout
-- [x] **v0.6.0** — Promociones y descuentos por duración (modelo + admin CRUD)
+> Per docs-guardian v1.2 convention: ROADMAP is **pending-only**. Completed releases live in [`openspec/CHANGELOG.md`](./CHANGELOG.md) as the audit trail (not duplicated here).
 
 ---
 
