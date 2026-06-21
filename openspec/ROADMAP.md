@@ -38,13 +38,16 @@ _Last updated: 2026-06-21_ | _Version: 1.0.2_
 
   **Slices estimados**: 6-8 slices (rename → schema → tenant resolution → auth → cache → UI selector → branding → tests → billing opcional).
 
+- [ ] **Vaciar campos opcionales de gym config** — los 4 sub-forms opcionales del admin (`Dirección`, `Mapa`, `Instagram`, `WhatsApp`) aceptan string vacío en server pero la UI no expone atajo. Agrega botón "Vaciar" al lado de "Guardar X". UX: ícono `Trash2`, `text-muted-foreground hover:text-destructive`, `disabled` cuando ya vacío, sin dialog de confirmación (el "Guardar" posterior ES la confirmación), tooltip `title="Vaciar campo"`. Pendiente: SDD cycle `/sdd-new clear-gym-fields`. (Movido desde §Features post-1.0 por el user 2026-06-21 — promovido a **Alta Prioridad**.)
+
 - [ ] Documentación de API (MDX-based)
 
 ### Media Prioridad
+- [ ] **Reglas del gym** — el admin configura reglas cortas del gym desde un item nuevo en el sidebar, los usuarios las ven en `/informacion`. Storage: nuevo modelo `Rule` o campo `reglas: string[]` en `Gym` (a resolver en proposal). UI: list editor con cards o textarea. Constraint: cap por regla (60-80 chars), counter, maxlength. Pendiente: SDD cycle `/sdd-new reglas-gym`. (Movido desde §Features post-1.0 por el user 2026-06-21.)
 - [ ] Generación de PDF por rutina (@react-pdf/renderer)
 - [ ] Cache warming cron para SEO
-- [ ] **`GGA-FOLLOWUP-4`** — pre-existing E2E flakiness on `5.1.1` y `5.1.4` en `gym-config.spec.ts`. Root cause: `fullyParallel: true` + timing pollution on `saveField` server actions. Fix sugerido: `retries: 1` en Playwright config. (Descubierto durante Recomendación 2 del 1.0 prep.)
-- [ ] **`GGA-FOLLOWUP-5`** — E2E test execution tarda 5-8 minutos en este shell environment. Pre-starting dev server con `pnpm dev` en background funciona. (Descubierto durante Recomendación 2 del 1.0 prep.)
+- [ ] **E2E flakiness on `gym-config.spec.ts:5.1.1/5.1.4`** — pre-existing flakiness. Root cause: `fullyParallel: true` + timing pollution on `saveField` server actions. Fix sugerido: `retries: 1` en Playwright config. (Descubierto durante Recomendación 2 del 1.0 prep.)
+- [ ] **E2E test execution slow in shell environment** — E2E tests tardan 5-8 minutos en este shell environment. Pre-starting dev server con `pnpm dev` en background funciona. (Descubierto durante Recomendación 2 del 1.0 prep.)
 - [ ] **`cleanTestData` partial** — solo `/api/feriados` tiene DELETE; otras APIs usan UI cleanup. (Descubierto durante Recomendación 3 del 1.0 prep.)
 - [ ] **3 page-object dead locators** — `FeriadoAdminPage.addButton/errorMessage/deleteByFecha`, `DescuentoAdminPage.maxMesesInput`, `TrainerAdminPage.softDeleteByDni`. Harmless, unused by specs; future cleanup. (Descubierto durante Recomendación 3 del 1.0 prep.)
 - [ ] **Git index corruption recurrente** — `git fsck` reporta missing blobs en `openspec/changes/<new>/*` después de cada cambio nuevo. Workaround actual: `git update-index --force-remove` + re-add. Root cause probable en `.engram/config.json` o interacción con GGA hook. Investigar y resolver de raíz (v0.17.0 follow-up)
@@ -78,78 +81,7 @@ _Last updated: 2026-06-21_ | _Version: 1.0.2_
 - [ ] i18n (multi-idioma)
 - [ ] PWA support (offline PDF access)
 - [ ] **Pre-existing lint issues (460 errors, 730 warnings)** — incluye `as any` en `revalidateTag`, `console.error` en data layer, `z.coerce.number().min(1).min(1000)` chain en `priceSchema`. Cleanup en change aparte. Parcialmente RESUELTO en tech debt batch (GGA-FOLLOWUP-2, 21 `as any` casts en `revalidateTag` removidos, queda el resto).
-- [ ] **Commit duplicado `cfb79f0`** en este mismo change (pathspec misinterpreted en `git commit -- openspec/ROADMAP.md`). Cosmético, ya compensado por `ce3d7e8`. Limpiar con `git rebase -i 010fd5e` antes del push si querés (v0.18.0 follow-up)
 - [ ] **Optimización de rendimiento avanzada** (lazy loading, code splitting) — deferred desde §Deferred (1 item, merge con §Baja para reducir noise)
-
----
-
-## 🆕 Features post-1.0 (v1.1+ candidates)
-
-Funcionalidades nuevas pensadas para después del release 1.0. Cada entrada arranca con su propio SDD cycle (`/sdd-new <feature>`) — la entrada de roadmap captura la idea inicial y las preguntas abiertas a resolver en la fase de proposal.
-
-### Reglas del gym (post-1.0)
-
-El admin configura reglas cortas del gym desde un item nuevo en el sidebar, y los usuarios las ven reflejadas en la página pública `/informacion`. Caso de uso típico: "Mantener la higiene", "Traer toalla", "Respetar los turnos".
-
-**Scope inicial (idea del usuario)**:
-- Sidebar admin gana un item "Reglas" (nueva entrada de nav en `admin-sidebar.tsx`).
-- Nueva vista admin (o sección dentro de `/admin/config`) con editor para crear / editar / borrar reglas.
-- Las reglas se persisten en DB y se invalidan vía `revalidateTag` (mismo patrón que los otros campos de gym config).
-- `/informacion` renderiza las reglas en una nueva sección visible para usuarios no autenticados.
-- **Constraint fuerte**: reglas concisas. Tope por regla + UI que limite la verbosidad (counter, maxlength, etc).
-
-**Pendiente**: necesita SDD cycle (`/sdd-new reglas-gym`) — proposal + design + tasks + apply + verify + archive.
-
-**Open questions** (a resolver en la fase de proposal):
-- [ ] **Storage shape**: ¿nuevo modelo `Rule` (`id`, `gymId`, `position`, `text`, `createdAt`, `updatedAt`) o campo `reglas: string[]` en el modelo `Gym` singleton (similar a `horarioJson`)?
-- [ ] **UI admin**: ¿list editor con cards (add / remove), o textarea con una regla por línea (más simple, menos código)?
-- [ ] **Reordering**: ¿drag-and-drop como las rutinas, o sin orden definido (orden de creación)?
-- [ ] **Cap por regla**: ¿60-80 chars? ¿Y cap total (ej: 10 reglas max)?
-- [ ] **Visibilidad por rol**: ¿TRAINER puede ver/editar, o solo ADMIN?
-- [ ] **Empty state en `/informacion`**: ¿ocultar la sección si no hay reglas, o mostrar "Sin reglas configuradas"?
-- [ ] **Cache tag**: `gym-config` (consistente con otros campos) o tag nuevo `gym-rules`?
-- [ ] **Locación del editor**: ¿dentro de `/admin/config` (siguiendo el patrón del `GymConfigManager` actual) o como página aparte `/admin/reglas`?
-
-**Severidad**: Media. Feature de valor para usuarios, no bloquea 1.0.
-
-**Slices estimados**: 1-2 (DB + admin form + public render; los tests E2E se pueden agregar a un slice aparte si el tamaño lo justifica).
-
-### Vaciar campos opcionales de gym config (post-1.0)
-
-Los 4 sub-forms opcionales del admin (`Dirección`, `Mapa` Google Maps embed, `Instagram`, `WhatsApp`) ya aceptan string vacío en el server (Zod schema), pero la UI no expone un atajo para borrarlos — el admin tiene que seleccionar el texto manualmente y guardar. Esta feature agrega un botón claro de "Vaciar" para esos 4 campos.
-
-**Scope inicial (idea del usuario)**:
-- 4 sub-forms del `GymConfigManager` ganan un botón de "Vaciar" al lado del "Guardar X" actual.
-- El botón aparece solo cuando el campo tiene valor (no cuando ya está vacío).
-- Click → limpia el input + requiere "Guardar" explícito posterior (no auto-save).
-- Patrón visual: a refinar en SDD (ver recomendación abajo + open questions).
-
-**Recomendación UX propuesta** (a confirmar en SDD):
-- Ícono `Trash2` de lucide-react, a la izquierda del "Guardar X" actual.
-- Estilo `text-muted-foreground hover:text-destructive` — affordance correcto sin gritar.
-- `disabled` cuando el campo ya está vacío (no se puede vaciar lo vacío).
-- Sin dialog de confirmación — el "Guardar" posterior ES la confirmación.
-- Tooltip `title="Vaciar campo"` para accesibilidad.
-
-**Pendiente**: necesita SDD cycle (`/sdd-new clear-gym-fields`) — proposal + design + tasks + apply + verify + archive.
-
-**Open questions** (a resolver en la fase de proposal):
-- [ ] **UX pattern final**: ¿trash icon (recomendado), texto "Limpiar", o "X" adentro del input (clearable input)? Asumir trash icon salvo que se discuta.
-- [ ] **Confirmación**: ¿sin dialog (recomendado, "Guardar" es la confirmación), o dialog "Estás seguro?" para los 4 campos?
-- [ ] **Aplica también a `nombre`**: NO (es required). El `requiredValue` flag en `FieldConfig` ya excluye al nombre. Confirmar que esto se respeta.
-- [ ] **Implementación**: ¿agregar flag `clearable?: boolean` a `FieldConfig` (consistente con el flag `requiredValue` existente), o un componente nuevo?
-- [ ] **Server side**: ¿`updateGymField` ya soporta vacío para estos 4? Sí (Zod schema lo permite). El cambio es puramente UI, no toca server actions.
-- [ ] **Tests E2E**: ¿agregar test que verifique que el botón "Vaciar" aparece solo con valor, que limpia el input, y que el "Guardar" posterior persiste el vacío? (recomendado: sí, 1 test por sub-form es excesivo — 1 test genérico alcanza).
-
-**Severidad**: Baja-Media. Mejora UX pura, no toca datos ni server.
-
-**Slices estimados**: 1 (toca 1 archivo principal: `GymConfigManager.tsx` + los 4 `FieldConfig`; sin server action ni schema ni migración). Tests: 1 E2E nuevo en `gym-config.spec.ts`.
-
----
-
-## 🎯 Sugerencias para 1.0 prep
-
-> ⚠️ **Sección archiveada en v0.20.1** (las 4 recomendaciones completadas en el bloque 1.0 prep). Los follow-ups descubiertos se movieron a ⏳ Pendiente (Media/Baja según severidad). Ver `openspec/changes/archive/` para los detalles de cada SDD cycle cerrado.
 
 ---
 
