@@ -308,8 +308,10 @@ export type PromocionFormState = FormState<any>;
 // DescuentoDuracion Schemas
 // ======================
 
-// meses is any integer in [1, 12] — matches the 12-option UI dropdown (MESES_OPTIONS)
-export const mesesEnum = z.number().int().min(1).max(12);
+// meses is any integer in [2, 12] — matches the 11-option UI dropdown (MESES_OPTIONS)
+// 1 mes excluded: 1-month discount is semantically contradictory (it would just be
+// the first installment, not a duration-based discount).
+export const mesesEnum = z.number().int().min(2).max(12);
 
 export const createDescuentoDuracionSchema = z.object({
   meses: mesesEnum,
