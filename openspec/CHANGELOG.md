@@ -90,18 +90,6 @@ The first stable release of the project, now rebranded as **gymflow** (formerly 
 
 ---
 
-## [0.11.1] - 2026-04-15
-
-### Fixed
-- **Trainer counts multi-select fix** — `3fd1d9e fix(home): separate where clause for trainer counts to enable multi-select on home page filters`. Pre-existente de v0.11.0, where clause unificado entre `findMany` y `groupBy` causaba que solo 1 trainer se contara cuando varios estaban seleccionados.
-
-### Notes
-- This is a **PATCH** bump per semver (0.11.0 → 0.11.1). Cambio de 1 línea, hotfix de comportamiento de UI en home.
-
----
-
----
-
 ## [0.20.0] - 2026-06-12
 
 ### Changed
@@ -340,6 +328,18 @@ The remaining 1.0 prep items are:
 ### Changed
 - Replace getFilteredRutinas (fetch all + in-memory filter) with getRoutinesPaginated service
 - Delete extractTrainers helper
+
+---
+
+---
+
+## [0.11.1] - 2026-04-15
+
+### Fixed
+- **Trainer counts multi-select fix** — `3fd1d9e fix(home): separate where clause for trainer counts to enable multi-select on home page filters`. Pre-existente de v0.11.0, where clause unificado entre `findMany` y `groupBy` causaba que solo 1 trainer se contara cuando varios estaban seleccionados.
+
+### Notes
+- This is a **PATCH** bump per semver (0.11.0 → 0.11.1). Cambio de 1 línea, hotfix de comportamiento de UI en home.
 
 ---
 
