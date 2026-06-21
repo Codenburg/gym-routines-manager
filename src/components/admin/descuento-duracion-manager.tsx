@@ -384,7 +384,9 @@ export function DescuentoDuracionManager({
                         {initialGymPrice === null
                           ? "Sin precio configurado"
                           : formatPriceARS(
-                              initialGymPrice * (1 - descuento.porcentaje / 100)
+                              initialGymPrice *
+                                (1 - descuento.porcentaje / 100) *
+                                descuento.meses
                             )}
                       </span>
                     </p>

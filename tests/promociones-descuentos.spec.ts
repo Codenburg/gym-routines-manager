@@ -17,6 +17,13 @@
  * + 7 in descuento-duracion-manager) are the test contract — added
  * in T2.1, consumed here.
  *
+ * S2.D.4 (2026-06-21 update — fix-bugs-precio-final-y-zod-meses):
+ *   The expected "Precio final" value now reflects the TOTAL upfront
+ *   cost (base × (1 - pct/100) × meses), not the monthly price. The
+ *   expected text is computed dynamically from `fixture.meses` via
+ *   the same `formatPriceARS` helper the component uses, so the test
+ *   stays robust to the random `meses` selection.
+ *
  * Notes on the component behavior (read from source):
  *   - PromocionForm uses react-hook-form + zod. Submitting an invalid
  *     form shows inline field errors via aria-invalid + <p> with
@@ -45,6 +52,7 @@ import { createPromocionFixture } from './fixtures/promocion.fixture';
 import { createDescuentoFixture } from './fixtures/descuento.fixture';
 import { setGymPrice } from './utils/gym-reset';
 import { resetDescuentos, closeDescuentosReset } from './utils/descuentos-reset';
+import { formatPriceARS } from '@/lib/format';
 
 test.setTimeout(120_000);
 
@@ -294,10 +302,15 @@ test.describe('Promociones + Descuentos CRUD', () => {
   });
 
   test('S2.D.4 - descuento list item shows computed Precio final', async ({ page }) => {
-    // Deterministic price anchor: 50000 ARS base, 15% off → 50000 * 0.85
-    // = 42500 (after `Intl.NumberFormat` rounds the float noise).
-    // We set the gym price BEFORE the test navigates so the admin
-    // page picks it up on its initial RSC render.
+    // Deterministic price anchor: 50000 ARS base, 15% off. We set the
+    // gym price BEFORE the test navigates so the admin page picks it
+    // up on its initial RSC render.
+    //
+    // The displayed "Precio final" is the TOTAL upfront cost for the
+    // full duration (base × (1 - 15/100) × meses), NOT the monthly
+    // price. Because the fixture picks `meses` randomly from 1-12,
+    // we compute the expected text dynamically from `fixture.meses`
+    // via the same `formatPriceARS` helper the component uses.
     await setGymPrice(50000);
 
     await loginAsAdmin(page);
@@ -312,18 +325,16 @@ test.describe('Promociones + Descuentos CRUD', () => {
     await descuentoPage.expectInList(fixture.porcentaje);
 
     // The NEW testid MUST be visible inside the list item, with the
-    // expected formatted ARS string. The expected value mirrors
-    // `formatPriceARS(50000 * (1 - 15/100))`.
+    // expected formatted ARS string for the total upfront cost.
     const item = page
       .locator('[data-testid="descuento-list-item"]')
       .filter({ hasText: `${fixture.porcentaje}%` })
       .first();
     const precioFinal = item.getByTestId('descuento-precio-final');
     await expect(precioFinal).toBeVisible({ timeout: 10_000 });
-    // es-AR currency: "$ 42.500" (whitespace may be NBSP — we match
-    // the digits so the assertion is robust to ICU/Node variations).
-    await expect(precioFinal).toContainText('42.500');
-    await expect(precioFinal).toContainText('$');
+    await expect(precioFinal).toHaveText(
+      formatPriceARS(50000 * (1 - 15 / 100) * fixture.meses)
+    );
 
     // Regression: the existing `:has-text("15%")` selector MUST
     // continue to match the parent list item (R1 in

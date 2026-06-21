@@ -7,6 +7,7 @@ _Last updated: 2026-06-18_ | _Version: 1.0.0_
 ## ✅ Completado
 
 ### Funcionalidades
+- [x] **v1.0.2** — Post-merge bugs 1 y 2 del descuento-precio-final (2026-06-21) — fix Zod schema meses 1-12 + fix Precio final a total upfront cost (base × (1 - pct/100) × meses) — `TBD` + `TBD`
 - [x] **v0.6.0** — Promociones y descuentos por duración (modelo + admin CRUD)
 - [x] **v0.7.0–v0.8.0** — Sidebar admin: nav con drawer mobile + footer con user dropdown / theme toggle / logout
 - [x] **v0.10.0–v0.10.5** — Admin promociones refactor (acciones atómicas); borde izquierdo verde, jerarquía de título, badge de precio; errores de validación en español; fix jump del Select en CreateMode/EditMode
@@ -84,30 +85,6 @@ _Last updated: 2026-06-18_ | _Version: 1.0.0_
 
   **Slices estimados**: 6-8 slices (rename → schema → tenant resolution → auth → cache → UI selector → branding → tests → billing opcional).
 
-- [ ] **Post-merge bugs detectados en testeo manual (2026-06-19)** — 2 bugs encontrados por el user al testear `descuento-precio-final` + `MESES_OPTIONS` expansion en producción:
-
-  **Bug 1: "Precio final" muestra precio mensual, no total.**
-  - **Síntoma**: el precio final calculado es `precio_base × (1 - porcentaje/100)` (precio de UN mes con descuento). El user esperaba el TOTAL de toda la duración: `precio_base × (1 - porcentaje/100) × meses`.
-  - **Razón del user**: "el descuento por duración es pagar todos los meses de una" → el precio que ve el cliente es el total a pagar upfront.
-  - **Ejemplo**: base $50.000, 15% off, 3 meses → actual muestra $42.500 (mensual), debería mostrar $127.500 (3 × $42.500).
-  - **Archivos a cambiar**:
-    1. `src/components/admin/descuento-duracion-manager.tsx:373` (aprox) — el span con `data-testid="descuento-precio-final"`. Cambiar el cálculo para multiplicar por `descuento.meses`.
-    2. `src/components/informacion/DurationDiscountsSection.tsx` — la 3ra columna "Precio final". Mismo cambio.
-  - **Spec update necesario**: `descuento-precio-final/specs/admin-panel/spec.md` y `specs/gym-config/spec.md` deben cambiar la fórmula. El test S2.D.4 (esperaba "42.500") también necesita actualizarse al nuevo valor (127.500) o parametrizarse con el `meses` random.
-  - **Severidad**: Media. Lógica de producto, no es un typo. Requiere decisión de scope (cambiar la feature completa) o reversión.
-
-  **Bug 2: server-side Zod validation rechaza meses ≠ {3,6,9,12}.**
-  - **Síntoma**: el form tiene los 12 meses en el `<select>` (gracias a MESES_OPTIONS expansion), pero al submitir sale un toast "invalid input" para meses 1, 2, 4, 5, 7, 8, 10, 11.
-  - **Root cause**: `src/lib/schemas.ts` define `mesesEnum = z.union([z.literal(3), z.literal(6), z.literal(9), z.literal(12)])` y `createDescuentoDuracionSchema = z.object({ meses: mesesEnum, ... })`. El schema del server no se actualizó junto con la expansion del UI.
-  - **Fix** (trivial, 1 línea): cambiar `mesesEnum` a `z.union([z.literal(1), z.literal(2), ..., z.literal(12)])` o mejor `z.number().int().min(1).max(12)`. Aplicar el mismo fix a `updateDescuentoDuracionSchema` (que es el partial del create).
-  - **Severidad**: Alta. La expansion de MESES_OPTIONS está rota en producción por esto. Sin este fix, el feature no funciona.
-  - **Pendiente**: este fix bloquea el uso real de la feature (los gyms no pueden ofrecer descuentos para 1, 2, 4, etc. meses aunque el UI lo permita).
-
-  **Tareas agrupadas** (sugiero un solo change chico de fix):
-  1. Fix Zod schema (Bug 2) — 1 línea + test.
-  2. Fix cálculo Precio final (Bug 1) — 2 archivos + spec update.
-  3. Re-correr S2.D.4 con el nuevo cálculo (parametrizar el `meses` random para que el expected value sea correcto).
-  4. Update ROADMAP §Completado con la fecha de merge.
 - [ ] Tests E2E con cobertura completa (Playwright) — Fase 4
 - [ ] Documentación de API (MDX-based)
 

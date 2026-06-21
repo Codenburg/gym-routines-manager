@@ -78,7 +78,9 @@ export function DurationDiscountsSection({
                 >
                   {price === null
                     ? "—"
-                    : formatPriceARS(price * (1 - descuento.porcentaje / 100))}
+                    : formatPriceARS(
+                        price * (1 - descuento.porcentaje / 100) * descuento.meses
+                      )}
                 </TableCell>
               </TableRow>
             ))}
