@@ -308,13 +308,8 @@ export type PromocionFormState = FormState<any>;
 // DescuentoDuracion Schemas
 // ======================
 
-// meses is enum [3, 6, 9, 12]
-export const mesesEnum = z.union([
-  z.literal(3),
-  z.literal(6),
-  z.literal(9),
-  z.literal(12),
-]);
+// meses is any integer in [1, 12] — matches the 12-option UI dropdown (MESES_OPTIONS)
+export const mesesEnum = z.number().int().min(1).max(12);
 
 export const createDescuentoDuracionSchema = z.object({
   meses: mesesEnum,
