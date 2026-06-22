@@ -87,15 +87,15 @@ Para features significativas, usar el workflow SDD:
 
 | Tecnología | Versión |
 |------------|--------|
-| Next.js | 16.1.6 |
-| React | 19.2.3 |
-| TypeScript | 5 |
+| Next.js | 16.2.9 |
+| React | 19.2.7 |
+| TypeScript | 6 |
 | Tailwind CSS | 4 |
-| Prisma | 7.7.0 |
-| Zod | 4.3.6 |
-| Zustand | 5.0.11 |
-| better-auth | 1.5.4 |
-| shadcn | 4.2.0 |
+| Prisma | 7.8.0 |
+| Zod | 4.4.3 |
+| Zustand | 5.0.14 |
+| better-auth | 1.6.20 |
+| shadcn | 4.11.0 |
 | pnpm | 11.2.2 |
 
 ## Git: `safecommit` alias (workaround for `invalid object 100644` errors)

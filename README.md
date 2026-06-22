@@ -6,11 +6,11 @@
 
 v1.0.2
 
-![Next.js 16](https://img.shields.io/badge/Next.js-16.1.6-000?style=flat-square&logo=next.js&logoColor=white)
-![React 19](https://img.shields.io/badge/React-19.2.3-61DAFB?style=flat-square&logo=react&logoColor=black)
+![Next.js 16](https://img.shields.io/badge/Next.js-16.2.9-000?style=flat-square&logo=next.js&logoColor=white)
+![React 19](https://img.shields.io/badge/React-19.2.7-61DAFB?style=flat-square&logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![Tailwind v4](https://img.shields.io/badge/Tailwind-v4-38BDF8?style=flat-square&logo=tailwindcss&logoColor=white)
-![Prisma 7](https://img.shields.io/badge/Prisma-7.7.0-2D3748?style=flat-square&logo=prisma&logoColor=white)
+![Prisma 7](https://img.shields.io/badge/Prisma-7.8.0-2D3748?style=flat-square&logo=prisma&logoColor=white)
 ![PostgreSQL 18](https://img.shields.io/badge/PostgreSQL-18-336791?style=flat-square&logo=postgresql&logoColor=white)
 
 [Features](#-features) · [Stack](#-stack) · [Quick Start](#-quick-start) · [Roadmap](#-roadmap) · [Specs](./openspec/)
@@ -54,7 +54,7 @@ v1.0.2
 
 | Capa            | Tech                                                            |
 |-----------------|-----------------------------------------------------------------|
-| Framework       | Next.js 16.1.6 + React 19.2.3                                   |
+| Framework       | Next.js 16.2.9 + React 19.2.7                                   |
 | Cache           | `'use cache'` + `cacheTag` + `cacheLife` (v0.19.0 migration)    |
 | Estilos         | Tailwind CSS v4 + shadcn/ui                                     |
 | Estado          | Zustand v5                                                      |
