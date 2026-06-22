@@ -17,10 +17,12 @@ interface DiaSectionProps {
   baseName: string;
   diaIndex: number;
   dayNumber: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   control: Control<any>;
   isExpanded: boolean;
   onToggle: () => void;
   onRemove: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errors?: FieldErrors<any>;
   /** Callback to register this day's ejercicios move function with the parent form */
   onRegisterEjerciciosMove?: (moveFn: (from: number, to: number) => void) => void;

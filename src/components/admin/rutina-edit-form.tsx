@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
+import type { Control } from "react-hook-form";
 import { usePersistedForm } from "@/hooks/use-persisted-form";
 import { updateRutinaCompleta } from "@/app/actions/rutinas";
 import { Button } from "@/components/ui/button";
@@ -605,11 +606,12 @@ export function RutinaEditFormV2({ initialData, onSuccess }: RutinaEditFormProps
                     baseName={baseName}
                     diaIndex={index}
                     dayNumber={index + 1}
-                    control={control}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    control={control as Control<any>}
+                    errors={errors as any}
                     isExpanded={expandedDayIds.has(field.id)}
                     onToggle={() => toggleDay(field.id)}
                     onRemove={() => removeDay(field.id, index)}
-                    errors={errors}
                     onRegisterEjerciciosMove={(moveFn) =>
                       handleRegisterEjerciciosMove(index, moveFn)
                     }
