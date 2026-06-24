@@ -10,7 +10,8 @@ import { PageHeader } from "@/components/admin/page-header";
  *
  * Admin-only configuration page for the singleton Gym record.
  * - Unauthenticated: redirected to /admin/login by the parent layout.
- * - TRAINER: redirected to /admin/rutinas (mirrors the trainers page pattern).
+ * - TRAINER: redirected to "/" (REQ-4.1 — gym config is admin-only;
+ *   trainers should land on a neutral home, not another admin section).
  * - USER: redirected to "/" by the parent layout.
  *
  * Reads the current config through `getGymDisplayForServer` (the
@@ -25,9 +26,9 @@ export default async function AdminConfigPage() {
   // auth.api.getSession call within the same render pass.
   const session = await getAdminSession();
 
-  // Admin-only guard — TRAINER is redirected to /admin/rutinas.
+  // Admin-only guard — TRAINER is redirected to "/" (sdd/clear-gym-fields).
   if (!isAdmin(session)) {
-    redirect("/admin/rutinas");
+    redirect("/");
   }
 
   const display = await getGymDisplayForServer();
