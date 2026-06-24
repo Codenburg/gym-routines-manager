@@ -30,12 +30,23 @@
 import 'dotenv/config';
 
 import { PrismaClient } from '../../generated/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import pg from 'pg';
 
 let prismaSingleton: PrismaClient | null = null;
 
 function getPrisma(): PrismaClient {
   if (!prismaSingleton) {
-    prismaSingleton = new PrismaClient();
+    // Prisma 7 requires either an adapter or accelerateUrl.
+    // Mirror the project's production pattern (`src/lib/prisma.ts`).
+    // The previous `new PrismaClient()` without options was a silent
+    // failure (Prisma 7 throws on construction without config) — the
+    // gym reset has been silently failing for a while, which the
+    // `clear-gym-fields` change surfaced because the new E2E tests
+    // need a known-null baseline before each run.
+    const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+    const adapter = new PrismaPg(pool);
+    prismaSingleton = new PrismaClient({ adapter });
   }
   return prismaSingleton;
 }

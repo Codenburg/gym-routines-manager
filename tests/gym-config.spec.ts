@@ -735,6 +735,14 @@ function escapeRegExp(s: string): string {
 test.describe('Gym Config — Clear to null', () => {
   test.describe.configure({ mode: 'serial' });
 
+  // Pre-test reset — the file-level afterEach runs AFTER each test,
+  // but the FIRST test in this describe block has no prior afterEach
+  // (the prior describe blocks don't reset display fields). Reset
+  // here so every test starts from a known null baseline.
+  test.beforeEach(async () => {
+    await resetGymDisplayFields();
+  });
+
   // 4× clear→null→public — one per clearable field.
   // Pattern: set value → click Vaciar → assert toast → wait 5.2s
   // for delayed refresh → navigate to /informacion → assert element
