@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { toast } from "sonner";
+import { showError } from "@/lib/toast";
 import { authClient } from "@/lib/auth-client";
 import { DumbbellSpinner } from "@/components/ui/dumbbell-spinner";
 import { GENERIC_GYM_NAME } from "@/lib/schemas";
@@ -63,7 +63,7 @@ export default function AdminLoginPage() {
             // inline element is the canonical "did login fail" signal
             // for the AuthPage.expectError() page-object method.
             setServerError(mensaje);
-            toast.error(mensaje);
+            showError(mensaje);
             setIsLoading(false);
           },
         }
@@ -71,7 +71,7 @@ export default function AdminLoginPage() {
     } catch (err) {
       const mensaje = "Error de conexión. Intenta de nuevo.";
       setServerError(mensaje);
-      toast.error(mensaje);
+      showError(mensaje);
       setIsLoading(false);
     }
   };
