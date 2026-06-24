@@ -69,6 +69,12 @@ export function useUnifiedSearch() {
         params.delete("trainers");
       }
 
+      // Any change to search or trainers should reset to page 1.
+      // Without this, applying a filter while on page 2 leaves the
+      // user on page 2 with an empty result list (the filtered set
+      // fits on page 1).
+      params.delete("page");
+
       return params;
     },
     [searchParams]
