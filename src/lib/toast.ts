@@ -32,21 +32,95 @@ import { toast as sonnerToast } from "sonner";
 /**
  * Tailwind class tokens applied to every toast card.
  *
- * The `group-[.toaster]:` prefix targets the parent `<ol>` element
- * sonner renders at the toast position — sonner's CSS is namespaced
- * under `.toaster` so this is the documented override pattern. The
- * `bg-*` / `text-*` / `border-*` tokens map to the design system's
- * `--color-success` / `--color-destructive` / `--color-info` CSS
- * variables defined in `src/app/globals.css` (already exposed as
- * Tailwind colors via the `@theme inline` block).
+ * Sonner 2.0.7 uses `[data-sonner-toast]` and `[data-sonner-toaster]`
+ * data attributes (NOT classes) for its selectors, AND with
+ * `unstyled: true` the LI only carries the baseline
+ * `[data-sonner-toast]` styles (absolute positioning, opacity
+ * transition, `overflow-wrap: anywhere`, etc.) — sonner does NOT apply
+ * padding/border/radius/width/layout because those are gated on
+ * `[data-styled=true]` which `unstyled` opts out of. Variant colors
+ * from richColors ARE still applied via the
+ * `[data-rich-colors=true][data-sonner-toast][data-type=success]`
+ * selector (3 attribute selectors → specificity 0,3,0), so we use
+ * `!` (Tailwind's `!important` prefix) on our bg/text/border classes
+ * (specificity 0,1,0 → 0,1,0 with `!important` which beats anything
+ * without `!important`).
+ *
+ * The classNames split mirrors sonner's element tree:
+ *   toast (the card <li>) ── title ── description ── actionButton
+ *      └── icon
+ *
+ * Layout / typography targets the sonner styled default:
+ *   - `w-[356px]` fixed width (sonner default)
+ *   - `min-h-[64px]` minimum height (icon + padding)
+ *   - `p-4` 16px padding (sonner default)
+ *   - `flex items-start gap-3` row layout (icon / content / action)
+ *   - `rounded-lg` 8px border-radius (matches `--radius-md` = 0.5rem)
+ *   - `border border-border` 1px subtle border
+ *   - `shadow-lg` Tailwind's lg shadow stack
+ *   - `relative` so the absolute-positioned `.undo-progress-bar`
+ *     (in the description slot) anchors to the card edges
+ *
+ * The previous wrapper used `group-[.toaster]:flex ...` prefix on
+ * every class — that selector is WRONG because sonner 2.0.7 doesn't
+ * put `.toaster` as a class on the OL (only `data-sonner-toaster`),
+ * so the selector matched nothing and the toast came out as a
+ * square, borderless, unstyled card with sonner's rich colors on top.
  */
 const TOAST_CLASSES = {
-  base: "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
+  // Base card — layout + neutral colors. Variant classNames layer
+  // on top via the per-variant keys below.
+  base: [
+    // Group for nested selectors (sonner uses :hover .group)
+    "group",
+    // Position — needs `relative` so the absolute-positioned
+    // .undo-progress-bar (description slot) and the sonner close
+    // button (top-right, when enabled) anchor to the card.
+    "relative",
+    // Layout — flex row, icon / content / action, vertical-aligned to top
+    "flex items-start gap-3",
+    // Spacing — sonner default 16px padding, 356px width, 64px min-height
+    "p-4 w-[356px] min-h-[64px]",
+    // Visual — 8px radius, 1px border, lg shadow
+    "rounded-lg border shadow-lg",
+    // Neutral colors (overridden by variant classes below)
+    "!bg-background !text-foreground !border-border",
+  ].join(" "),
+  // Title — the main message
+  title: "text-sm font-semibold",
+  // Description — secondary text or progress bar slot. `opacity-80`
+  // matches sonner's default `[data-styled=true] [data-description]`
+  // treatment (slightly faded relative to title).
+  description: "text-sm opacity-80 mt-1",
+  // Action button — the "Deshacer" button. Pushed right with
+  // `ml-auto`, vertically centered with `self-center`.
+  actionButton:
+    "text-sm font-medium hover:underline ml-auto self-center",
+  // Icon — variant-colored (inherits the card text color, which
+  // for variants is white/light).
+  icon: "size-5",
+  // Variant: success (richColors) — vibrant green bg, white text
   success:
-    "group-[.toaster]:bg-success group-[.toaster]:text-success-foreground group-[.toaster]:border-success/20",
+    "!bg-success !text-success-foreground !border-success/20",
+  // Variant: error / destructive (richColors) — vibrant red bg, white text
   error:
-    "group-[.toaster]:bg-destructive group-[.toaster]:text-destructive-foreground group-[.toaster]:border-destructive/20",
-  info: "group-[.toaster]:bg-info group-[.toaster]:text-info-foreground group-[.toaster]:border-info/20",
+    "!bg-destructive !text-destructive-foreground !border-destructive/20",
+  // Variant: info (richColors) — vibrant blue bg, white text
+  info:
+    "!bg-info !text-info-foreground !border-info/20",
+} as const;
+
+/**
+ * Per-slot classNames map shared by every wrapper. Bundles all
+ * elements (toast / title / description / actionButton / icon).
+ * The toast slot is overridden by each wrapper to layer on the
+ * variant classNames.
+ */
+const BASE_CLASSNAMES = {
+  title: TOAST_CLASSES.title,
+  description: TOAST_CLASSES.description,
+  actionButton: TOAST_CLASSES.actionButton,
+  icon: TOAST_CLASSES.icon,
 } as const;
 
 /**
@@ -56,7 +130,10 @@ const TOAST_CLASSES = {
 export function showSuccess(message: string): string | number {
   return sonnerToast.success(message, {
     unstyled: true,
-    classNames: { toast: `${TOAST_CLASSES.base} ${TOAST_CLASSES.success}` },
+    classNames: {
+      ...BASE_CLASSNAMES,
+      toast: `${TOAST_CLASSES.base} ${TOAST_CLASSES.success}`,
+    },
   });
 }
 
@@ -66,7 +143,10 @@ export function showSuccess(message: string): string | number {
 export function showError(message: string): string | number {
   return sonnerToast.error(message, {
     unstyled: true,
-    classNames: { toast: `${TOAST_CLASSES.base} ${TOAST_CLASSES.error}` },
+    classNames: {
+      ...BASE_CLASSNAMES,
+      toast: `${TOAST_CLASSES.base} ${TOAST_CLASSES.error}`,
+    },
   });
 }
 
@@ -76,7 +156,10 @@ export function showError(message: string): string | number {
 export function showInfo(message: string): string | number {
   return sonnerToast.info(message, {
     unstyled: true,
-    classNames: { toast: `${TOAST_CLASSES.base} ${TOAST_CLASSES.info}` },
+    classNames: {
+      ...BASE_CLASSNAMES,
+      toast: `${TOAST_CLASSES.base} ${TOAST_CLASSES.info}`,
+    },
   });
 }
 
@@ -109,9 +192,9 @@ export type UndoableToastOptions = {
  *
  * Implementation notes (design #289 §D13):
  *   - `unstyled: true` matches the Toaster-level config — this wrapper
- *     owns the styling. We add `relative` so the absolute-positioned
- *     `.undo-progress-bar` child (in the `description` slot) anchors
- *     to the card.
+ *     owns the styling. `relative` is part of `TOAST_CLASSES.base` so
+ *     the absolute-positioned `.undo-progress-bar` child (in the
+ *     `description` slot) anchors to the card.
  *   - `description` slot hosts a `<div className="undo-progress-bar">`
  *     with inline `style` setting the `--undo-duration` CSS variable.
  *     The keyframe `undoBar` (defined in `src/app/globals.css`) consumes
@@ -145,7 +228,8 @@ export function showUndoableToast({
     unstyled: true,
     duration: durationMs,
     classNames: {
-      toast: `${TOAST_CLASSES.base} ${TOAST_CLASSES.success} relative`,
+      ...BASE_CLASSNAMES,
+      toast: `${TOAST_CLASSES.base} ${TOAST_CLASSES.success}`,
     },
     action: {
       label: "Deshacer",
