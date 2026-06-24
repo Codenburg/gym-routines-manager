@@ -1,9 +1,23 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import { showSuccess, showError } from "@/lib/toast";
-import { Building2, Camera, MapPin, MessageCircle, type LucideIcon } from "lucide-react";
+import {
+  Building2,
+  Camera,
+  MapPin,
+  MessageCircle,
+  Trash2,
+  type LucideIcon,
+} from "lucide-react";
 import { updateGymField } from "@/app/actions/gym";
 import { DumbbellSpinner } from "@/components/ui/dumbbell-spinner";
 import { AdminCard } from "@/components/admin/admin-card";
@@ -291,6 +305,31 @@ function FieldSubForm({ config, initialValue }: FieldSubFormProps) {
     setControlledValue(e.target.value);
   };
 
+  // Vaciar button state — uses its own useTransition (independent of
+  // the Guardar useActionState pending flag). D1: the button is
+  // type="button" + onClick + useTransition, lives INSIDE the same
+  // <form> for layout but does NOT submit it. D9: `isBusy` merges
+  // both pending flags so the input + Guardar + Vaciar all disable
+  // together while ANY action is in-flight.
+  const [isClearPending, startClearTransition] = useTransition();
+  const isBusy = isPending || isClearPending;
+  const isClearableEmpty =
+    !config.clearable || (displayedValue ?? "").trim() === "";
+
+  // Per-field testid (design decision #1):
+  //   mapsEmbedUrl → clear-mapa
+  //   socialInstagram → clear-instagram
+  //   socialWhatsapp → clear-whatsapp
+  //   direccion → clear-direccion
+  const clearTestId =
+    config.field === "mapsEmbedUrl"
+      ? "clear-mapa"
+      : config.field === "socialInstagram"
+        ? "clear-instagram"
+        : config.field === "socialWhatsapp"
+          ? "clear-whatsapp"
+          : `clear-${config.field}`;
+
   // Only fire the toast on the pending → done transition. The previous
   // pattern (chequear `state.success` en cada render) leaked toasts across
   // router.refresh / re-mount / cache revalidation — every sub-form that
@@ -322,7 +361,7 @@ function FieldSubForm({ config, initialValue }: FieldSubFormProps) {
       {renderInput(
         config,
         displayedValue,
-        isPending,
+        isBusy,
         isRequired ? controlledValue : undefined,
         isRequired ? onInputChange : undefined,
       )}
@@ -353,10 +392,27 @@ function FieldSubForm({ config, initialValue }: FieldSubFormProps) {
             </p>
           )}
 
-          <div className="flex justify-end">
+          <div className="flex justify-end items-center gap-2">
+            {config.clearable && (
+              <button
+                type="button"
+                onClick={() => {
+                  // T-011 wires the actual handleClear flow. For T-009
+                  // (button shell), this is a no-op — clicking does
+                  // nothing until T-011 adds the action.
+                  startClearTransition(() => {});
+                }}
+                disabled={isBusy || isClearableEmpty}
+                title="Vaciar campo"
+                data-testid={clearTestId}
+                className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-muted-foreground p-2 rounded transition-colors"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
             <button
               type="submit"
-              disabled={isPending || isValueEmpty}
+              disabled={isBusy || isValueEmpty}
               className="px-4 py-2 bg-primary hover:opacity-90 disabled:opacity-50 text-primary-foreground rounded-lg transition-colors flex items-center gap-2"
             >
               {isPending ? (
