@@ -17,6 +17,13 @@
  *     `onAutoDismiss` callback fires exactly once.
  *   - Returns the toast id (string | number) for external dismissal.
  *
+ * 2nd polish pass additions (Fix 1 — toast deduplication):
+ *   - `showSuccess` defaults to `id: 'gym-save'` so rapid re-saves
+ *     REPLACE the previous toast instead of stacking.
+ *   - `showError` and `showInfo` have NO default id (stack so each
+ *     is visible).
+ *   - Callers can override the id via the `options` arg.
+ *
  * Mocking strategy: `vi.mock("sonner")` replaces the toast singleton
  * with `vi.fn()` stubs. The wrapper's `sonnerToast.dismiss(id)` call
  * inside `action.onClick` is what makes the `wasUndone` flag flip work
@@ -30,13 +37,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // ============================================================
 
 const mockSuccess = vi.fn();
+const mockError = vi.fn();
+const mockInfo = vi.fn();
 const mockDismiss = vi.fn();
 
 vi.mock("sonner", () => ({
   toast: {
     success: (...args: unknown[]) => mockSuccess(...args),
-    error: vi.fn(),
-    info: vi.fn(),
+    error: (...args: unknown[]) => mockError(...args),
+    info: (...args: unknown[]) => mockInfo(...args),
     dismiss: (...args: unknown[]) => mockDismiss(...args),
   },
 }));
@@ -45,10 +54,12 @@ vi.mock("sonner", () => ({
 // Import AFTER mocks
 // ============================================================
 
-// `showUndoableToast` does not exist yet — this import WILL fail
-// at module-load time during T-003 (RED). T-004 (GREEN) creates
-// the module.
-import { showUndoableToast } from "@/lib/toast";
+import {
+  showSuccess,
+  showError,
+  showInfo,
+  showUndoableToast,
+} from "@/lib/toast";
 
 // ============================================================
 // Tests
@@ -127,5 +138,114 @@ describe("showUndoableToast — API contract", () => {
 
     expect(onAutoDismiss).toHaveBeenCalledTimes(1);
     expect(onUndo).not.toHaveBeenCalled();
+  });
+
+  it("defaults the id to 'gym-undo' so undo toasts REPLACE each other", () => {
+    // Fix 1 — 2nd polish pass. Two undo toasts triggered in quick
+    // succession must share the same id so sonner replaces the
+    // first with the second instead of stacking.
+    showUndoableToast({ message: "first", onUndo: vi.fn() });
+    showUndoableToast({ message: "second", onUndo: vi.fn() });
+
+    const firstOpts = mockSuccess.mock.calls[0][1] as Record<string, unknown>;
+    const secondOpts = mockSuccess.mock.calls[1][1] as Record<string, unknown>;
+
+    expect(firstOpts.id).toBe("gym-undo");
+    expect(secondOpts.id).toBe("gym-undo");
+  });
+
+  it("allows overriding the undo toast id via the `id` option", () => {
+    showUndoableToast({
+      message: "test",
+      onUndo: vi.fn(),
+      id: "custom-undo-id",
+    });
+
+    const opts = mockSuccess.mock.calls[0][1] as Record<string, unknown>;
+    expect(opts.id).toBe("custom-undo-id");
+  });
+});
+
+// ============================================================
+// Fix 1 — showSuccess / showError / showInfo dedup behavior
+// ============================================================
+
+describe("showSuccess — toast deduplication (Fix 1)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSuccess.mockReturnValue("toast-1");
+  });
+
+  it("defaults the id to 'gym-save' so rapid re-saves REPLACE the previous toast", () => {
+    // Trigger two saves in quick succession. Both must share the
+    // same id ('gym-save') so sonner atomically replaces the first
+    // toast with the second instead of stacking two toasts.
+    showSuccess("first save");
+    showSuccess("second save");
+
+    expect(mockSuccess).toHaveBeenCalledTimes(2);
+    const firstOpts = mockSuccess.mock.calls[0][1] as Record<string, unknown>;
+    const secondOpts = mockSuccess.mock.calls[1][1] as Record<string, unknown>;
+
+    expect(firstOpts.id).toBe("gym-save");
+    expect(secondOpts.id).toBe("gym-save");
+  });
+
+  it("allows overriding the id via the options arg", () => {
+    showSuccess("save direccion", { id: "gym-save-direccion" });
+
+    const opts = mockSuccess.mock.calls[0][1] as Record<string, unknown>;
+    expect(opts.id).toBe("gym-save-direccion");
+  });
+
+  it("applies the success variant classNames (bg-success) + unstyled", () => {
+    showSuccess("test");
+
+    const opts = mockSuccess.mock.calls[0][1] as Record<string, unknown>;
+    expect(opts.unstyled).toBe(true);
+    const toastClasses = (opts.classNames as Record<string, string>).toast;
+    expect(toastClasses).toMatch(/bg-success/);
+    expect(toastClasses).toMatch(/rounded-lg/);
+  });
+});
+
+describe("showError defaults to id 'gym-error' (rapid errors replace); showInfo has no default id", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockError.mockReturnValue("err-1");
+    mockInfo.mockReturnValue("info-1");
+  });
+
+  it("showError defaults to id 'gym-error' so rapid errors REPLACE instead of stack", () => {
+    showError("first error");
+    showError("second error");
+
+    const firstOpts = mockError.mock.calls[0][1] as Record<string, unknown>;
+    const secondOpts = mockError.mock.calls[1][1] as Record<string, unknown>;
+
+    expect(firstOpts.id).toBe("gym-error");
+    expect(secondOpts.id).toBe("gym-error");
+  });
+
+  it("showInfo does NOT default to an id (info messages stack)", () => {
+    showInfo("first info");
+    showInfo("second info");
+
+    const firstOpts = mockInfo.mock.calls[0][1] as Record<string, unknown>;
+    const secondOpts = mockInfo.mock.calls[1][1] as Record<string, unknown>;
+
+    expect(firstOpts.id).toBeUndefined();
+    expect(secondOpts.id).toBeUndefined();
+  });
+
+  it("showError / showInfo accept an explicit id via options (overrides the default)", () => {
+    showError("err", { id: "custom-err" });
+    showInfo("info", { id: "custom-info" });
+
+    const errOpts = mockError.mock.calls[0][1] as Record<string, unknown>;
+    const infoOpts = mockInfo.mock.calls[0][1] as Record<string, unknown>;
+
+    expect(errOpts.id).toBe("custom-err");
+    expect(infoOpts.id).toBe("custom-info");
   });
 });

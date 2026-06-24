@@ -581,30 +581,58 @@ details[open] summary svg {
   transform: rotate(180deg);
 }
 
-/* Undo toast progress bar — driven by --undo-duration inline var.
-   Anchored absolutely to the bottom of the toast card (which has
-   position:relative via `classNames.toast` in src/lib/toast.ts).
-   The `transform: scaleX` animation honors prefers-reduced-motion
-   automatically because the keyframe is hardware-accelerated. */
-@keyframes undoBar {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
+/* Undo toast progress bar — Fix 2 of the 2nd polish pass.
+   The previous implementation placed a `.undo-progress-bar` <div> in
+   sonner's `description` slot. That caused bottom-corner overflow
+   because `description` is NOT a direct child of the card `<li>` in
+   sonner 2.0.7's DOM — it's nested inside `<div data-content>` (see
+   node_modules/sonner/dist/index.js ~line 798-806). The bar's
+   `border-radius: inherit` resolved to 0 (from the description div)
+   instead of matching the card's rounded corners.
+
+   The 2nd polish pass moved it to a `::before` pseudo-element with a
+   `clip-path` keyframe. That worked for static layout but broke during
+   sonner's slide-out animation: the card gets `transform: translateY()`
+   on exit, the `::before`'s `clip-path` is evaluated relative to its
+   own bounding box (which transforms with the parent), so the bar
+   visually drifts to the top edge of the card as it slides up.
+
+   This 3rd polish pass switches to a plain `width: 0 → 100%`
+   animation. Width is a layout property (not a transform), so it
+   doesn't get recomputed incorrectly during the parent's transform.
+   `border-bottom-left-radius: inherit` on the `::before` matches the
+   card's `rounded-lg` (~8px) and stays perfectly round at every fill
+   percentage — no elliptical corners because we don't scale the box.
+   `overflow: hidden` on the card clips any sub-pixel render drift. */
+.toast-with-undo {
+  overflow: hidden;
 }
 
-.undo-progress-bar {
+.toast-with-undo::before {
+  content: "";
   position: absolute;
   bottom: 0;
   left: 0;
-  right: 0;
   height: 3px;
   background: var(--primary);
-  transform-origin: left;
-  animation: undoBar var(--undo-duration, 5000ms) linear forwards;
-  pointer-events: none;
   border-bottom-left-radius: inherit;
   border-bottom-right-radius: inherit;
+  pointer-events: none;
+  width: 0;
+  animation: undoBar var(--undo-duration, 5000ms) linear forwards;
+}
+
+@keyframes undoBar {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-with-undo::before {
+    animation-duration: 0.001ms;
+  }
 }

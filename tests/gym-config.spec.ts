@@ -708,7 +708,7 @@ function escapeRegExp(s: string): string {
 
 // ============================================
 // sdd/clear-gym-fields — Phase F: E2E tests for the Vaciar flow.
-// ============================================
+// ============================================================
 //
 // Covers T-016 through T-018 (9 new tests, all under
 // test.describe.configure({ mode: 'serial' })):
@@ -727,10 +727,12 @@ function escapeRegExp(s: string): string {
 //     - 18.1 AddressSection iframe-only (direccion cleared, mapa set)
 //     - 18.2 clear-failure-keeps-value (mock 500, input preserved)
 //
-// Timing semantics (D3): the input visually keeps the old value for
-// the 5s undo window. router.refresh() fires inside the toast's
-// onAutoDismiss callback. We wait >5s before navigating to the
-// public page so the RSC re-fetch lands with the null value.
+// Timing semantics (2nd polish pass — Fix 3): the input clears
+// IMMEDIATELY on server success. router.refresh() fires inside
+// handleClear as soon as `clearGymDisplayField` resolves. We no
+// longer wait >5s before navigating to the public page. The undo
+// path still works the same way (Deshacer click re-fires
+// updateGymField via the hidden form).
 
 test.describe('Gym Config — Clear to null', () => {
   test.describe.configure({ mode: 'serial' });
@@ -744,9 +746,8 @@ test.describe('Gym Config — Clear to null', () => {
   });
 
   // 4× clear→null→public — one per clearable field.
-  // Pattern: set value → click Vaciar → assert toast → wait 5.2s
-  // for delayed refresh → navigate to /informacion → assert element
-  // hidden.
+  // Pattern: set value → click Vaciar → assert toast + immediate
+  // input clear → navigate to /informacion → assert element hidden.
   const clearCases: Array<{
     field: string;
     formSel: string;
@@ -829,31 +830,27 @@ test.describe('Gym Config — Clear to null', () => {
       await clearBtn.click();
 
       // 3. The undoable toast appears with the field-specific Spanish
-      //    message + progress bar + Deshacer button.
+      //    message + Deshacer button.
       const toast = page.locator('[data-sonner-toast]').filter({
         hasText: /eliminado/i,
       });
       await expect(toast).toBeVisible({ timeout: 5000 });
-      // The progress bar element (the description slot child).
-      await expect(
-        page.locator('[data-testid="undo-toast-progress"]'),
-      ).toBeVisible();
+      // The toast card has the `toast-with-undo` class which installs
+      // the progress-bar pseudo-element (Fix 2 of the 2nd polish pass).
+      await expect(toast.first()).toHaveClass(/toast-with-undo/);
       // The Deshacer action button.
       await expect(
         toast.getByRole('button', { name: /deshacer/i }),
       ).toBeVisible();
 
-      // 4. Wait for the 5s undo window to expire + 100ms refresh
-      //    delay (D3). The input visually still shows the old value
-      //    during the window — verify that.
-      await expect(fieldInput).toHaveValue(value, { timeout: 4000 });
-      // After 5.2s the delayed router.refresh() fires; the input
-      // re-mounts empty (uncontrolled key={displayedValue} re-mounts
-      // when initial null lands).
-      await expect(fieldInput).toHaveValue('', { timeout: 12000 });
+      // 4. Fix 3 (2nd polish pass) — the input clears IMMEDIATELY
+      //    on server success (no more 5s delay). The uncontrolled
+      //    key={displayedValue} re-mounts empty when router.refresh()
+      //    lands with the null initial value.
+      await expect(fieldInput).toHaveValue('', { timeout: 2000 });
 
       // 5. Navigate to /informacion — the corresponding public element
-      //    is hidden.
+      //    is hidden. No need to wait past the 5s undo window anymore.
       await page.goto('/informacion', { waitUntil: 'load' });
       await publicCheck(page);
     });
@@ -898,8 +895,10 @@ test.describe('Gym Config — Clear to null', () => {
     // Undo re-fires updateGymField — input shows the restored value.
     await expect(fieldInput).toHaveValue(value, { timeout: 15000 });
 
-    // Wait past the original 5s window to confirm no delayed refresh
-    // fires (the value stays put, not blanked).
+    // Wait past the original 5s window to confirm the restored value
+    // stays put (Fix 3: undo restores via the hidden form, then the
+    // Guardar useEffect calls router.refresh() which re-mounts with
+    // the restored value).
     await page.waitForTimeout(5500);
     await expect(fieldInput).toHaveValue(value);
 
@@ -1000,8 +999,11 @@ test.describe('Gym Config — Clear to null', () => {
 
     // Now clear ONLY direccion (leave mapsEmbedUrl intact).
     await page.locator('[data-testid="clear-direccion"]').click();
-    // Wait for the 5s toast window to expire + 100ms delayed refresh.
-    await page.waitForTimeout(5500);
+    // Fix 3 (2nd polish pass) — refresh fires IMMEDIATELY on server
+    // success. Brief settle for the RSC re-fetch to land before we
+    // navigate (the input clears within ~100ms; we give it 500ms of
+    // headroom for the unstable_cache reader).
+    await page.waitForTimeout(500);
 
     // /informacion renders the AddressSection: iframe visible, NO <p>.
     await page.goto('/informacion', { waitUntil: 'load' });

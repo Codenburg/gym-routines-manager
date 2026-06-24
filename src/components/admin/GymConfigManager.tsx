@@ -338,12 +338,15 @@ function FieldSubForm({ config, initialValue }: FieldSubFormProps) {
   // D5: undo re-fires `updateGymField` via a hidden form. We pre-fill
   //     the hidden `<input name="value">` with the captured previous
   //     value at undo-click time, then call `requestSubmit()`.
-  // D3: delayed `router.refresh()` — the input visually keeps the old
-  //     value during the 5s undo window (no key change). Refresh
-  //     fires inside `onAutoDismiss` (NOT immediately on server success).
-  // D13: `onAutoDismiss` fires when the toast closes WITHOUT undo
-  //      (5s expiry OR manual close). Closure-scoped `wasUndone`
-  //      flag in showUndoableToast handles the distinction.
+  // Fix 3 (2nd polish pass): `router.refresh()` fires IMMEDIATELY on
+  //     server success — no more 5s delayed refresh. The input is
+  //     cleared as soon as the server confirms the row is null. The
+  //     `onAutoDismiss` callback is no longer passed (the wrapper
+  //     still supports it for any future caller that wants the
+  //     delayed semantics, but our flow doesn't need it).
+  // D13: `wasUndone` flag in showUndoableToast handles the undo vs
+  //      auto-dismiss distinction (not relevant here since we don't
+  //      pass `onAutoDismiss`).
   // REQ-7: on server error, the input value is preserved (uncontrolled
   //        key={displayedValue} is not mutated), isClearPending auto-
   //        resets to false on transition completion, and a destructive
@@ -365,8 +368,11 @@ function FieldSubForm({ config, initialValue }: FieldSubFormProps) {
 
   const handleClear = () => {
     // Capture BEFORE the async action — once `clearGymDisplayField`
-    // returns success, the DB is already null and `displayedValue`
-    // would not change until the delayed refresh fires.
+    // returns success, the DB is already null. With Fix 3, the
+    // immediate `router.refresh()` lands within ~100ms, so
+    // `displayedValue` will be updated by the new initial prop before
+    // the user can perceive any flicker. The captured value is still
+    // needed for the undo path.
     previousValueRef.current = displayedValue ?? "";
 
     startClearTransition(async () => {
@@ -380,36 +386,31 @@ function FieldSubForm({ config, initialValue }: FieldSubFormProps) {
           config.field as ClearableGymField,
         );
         if (result.success) {
-          // Closure-scoped timer — captured by the onUndo callback so
-          // undo can clearTimeout it, AND by the onAutoDismiss callback
-          // so the delayed refresh can be scheduled.
-          let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+          // Fix 3: refresh IMMEDIATELY so the input visually clears
+          // in parallel with the toast appearing. The input is
+          // uncontrolled with `key={displayedValue}` so the re-mount
+          // drops the old value once `initialValue` lands as null.
+          // The RSC re-fetch lands within ~100ms; the toast's enter
+          // animation runs in parallel and is unrelated.
+          router.refresh();
 
           showUndoableToast({
             message: `${clearToastLabel} eliminado`,
             durationMs: 5000,
             onUndo: () => {
-              // Cancel the pending refresh (D3) — undo means the
-              // user wants the value back, NO router.refresh.
-              if (refreshTimer) {
-                clearTimeout(refreshTimer);
-                refreshTimer = null;
-              }
               // D5: re-fire updateGymField with the captured value
               // via the hidden form. The visible form stays untouched.
+              // No timer to clear anymore (Fix 3 removed the delayed
+              // refresh; refresh fires once on server success).
               if (undoInputRef.current && undoFormRef.current) {
                 undoInputRef.current.value = previousValueRef.current;
                 undoFormRef.current.requestSubmit();
               }
             },
-            onAutoDismiss: () => {
-              // 5s expiry OR manual close — D3 delayed refresh.
-              // The 100ms defers past sonner's exit animation so the
-              // toast DOM fully unmounts before RSC re-fetch lands.
-              refreshTimer = setTimeout(() => router.refresh(), 100);
-            },
+            // `onAutoDismiss` intentionally omitted — the immediate
+            // refresh above means we no longer schedule a deferred
+            // re-fetch from the toast callback.
           });
-          // NO router.refresh() here — D3 (delayed refresh).
         } else {
           // Server returned failure (auth/validation). Show error
           // toast. Input value is preserved because we never

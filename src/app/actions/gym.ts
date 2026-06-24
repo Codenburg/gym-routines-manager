@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache, updateTag } from "next/cache";
 import { headers } from "next/headers";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
@@ -378,12 +378,14 @@ export async function clearGymDisplayField(
     // the D3 "delayed refresh" semantics: the user must see the OLD
     // value during the 5s undo window.
     //
-    // revalidateTag on its own does NOT trigger a route re-fetch —
-    // it only invalidates the tagged caches. The next router.refresh()
-    // (fired by the showUndoableToast onAutoDismiss callback after
-    // the 5s window) re-fetches the RSC payload, and the now-
-    // invalidated cache returns the fresh null value.
-    revalidateTag("gym-config", "max");
+    // updateTag gives read-your-own-writes semantics (Next.js 16
+    // preferred over revalidateTag for Server Actions): the next
+    // reader sees the just-written null value immediately, regardless
+    // of the previous cache lifetime. This pairs with the explicit
+    // router.refresh() in handleClear (Fix 3 of the 2nd polish pass)
+    // which re-fetches the RSC tree so the input visually clears in
+    // parallel with the toast appearing.
+    updateTag("gym-config");
     return { success: true };
   } catch (err) {
     console.error("[clearGymDisplayField] failed", err);

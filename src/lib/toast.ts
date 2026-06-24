@@ -10,13 +10,15 @@
  *     §D12 decision — pure functions, no 'use client', no hooks.
  *
  * The module exports:
- *   - `showSuccess(message)` — green/positive feedback (saves).
- *   - `showError(message)` — red/destructive feedback (errors).
- *   - `showInfo(message)` — blue/neutral info.
- *   - `showUndoableToast({ message, onUndo, durationMs, onAutoDismiss })` —
- *     a 5s toast with an "Deshacer" action button and a CSS keyframe
- *     progress bar. Used by `clearGymDisplayField` in
- *     `src/components/admin/GymConfigManager.tsx`.
+ *   - `showSuccess(message, options?)` — green/positive feedback (saves).
+ *     Defaults to `id: 'gym-save'` so rapid re-saves REPLACE the
+ *     previous toast instead of stacking.
+ *   - `showError(message, options?)` — red/destructive feedback (errors).
+ *     NO default id — errors stack so the user can see each one.
+ *   - `showInfo(message, options?)` — blue/neutral info. NO default id.
+ *   - `showUndoableToast({ message, onUndo, durationMs, id?, onAutoDismiss? })` —
+ *     a 5s toast with an "Deshacer" action button and a CSS-keyframe
+ *     progress bar. Defaults to `id: 'gym-undo'`.
  *
  * Why no `'use client'` directive: every function here is a plain
  * `sonnerToast.success(...)` call wrapped in a Tailwind classNames
@@ -26,7 +28,7 @@
  * are only called from event handlers (which are client-side).
  */
 
-import { createElement } from "react";
+import type { CSSProperties } from "react";
 import { toast as sonnerToast } from "sonner";
 
 /**
@@ -58,8 +60,9 @@ import { toast as sonnerToast } from "sonner";
  *   - `rounded-lg` 8px border-radius (matches `--radius-md` = 0.5rem)
  *   - `border border-border` 1px subtle border
  *   - `shadow-lg` Tailwind's lg shadow stack
- *   - `relative` so the absolute-positioned `.undo-progress-bar`
- *     (in the description slot) anchors to the card edges
+ *   - `relative` so the absolute-positioned `.toast-with-undo::before`
+ *     pseudo-element (the progress bar, Fix 2 of the 2nd polish pass)
+ *     anchors to the card's bottom edge
  *
  * The previous wrapper used `group-[.toaster]:flex ...` prefix on
  * every class — that selector is WRONG because sonner 2.0.7 doesn't
@@ -74,8 +77,9 @@ const TOAST_CLASSES = {
     // Group for nested selectors (sonner uses :hover .group)
     "group",
     // Position — needs `relative` so the absolute-positioned
-    // .undo-progress-bar (description slot) and the sonner close
-    // button (top-right, when enabled) anchor to the card.
+    // `.toast-with-undo::before` progress bar (Fix 2 in the 2nd
+    // polish pass) anchors to the card's bottom edge. Also needed
+    // for the sonner close button (top-right, when enabled).
     "relative",
     // Layout — flex row, icon / content / action, vertical-aligned to top
     "flex items-start gap-3",
@@ -124,12 +128,33 @@ const BASE_CLASSNAMES = {
 } as const;
 
 /**
+ * Per-call options accepted by the simple wrappers (showSuccess /
+ * showError / showInfo). Only the `id` field is exposed because that's
+ * the only knob callers need for toast deduplication.
+ */
+export type ToastOptions = {
+  /**
+   * Sonner uses `id` as the unique key for each toast — if a toast
+   * with the same id is already visible, it's atomically replaced
+   * instead of stacking. Default per wrapper is documented on each
+   * export; pass an explicit `id` to override (e.g. a field-specific
+   * save id if the user wants different save toasts per field).
+   */
+  id?: string;
+};
+
+/**
  * Show a success toast (green). Returns the toast id for external
  * dismissal.
+ *
+ * Default `id: 'gym-save'` so rapid re-saves (e.g. the user clicks
+ * Guardar on two fields within 5s) REPLACE the previous success
+ * toast instead of stacking — the user only needs to dismiss one.
  */
-export function showSuccess(message: string): string | number {
+export function showSuccess(message: string, options?: ToastOptions): string | number {
   return sonnerToast.success(message, {
     unstyled: true,
+    id: options?.id ?? "gym-save",
     classNames: {
       ...BASE_CLASSNAMES,
       toast: `${TOAST_CLASSES.base} ${TOAST_CLASSES.success}`,
@@ -138,11 +163,15 @@ export function showSuccess(message: string): string | number {
 }
 
 /**
- * Show an error toast (red/destructive).
+ * Show an error toast (red/destructive). Default `id: 'gym-error'`
+ * so rapid errors (e.g. two failed clicks in a row) REPLACE the
+ * previous error toast instead of stacking — the user only sees
+ * the latest failure.
  */
-export function showError(message: string): string | number {
+export function showError(message: string, options?: ToastOptions): string | number {
   return sonnerToast.error(message, {
     unstyled: true,
+    id: options?.id ?? "gym-error",
     classNames: {
       ...BASE_CLASSNAMES,
       toast: `${TOAST_CLASSES.base} ${TOAST_CLASSES.error}`,
@@ -151,11 +180,13 @@ export function showError(message: string): string | number {
 }
 
 /**
- * Show an info toast (blue/neutral).
+ * Show an info toast (blue/neutral). No default id — info messages
+ * stack intentionally so each one is visible.
  */
-export function showInfo(message: string): string | number {
+export function showInfo(message: string, options?: ToastOptions): string | number {
   return sonnerToast.info(message, {
     unstyled: true,
+    id: options?.id,
     classNames: {
       ...BASE_CLASSNAMES,
       toast: `${TOAST_CLASSES.base} ${TOAST_CLASSES.info}`,
@@ -175,14 +206,25 @@ export type UndoableToastOptions = {
   /** Auto-dismiss window. Default: 5000ms. */
   durationMs?: number;
   /**
+   * Sonner toast id. Default: `'gym-undo'`. Pass an explicit id to
+   * override (e.g. field-specific undo id if multiple undo toasts
+   * need to coexist — currently they all share `'gym-undo'` which
+   * means clicking Vaciar on two fields in 5s replaces the first
+   * undo toast with the second, which is the desired behavior).
+   */
+  id?: string;
+  /**
    * Invoked when the toast auto-dismisses WITHOUT the user clicking
    * "Deshacer" — i.e. on `durationMs` expiry OR on manual close. On
    * undo, this is NOT called (the `wasUndone` flag guards it).
    *
-   * Used by `FieldSubForm.handleClear` to schedule a deferred
-   * `router.refresh()` (D3) — the input stays visually populated
-   * during the undo window and only re-renders empty after the
-   * refresh lands.
+   * Kept as a no-op-friendly optional field for backward compatibility
+   * with the previous design (D3 — delayed `router.refresh()` from
+   * the undo toast). The clear-gym-fields flow no longer needs it
+   * because `router.refresh()` fires IMMEDIATELY on server success
+   * (Fix 3 in the 2nd polish pass) instead of after the undo window.
+   * Any future caller that wants the delayed semantics can still
+   * pass it.
    */
   onAutoDismiss?: () => void;
 };
@@ -190,15 +232,28 @@ export type UndoableToastOptions = {
 /**
  * Render an undoable toast with a 5s CSS-keyframe progress bar.
  *
- * Implementation notes (design #289 §D13):
+ * Implementation notes (design #289 §D13 + 2nd polish pass):
  *   - `unstyled: true` matches the Toaster-level config — this wrapper
- *     owns the styling. `relative` is part of `TOAST_CLASSES.base` so
- *     the absolute-positioned `.undo-progress-bar` child (in the
- *     `description` slot) anchors to the card.
- *   - `description` slot hosts a `<div className="undo-progress-bar">`
- *     with inline `style` setting the `--undo-duration` CSS variable.
- *     The keyframe `undoBar` (defined in `src/app/globals.css`) consumes
- *     that variable.
+ *     owns the styling.
+ *   - **Progress bar approach (Fix 2, 2nd polish pass)**: instead of
+ *     placing a `.undo-progress-bar` `<div>` inside the `description`
+ *     slot (which caused bottom-corner overflow because `description`
+ *     is NOT a direct child of the card `<li>` in sonner 2.0.7's DOM
+ *     — it's nested inside `<div data-content>`), we now apply a
+ *     `.toast-with-undo` class to the card itself. That class
+ *     installs a `::before` pseudo-element (a direct CSS child of
+ *     the card, inheriting its `border-bottom-*-radius`) that draws
+ *     the bar and animates `clip-path` from `inset(0 100% 0 0)` to
+ *     `inset(0 0 0 0)` — left-to-right fill that respects the card's
+ *     border-radius automatically. Verified in node_modules/sonner
+ *     DOM structure (`dist/index.js` ~line 798-806).
+ *   - `style: { "--undo-duration": `${durationMs}ms` }` carries the
+ *     animation duration as an inline CSS variable so the
+ *     `@keyframes undoBar` references it.
+ *   - `data-testid="undo-toast"` replaces the previous
+ *     `data-testid="undo-toast-progress"` (which was on the now-gone
+ *     `<div>` description-slot child). The pseudo-element isn't
+ *     queryable; the testid is on the card itself.
  *   - Sonner 2.0.7 splits dismissal callbacks by path:
  *       - `onAutoClose`: fires on `duration` timer expiry.
  *       - `onDismiss`: fires ONLY on programmatic `dismiss(id)` /
@@ -218,32 +273,39 @@ export function showUndoableToast({
   message,
   onUndo,
   durationMs = 5000,
+  id = "gym-undo",
   onAutoDismiss,
 }: UndoableToastOptions): string | number {
   // Closure-scoped flag. Survives across the synchronous
   // dismiss → onDismiss sequence inside the same task.
   let wasUndone = false;
 
-  const id = sonnerToast.success(message, {
+  // Inline CSS variable on the toast card carries the animation
+  // duration. `CSSProperties` cast is required because TS doesn't
+  // know about custom properties as keys.
+  const style: CSSProperties = {
+    "--undo-duration": `${durationMs}ms`,
+  } as CSSProperties;
+
+  const toastId = sonnerToast.success(message, {
     unstyled: true,
     duration: durationMs,
+    id,
+    style,
     classNames: {
       ...BASE_CLASSNAMES,
-      toast: `${TOAST_CLASSES.base} ${TOAST_CLASSES.success}`,
+      // `.toast-with-undo` installs the progress-bar pseudo-element
+      // and its `clip-path` keyframe (see globals.css).
+      toast: `${TOAST_CLASSES.base} ${TOAST_CLASSES.success} toast-with-undo`,
     },
     action: {
       label: "Deshacer",
       onClick: () => {
         wasUndone = true;
-        sonnerToast.dismiss(id);
+        sonnerToast.dismiss(toastId);
         void onUndo();
       },
     },
-    description: createElement("div", {
-      className: "undo-progress-bar",
-      style: { ["--undo-duration" as string]: `${durationMs}ms` },
-      "data-testid": "undo-toast-progress",
-    }),
     onAutoClose: () => {
       // 5s timer expiry path. wasUndone guard is defensive — the
       // auto-close timer should never fire if the user already
@@ -260,5 +322,6 @@ export function showUndoableToast({
       }
     },
   });
-  return id;
+
+  return toastId;
 }

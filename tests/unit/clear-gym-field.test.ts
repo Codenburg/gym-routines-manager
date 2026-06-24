@@ -42,9 +42,11 @@ vi.mock("next/headers", () => ({
 
 const mockRevalidatePath = vi.fn();
 const mockRevalidateTag = vi.fn();
+const mockUpdateTag = vi.fn();
 vi.mock("next/cache", () => ({
   revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args),
   revalidateTag: (...args: unknown[]) => mockRevalidateTag(...args),
+  updateTag: (...args: unknown[]) => mockUpdateTag(...args),
 }));
 
 const mockGetSession = vi.fn();
@@ -195,17 +197,21 @@ describe("clearGymDisplayField — cache invalidation", () => {
     mockGymUpdate.mockResolvedValue({});
   });
 
-  it("fires revalidateTag('gym-config', 'max') on success", async () => {
+  it("fires updateTag('gym-config') on success (read-your-own-writes)", async () => {
     const result = await clearGymDisplayField("direccion");
 
     expect(result.success).toBe(true);
-    expect(mockRevalidateTag).toHaveBeenCalledWith("gym-config", "max");
+    expect(mockUpdateTag).toHaveBeenCalledWith("gym-config");
+    // Next.js 16 prefers updateTag over revalidateTag in Server Actions
+    // for read-your-own-writes semantics: the next reader sees the
+    // just-written null value immediately, regardless of the previous
+    // cache lifetime. This pairs with the explicit router.refresh()
+    // in handleClear (Fix 3 of the 2nd polish pass) which re-fetches
+    // the RSC tree so the input visually clears in parallel with the
+    // toast appearing.
     // Intentionally NOT calling revalidatePath from the server action:
     // Next.js 16 auto-revalidates the current route synchronously when
-    // revalidatePath is called from a server action, which defeats
-    // the D3 "delayed refresh" semantics (input would blank before
-    // the 5s undo window expires). The delayed router.refresh() in
-    // showUndoableToast's onAutoDismiss callback handles the eventual
-    // re-fetch after the undo window expires.
+    // revalidatePath is called from a server action, which would
+    // bypass the explicit router.refresh() in handleClear.
   });
 });
