@@ -557,3 +557,31 @@ html {
 details[open] summary svg {
   transform: rotate(180deg);
 }
+
+/* Undo toast progress bar — driven by --undo-duration inline var.
+   Anchored absolutely to the bottom of the toast card (which has
+   position:relative via `classNames.toast` in src/lib/toast.ts).
+   The `transform: scaleX` animation honors prefers-reduced-motion
+   automatically because the keyframe is hardware-accelerated. */
+@keyframes undoBar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.undo-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: hsl(var(--primary));
+  transform-origin: left;
+  animation: undoBar var(--undo-duration, 5000ms) linear forwards;
+  pointer-events: none;
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
+}

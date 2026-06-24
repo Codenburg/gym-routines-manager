@@ -93,7 +93,7 @@ export default function RootLayout({
           <Suspense>
             <Footer />
           </Suspense>
-          <Toaster position="bottom-right" richColors />
+          <Toaster position="bottom-right" richColors toastOptions={{ unstyled: true }} />
         </ThemeProvider>
       </body>
     </html>
