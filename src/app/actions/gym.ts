@@ -296,3 +296,84 @@ export async function updateGymField(
 // re-exports break the Turbopack actions bundler the first time a
 // Server Component route imports any function from this module.
 // Consumers should import GymDisplay directly from @/lib/schemas.
+
+/**
+ * Clearable subset of `GymField` — the 4 nullable display fields that
+ * can be reset to `null` from the admin UI. Excludes `nombre` (required,
+ * never clearable per R2) and `horarioJson` (structured, cleared via its
+ * own WeeklyScheduleEditor flow).
+ *
+ * Literal union + runtime guard (D6) — narrower than the full
+ * discriminated union from `gymFieldSchema` and free of Zod bundle cost.
+ */
+const CLEARABLE_GYM_FIELDS = [
+  "direccion",
+  "mapsEmbedUrl",
+  "socialInstagram",
+  "socialWhatsapp",
+] as const;
+
+export type ClearableGymField = (typeof CLEARABLE_GYM_FIELDS)[number];
+
+function isClearableGymField(v: unknown): v is ClearableGymField {
+  return (
+    typeof v === "string" &&
+    (CLEARABLE_GYM_FIELDS as readonly string[]).includes(v)
+  );
+}
+
+export type ClearGymFieldResult =
+  | { success: true }
+  | { success: false; message: string };
+
+/**
+ * Clear a single optional gym display field to `null`.
+ *
+ * ADMIN-only — mirrors `updateGymField` (`src/app/actions/gym.ts:245-247`)
+ * for the auth pattern: `verifyAdmin(headers)` returns
+ * `{ authorized, message }`, and the action returns the message on
+ * rejection (does NOT throw — server actions consumed by
+ * `useTransition`/`useActionState` need a typed return).
+ *
+ * Bypasses `gymFieldSchema` (which enforces `min(1)` / `url()`) because
+ * the schema's purpose is to reject empty URL submissions from the
+ * Guardar form. The Vaciar button explicitly WANTS to write `null`,
+ * which is the whole point of this action.
+ *
+ * On success:
+ *   - `prisma.gym.update({ where: { id: "gym" }, data: { [field]: null } })`
+ *   - `revalidateTag("gym-config", "max")` — purges the cached readers
+ *     in `getGymNameForServer` and `getGymDisplayForServer`.
+ *   - 3 `revalidatePath` calls: `/`, `/informacion`, `/admin/config`.
+ *
+ * On any thrown error (DB, validation, network): logs and returns
+ * `{ success: false, message: "Error al eliminar el campo" }`. The
+ * client (`FieldSubForm.handleClear`) reads the message and shows a
+ * destructive toast via `showError`, preserving the input value
+ * (REQ-7 — uncontrolled `key={displayedValue}` is not mutated).
+ */
+export async function clearGymDisplayField(
+  field: ClearableGymField,
+): Promise<ClearGymFieldResult> {
+  const authCheck = await verifyAdmin(await headers());
+  if (!authCheck.authorized) {
+    return { success: false, message: authCheck.message ?? "No autorizado" };
+  }
+  if (!isClearableGymField(field)) {
+    return { success: false, message: "Campo no vaciable" };
+  }
+  try {
+    await prisma.gym.update({
+      where: { id: "gym" },
+      data: { [field]: null },
+    });
+    revalidateTag("gym-config", "max");
+    revalidatePath("/");
+    revalidatePath("/informacion");
+    revalidatePath("/admin/config");
+    return { success: true };
+  } catch (err) {
+    console.error("[clearGymDisplayField] failed", err);
+    return { success: false, message: "Error al eliminar el campo" };
+  }
+}
