@@ -1,6 +1,6 @@
 # Roadmap
 
-_Last updated: 2026-06-22_ | _Version: 1.0.3_
+_Last updated: 2026-06-24_ | _Version: 1.0.3_
 
 > Per docs-guardian v1.2 convention: ROADMAP is **pending-only**. Completed releases live in [`openspec/CHANGELOG.md`](./CHANGELOG.md) as the audit trail (not duplicated here).
 
@@ -77,4 +77,4 @@ Tracking de `fix:` commits. Cada fix se acumula acá hasta que se cumple un crit
 
 | # | SHA | Severidad | Descripción |
 | --- | --- | --- | --- |
-| — | — | — | _Sin fixes acumulados._ |
+| 1 | `a9e2c64` | 🟡 | `fix(search):` reset page=1 al aplicar filtros — user en page 2 con filtro veía lista vacía (page no se reseteaba al cambiar filter). User-validated repro 2026-06-23. |
