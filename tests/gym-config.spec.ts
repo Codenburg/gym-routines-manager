@@ -1,5 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
 import { loginAsAdmin, resetGymConfig } from './helpers';
+import { resetGymDisplayFields } from './utils/gym-reset';
 
 // Next.js 16 + Turbopack dev server compiles routes on first request, and
 // the homepage/admin compile takes 10-30s on a cold cache. The Playwright
@@ -115,18 +116,16 @@ const NEW_WHATSAPP = `https://wa.me/5491100000${String(RUN_ID).slice(-4)}`;
 /**
  * Best-effort cleanup after the admin-flow tests. The gym display fields
  * use unique-per-run values (suffixed with RUN_ID) so reruns and parallel
- * runs don't conflict. We can't reset to `null` via the admin form
- * (zod enforces `min(1)`), and we don't want to risk corrupting the
- * singleton. So the cleanup is a no-op for now — the test values are
- * unique per run and won't collide with other tests' assertions.
+ * runs don't conflict. Now delegates to the real
+ * `resetGymDisplayFields()` helper (added in sdd/clear-gym-fields
+ * T-015) which uses direct Prisma to set all 4 nullable fields back to
+ * `null`. This is the same pattern as `resetGymNombre` — neither the
+ * admin form's `updateGymField` nor `/api/gym` PATCH can clear these
+ * fields (both reject empty/null via `gymFieldSchema`), so direct DB
+ * access is the smallest escape hatch for test isolation.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function clearGymDisplayFields(_page: Page): Promise<void> {
-  // Intentionally empty — the admin-flow test sets values suffixed with
-  // RUN_ID, which is unique to this test run. Subsequent runs use a
-  // different RUN_ID, so there's no cross-run pollution.
-  // We keep the function signature for symmetry with future cleanup
-  // logic (e.g. a "clear" admin form that accepts null).
+  await resetGymDisplayFields();
 }
 
 // ============================================

@@ -54,8 +54,38 @@ export async function resetGymNombre(): Promise<void> {
   } catch (error) {
     // Best-effort. If the DB is unreachable, the test continues —
     // the 5.2.3 isolation issue is a soft signal, not a hard fail.
-      
+
     console.warn('[gym-reset] Failed to reset gym.nombre:', error);
+  }
+}
+
+/**
+ * Reset the 4 nullable display fields to `null`.
+ *
+ * Companion to `resetGymNombre` — the `clear-gym-fields` change adds
+ * a per-field Vaciar button that writes null. E2E tests for that
+ * flow need a deterministic null baseline before each test (the
+ * admin form's `updateGymField` rejects empty strings via the
+ * `gymFieldSchema`, so there's no UI path to clear these fields
+ * for test isolation — direct Prisma is the smallest escape hatch,
+ * same pattern as `resetGymNombre`).
+ *
+ * Best-effort — never throws.
+ */
+export async function resetGymDisplayFields(): Promise<void> {
+  try {
+    const prisma = getPrisma();
+    await prisma.gym.update({
+      where: { id: 'gym' },
+      data: {
+        direccion: null,
+        mapsEmbedUrl: null,
+        socialInstagram: null,
+        socialWhatsapp: null,
+      },
+    });
+  } catch (error) {
+    console.warn('[gym-reset] Failed to reset gym display fields:', error);
   }
 }
 

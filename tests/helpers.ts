@@ -24,7 +24,7 @@
 
 import { expect, type Page, type Locator, type Response } from '@playwright/test';
 import { setExpiredCookie as setExpiredCookieFromSecurity } from './utils/security-helpers';
-import { resetGymNombre } from './utils/gym-reset';
+import { resetGymNombre, resetGymDisplayFields } from './utils/gym-reset';
 
 // ============================================
 // Constants
@@ -234,4 +234,10 @@ export async function resetGymConfig(): Promise<void> {
   // when `getPrisma()` is called (lazy singleton), so loading the module
   // doesn't open a DB connection.
   await resetGymNombre();
+  // Also clear the 4 nullable display fields so the clear-gym-fields
+  // E2E tests start from a known null baseline (per sdd/clear-gym-fields
+  // T-015). The clear flow's Vaciar button writes null via the new
+  // clearGymDisplayField action — without this, a previous test's
+  // clear value would persist across afterEach hooks.
+  await resetGymDisplayFields();
 }
