@@ -397,10 +397,13 @@ function FieldSubForm({ config, initialValue }: FieldSubFormProps) {
           showUndoableToast({
             message: `${clearToastLabel} eliminado`,
             durationMs: 5000,
-            // Shared id with the save toast below — both gym-config
-            // toasts REPLACE each other instead of stacking when fired
-            // in quick succession (e.g. Guardar then Vaciar).
-            id: "gym-config",
+            // UNIQUE id per field — sonner 2.0.7 can't replace a toast.custom
+            // with a toast.success sharing the same id (the undo toast stays
+            // visible and the new save toast never renders). Using a
+            // field-specific id avoids the collision: the save toast uses
+            // 'gym-config' (shared across fields), the undo toast uses
+            // 'gym-undo-<field>' so both can coexist without conflict.
+            id: `gym-undo-${config.field}`,
             onUndo: () => {
               // D5: re-fire updateGymField with the captured value
               // via the hidden form. The visible form stays untouched.
