@@ -51,6 +51,7 @@ _Last updated: 2026-06-24_ | _Version: 1.1.0_
 - [ ] **Git index corruption recurrente** — `git fsck` reporta missing blobs en `openspec/changes/<new>/*` después de cada cambio nuevo. Workaround actual: `git update-index --force-remove` + re-add. Root cause probable en `.engram/config.json` o interacción con GGA hook. Investigar y resolver de raíz (v0.17.0 follow-up)
 
 - [ ] **Admin panel responsive — polish mobile pendiente (M2/M4/M5 + 5 issues low)** — el header mobile y los quick wins de la auditoría ya están resueltos (v1.0.0, commits `504210b` + `a1b1990` + `cd2d42c`). Pendiente: tablas → cards en mobile, pagination icon-only, batch actions stack. Audit completo en el commit del audit report.
+- [ ] **E2E test para pause/resume del progress bar del undo toast** — el fix de `src/components/ui/ToastWithProgress.tsx` (commit `dff9616`) se validó manualmente con mouse real, pero no hay test automatizado. El problema: `page.mouse.move` de Playwright no dispara `onMouseEnter` de React consistentemente en portales de sonner. Workaround para el futuro test: usar `dispatchEvent(new MouseEvent('mouseenter', {bubbles: true}))` en el elemento del toast en vez de `mouse.move`. El fix en sí está validado y funciona — el test es nice-to-have, no bloqueante.
 
 ### Baja Prioridad
 - [ ] Exportación CSV de rutinas

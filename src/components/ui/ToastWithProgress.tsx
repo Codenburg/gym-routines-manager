@@ -41,14 +41,6 @@ type ToastWithProgressProps = {
  * `performance.now()` timestamp of the most recent resume, or null
  * when paused. Total elapsed = accumulatedMs + (resumeStart
  *   ? now - resumeStart : 0).
- *
- * TODO(verify-e2e): a future E2E test for this pause/resume behavior
- * should use `dispatchEvent(new MouseEvent('mouseenter', {bubbles: true}))`
- * on the toast element rather than `page.mouse.move()`. Playwright's
- * `mouse.move` does not reliably dispatch React's `onMouseEnter` on
- * components rendered inside sonner's portal — the handler fires
- * intermittently in test runs. `dispatchEvent` is consistent.
- * The fix itself was validated manually with a real mouse.
  */
 export function ToastWithProgress({
   message,
