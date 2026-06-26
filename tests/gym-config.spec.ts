@@ -830,18 +830,22 @@ test.describe('Gym Config — Clear to null', () => {
       await clearBtn.click();
 
       // 3. The undoable toast appears with the field-specific Spanish
-      //    message + Deshacer button.
+      //    message + Deshacer button + the progress bar (data-testid
+      //    set by ToastWithProgress — the 4th polish pass moved the bar
+      //    from CSS to JS-driven requestAnimationFrame inside the
+      //    component).
       const toast = page.locator('[data-sonner-toast]').filter({
         hasText: /eliminado/i,
       });
       await expect(toast).toBeVisible({ timeout: 5000 });
-      // The toast card has the `toast-with-undo` class which installs
-      // the progress-bar pseudo-element (Fix 2 of the 2nd polish pass).
-      await expect(toast.first()).toHaveClass(/toast-with-undo/);
       // The Deshacer action button.
       await expect(
         toast.getByRole('button', { name: /deshacer/i }),
       ).toBeVisible();
+      // The progress bar element (JS-driven, 4th polish pass).
+      await expect(
+        toast.locator('[data-testid="undo-toast-progress"]'),
+      ).toBeAttached();
 
       // 4. Fix 3 (2nd polish pass) — the input clears IMMEDIATELY
       //    on server success (no more 5s delay). The uncontrolled
@@ -1069,5 +1073,154 @@ test.describe('Gym Config — Clear to null', () => {
     // Vaciar re-enables because the field is non-empty (isClearPending
     // auto-resets to false on transition completion).
     await expect(clearBtn).toBeEnabled({ timeout: 5000 });
+  });
+
+  // ============================================================
+  // Regression guard — ultra-fast Guardar → Vaciar → Deshacer
+  // ============================================================
+  //
+  // Pins down the fix for two non-obvious bugs that surfaced during
+  // manual exploration of the clear-gym-fields change:
+  //   1. `toast.custom()` (the undo toast) and `toast.success()` (the
+  //      save toast) cannot replace each other even when sharing an
+  //      id in sonner 2.0.7 — fixed by giving the undo toast a unique
+  //      per-field id `gym-undo-${config.field}`.
+  //   2. The order of `router.refresh()` vs `showSuccess()` matters
+  //      for RSC reconciliation — fixed by calling `router.refresh()`
+  //      BEFORE `showSuccess()` so the toast survives the re-fetch.
+  //
+  // Without this test, a future change to the toast id scheme (e.g.
+  // introducing a "duplicar config" toast) could silently re-stack
+  // the save toast and the undo toast in the DOM, confusing users
+  // with two parallel notifications during one interaction.
+  //
+  // The test monitors `[data-sonner-toast]` count throughout the
+  // ultra-fast click sequence (every 30ms via `waitForFunction`
+  // polling) and asserts the count never exceeds 1. We also assert
+  // the post-settle count is ≤ 1 (everything should resolve to a
+  // single toast: either the restored save toast from the hidden
+  // undo form's re-submit, or no toast at all if the user dismissed).
+  test('ultra-fast Guardar→Vaciar→Deshacer keeps at most 1 toast visible (regression guard)', async ({
+    page,
+  }) => {
+    await loginAsAdmin(page);
+    await page.goto('/admin/config');
+    await expect(
+      page.getByRole('heading', { name: PAGE_TITLE }),
+    ).toBeVisible({ timeout: 10000 });
+
+    // Set a known direccion value. We intentionally do NOT click
+    // Guardar yet — the click sequence starts below in step 5.
+    const value = `Av. UltraFast ${RUN_ID}`;
+    const fieldInput = page.locator(`${DIRECCION_FORM} input[name="value"]`);
+    const submit = page.locator(`${DIRECCION_FORM} button[type="submit"]`);
+    await fieldInput.clear();
+    await fieldInput.fill(value);
+
+    // ============================================================
+    // DOM polling — start BEFORE the click sequence so we capture
+    // every transition (mount/unmount/replace) during the test.
+    //
+    // Implementation choice: page.waitForFunction with `polling: 30`
+    // (the user's spec) plus a 15s timeout (gives plenty of headroom
+    // for Next.js dev compilation + 3 server action round-trips on
+    // a cold cache). The function pushes a sample per poll and
+    // returns `false` so it never resolves on its own — we race the
+    // timeout instead. `.catch(() => {})` swallows the TimeoutError.
+    // ============================================================
+    const monitorPromise = page.waitForFunction(
+      () => {
+        const w = window as unknown as {
+          __samples?: number[];
+        };
+        if (!w.__samples) w.__samples = [];
+        const count = document.querySelectorAll('[data-sonner-toast]').length;
+        w.__samples.push(count);
+        return false; // never resolve — we stop polling externally
+      },
+      undefined,
+      { polling: 30, timeout: 15000 },
+    );
+
+    try {
+      // ============================================================
+      // ULTRA-FAST click sequence — NO waitForTimeout between clicks.
+      // ============================================================
+      // Step 5: Click Guardar — useActionState kicks off; on success
+      //         the useEffect fires router.refresh() + showSuccess(
+      //         "Configuración actualizada", { id: "gym-config" }).
+      await submit.click();
+
+      // Step 6: IMMEDIATELY click Vaciar — useTransition kicks off;
+      //         on success handleClear fires router.refresh() +
+      //         showUndoableToast({ ..., id: "gym-undo-direccion" }).
+      await page.locator('[data-testid="clear-direccion"]').click();
+
+      // Step 7: IMMEDIATELY click the Deshacer button inside the
+      //         visible toast — ToastWithProgress.onUndo calls
+      //         sonnerToast.dismiss(t) + the parent onUndo (which
+      //         re-fires updateGymField via the hidden form).
+      //         Playwright's auto-wait blocks here if the toast has
+      //         not yet rendered — by design, that's the contract:
+      //         we click Deshacer as soon as it's actionable.
+      await page
+        .locator('[data-sonner-toast] button:has-text("Deshacer")')
+        .first()
+        .click();
+
+      // ============================================================
+      // Settle — let all server actions complete + re-fetch land +
+      // any toast re-mounts resolve. The undo window is 5s, but
+      // clicking Deshacer dismisses the undo toast immediately, so
+      // 3s is plenty for the hidden form's save to return and its
+      // own showSuccess (id "gym-config", replaces any prior save
+      // toast) to fire.
+      // ============================================================
+      await page.waitForTimeout(3000);
+    } finally {
+      // Stop polling — the waitForFunction will time out after the
+      // configured 15s window, but the .catch in the await below
+      // swallows the error. Calling .catch() BEFORE the timeout
+      // doesn't actually cancel the polling — sonner's RAF loop
+      // continues until the 15s timeout. We read samples via
+      // page.evaluate regardless.
+      await monitorPromise.catch(() => {
+        /* expected: TimeoutError when 15s expires */
+      });
+    }
+
+    // ============================================================
+    // Read the collected samples + assert.
+    // ============================================================
+    const samples = await page.evaluate(
+      () =>
+        (window as unknown as { __samples?: number[] }).__samples ?? [],
+    );
+
+    // The polling must have actually run (sanity).
+    expect(samples.length).toBeGreaterThan(0);
+
+    // CORE INVARIANT: at every single poll, the count was ≤ 1.
+    // If ANY sample shows 2 or more, two toasts were simultaneously
+    // visible at that moment — the regression we're guarding
+    // against has resurfaced.
+    const maxCount = samples.reduce((m, v) => (v > m ? v : m), 0);
+    expect(maxCount).toBeLessThanOrEqual(1);
+
+    // POST-SETTLE INVARIANT: after everything resolves, the DOM
+    // holds at most 1 toast (the restored save toast from the
+    // hidden form re-submit, OR no toast if everything dismissed).
+    const finalCount = await page.locator('[data-sonner-toast]').count();
+    expect(finalCount).toBeLessThanOrEqual(1);
+
+    // Diagnostic context for failures — emit the sample timeline
+    // so a future failure shows exactly when the stacking happened.
+    if (maxCount > 1 || finalCount > 1) {
+      throw new Error(
+        `Toast stacking detected. Max during sequence: ${maxCount}, ` +
+          `final count: ${finalCount}. Samples (${samples.length}): ` +
+          `[${samples.slice(0, 50).join(',')}${samples.length > 50 ? ',...' : ''}]`,
+      );
+    }
   });
 });

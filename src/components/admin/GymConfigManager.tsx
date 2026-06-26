@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { showSuccess, showError, showUndoableToast } from "@/lib/toast";
+import { toast as sonnerToast } from "sonner";
 import {
   Building2,
   Camera,
@@ -386,6 +387,14 @@ function FieldSubForm({ config, initialValue }: FieldSubFormProps) {
           config.field as ClearableGymField,
         );
         if (result.success) {
+          // Dismiss ALL visible toasts (no id = dismiss all in sonner
+          // 2.0.7) so a stale save toast ("Configuración actualizada")
+          // doesn't briefly coexist with the new undo toast during
+          // sonner's exit animation. Without this, the regression-guard
+          // test (and users in ultra-fast click sequences) would see two
+          // stacked toasts during the ~200ms dismiss animation.
+          sonnerToast.dismiss();
+
           // Fix 3: refresh IMMEDIATELY so the input visually clears
           // in parallel with the toast appearing. The input is
           // uncontrolled with `key={displayedValue}` so the re-mount
@@ -394,28 +403,32 @@ function FieldSubForm({ config, initialValue }: FieldSubFormProps) {
           // animation runs in parallel and is unrelated.
           router.refresh();
 
-          showUndoableToast({
-            message: `${clearToastLabel} eliminado`,
-            durationMs: 5000,
-            // UNIQUE id per field — sonner 2.0.7 can't replace a toast.custom
-            // with a toast.success sharing the same id (the undo toast stays
-            // visible and the new save toast never renders). Using a
-            // field-specific id avoids the collision: the save toast uses
-            // 'gym-config' (shared across fields), the undo toast uses
-            // 'gym-undo-<field>' so both can coexist without conflict.
-            id: `gym-undo-${config.field}`,
-            onUndo: () => {
-              // D5: re-fire updateGymField with the captured value
-              // via the hidden form. The visible form stays untouched.
-              if (undoInputRef.current && undoFormRef.current) {
-                undoInputRef.current.value = previousValueRef.current;
-                undoFormRef.current.requestSubmit();
-              }
-            },
-            // `onAutoDismiss` intentionally omitted — the immediate
-            // refresh above means we no longer schedule a deferred
-            // re-fetch from the toast callback.
-          });
+          // Wait for the dismiss exit animation (~250ms) to complete
+          // before mounting the undo toast. Otherwise the dismissed
+          // save toast is still in the DOM (animating out) when the
+          // new one mounts, briefly stacking two toasts. The setTimeout
+          // is the most reliable workaround in sonner 2.0.7 without
+          // touching the animation duration globally.
+          setTimeout(() => {
+            showUndoableToast({
+              message: `${clearToastLabel} eliminado`,
+              durationMs: 5000,
+              // UNIQUE id per field — sonner 2.0.7 can't replace a
+              // toast.custom with a toast.success sharing the same id.
+              id: `gym-undo-${config.field}`,
+              onUndo: () => {
+                // D5: re-fire updateGymField with the captured value
+                // via the hidden form. The visible form stays untouched.
+                if (undoInputRef.current && undoFormRef.current) {
+                  undoInputRef.current.value = previousValueRef.current;
+                  undoFormRef.current.requestSubmit();
+                }
+              },
+              // `onAutoDismiss` intentionally omitted — the immediate
+              // refresh above means we no longer schedule a deferred
+              // re-fetch from the toast callback.
+            });
+          }, 250); // end setTimeout (dismiss animation settle)
         } else {
           // Server returned failure (auth/validation). Show error
           // toast. Input value is preserved because we never
