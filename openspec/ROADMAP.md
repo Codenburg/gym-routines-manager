@@ -1,6 +1,6 @@
 # Roadmap
 
-_Last updated: 2026-06-24_ | _Version: 1.1.0_
+_Last updated: 2026-06-28_ | _Version: 1.1.0_
 
 > Per docs-guardian v1.2 convention: ROADMAP is **pending-only**. Completed releases live in [`openspec/CHANGELOG.md`](./CHANGELOG.md) as the audit trail (not duplicated here).
 
@@ -66,13 +66,13 @@ _Last updated: 2026-06-24_ | _Version: 1.1.0_
 
 Tracking de `fix:` commits. Cada fix se acumula acá hasta que se cumple un criterio de bump (abajo). Al bumpear, los entries se mueven al `openspec/CHANGELOG.md` y la tabla queda vacía (pending only). Los `feat:` siguen criterio aparte (minor bump en batches).
 
-**Criterio de bump** (cualquiera de los 3 gatilla patch bump `1.0.3` → `1.0.4`):
+**Criterio de bump** (cualquiera de los 3 gatilla patch bump `1.1.0` → `1.1.1`):
 
 - 🔴 **1 hotfix** — bug crítico de producción (data loss, security, crash, funcionalidad core caída)
 - 🟡 **2 fixes de severidad media** — bugs de validación, lifecycle, race conditions, UI parcialmente rota
 - 🟢 **3 fixes de severidad baja** — polish UX, copy, accesibilidad, refactors menores
 
-**Estado actual**: Tabla vacía. Esperando el primer `fix:` del próximo ciclo. Los fixes que justificaron los bumps v1.0.2 + v1.0.3 viven en `openspec/CHANGELOG.md` (convención: ROADMAP es pending only, CHANGELOG es el audit trail).
+**Estado actual**: Tabla vacía. Esperando el primer `fix:` del próximo ciclo. Los fixes que justificaron el bump v1.1.0 viven en `openspec/CHANGELOG.md` (convención: ROADMAP es pending only, CHANGELOG es el audit trail).
 
 | # | SHA | Severidad | Descripción |
 | --- | --- | --- | --- |
