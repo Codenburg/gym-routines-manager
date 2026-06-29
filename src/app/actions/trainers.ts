@@ -5,45 +5,29 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import prisma from "@/lib/prisma";
-import { auth, isAdmin, isAdminOrTrainer } from "@/lib/auth";
+import { getActiveMemberAuthContext } from "@/lib/auth";
 import { type FormState } from "@/lib/schemas";
-import { createTrainerSchema, updateTrainerSchema, type CreateTrainerInput, type UpdateTrainerInput } from "@/lib/schemas/trainers";
+import { createTrainerSchema, updateTrainerSchema } from "@/lib/schemas/trainers";
 
 /**
  * Helper function to verify admin access
  */
+type AdminAuthCheck =
+  | { authorized: true; activeOrganizationId: string }
+  | { authorized: false; message: string };
+
 async function verifyAdmin(
   headersList: Headers
-): Promise<{ authorized: boolean; message?: string }> {
+): Promise<AdminAuthCheck> {
   try {
-    const session = await auth.api.getSession({ headers: headersList });
-    if (!session) {
+    const authContext = await getActiveMemberAuthContext(headersList);
+    if (!authContext) {
       return { authorized: false, message: "Debes iniciar sesión" };
     }
-    if (!(await isAdmin(headersList))) {
+    if (authContext.role !== "admin") {
       return { authorized: false, message: "No tienes permisos de administrador" };
     }
-    return { authorized: true };
-  } catch {
-    return { authorized: false, message: "Error de autenticación" };
-  }
-}
-
-/**
- * Helper function to verify admin or trainer access
- */
-async function verifyAdminOrTrainer(
-  headersList: Headers
-): Promise<{ authorized: boolean; message?: string }> {
-  try {
-    const session = await auth.api.getSession({ headers: headersList });
-    if (!session) {
-      return { authorized: false, message: "Debes iniciar sesión" };
-    }
-    if (!(await isAdminOrTrainer(headersList))) {
-      return { authorized: false, message: "No tienes permisos de administrador o entrenador" };
-    }
-    return { authorized: true };
+    return { authorized: true, activeOrganizationId: authContext.activeOrganizationId };
   } catch {
     return { authorized: false, message: "Error de autenticación" };
   }
@@ -56,7 +40,7 @@ async function verifyAdminOrTrainer(
 // ======================
 
 /**
- * Get all trainers (users with TRAINER role)
+ * Get all trainers in the active organization.
  */
 export async function getTrainers(): Promise<
   Array<{
@@ -66,26 +50,33 @@ export async function getTrainers(): Promise<
     createdAt: Date;
   }>
 > {
-  const authCheck = await verifyAdminOrTrainer(await headers());
+  const authCheck = await verifyAdmin(await headers());
   if (!authCheck.authorized) {
     return [];
   }
+  const { activeOrganizationId } = authCheck;
 
   try {
-    const trainers = await prisma.user.findMany({
+    const trainerMemberships = await prisma.member.findMany({
       where: {
-        role: "TRAINER",
-        deletedAt: null,
+        organizationId: activeOrganizationId,
+        role: "trainer",
+        user: { deletedAt: null },
       },
       select: {
-        id: true,
-        username: true,
-        name: true,
-        createdAt: true,
+        user: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            createdAt: true,
+          },
+        },
       },
-      orderBy: { name: "asc" },
+      orderBy: { user: { name: "asc" } },
     });
-    return trainers;
+
+    return trainerMemberships.map(({ user }) => user);
   } catch (error) {
     console.error("Error fetching trainers:", error);
     return [];
@@ -103,6 +94,7 @@ export async function createTrainer(
   if (!authCheck.authorized) {
     return { success: false, message: authCheck.message || "No autorizado" };
   }
+  const { activeOrganizationId } = authCheck;
 
   const rawData = {
     username: formData.get("username"),
@@ -121,45 +113,90 @@ export async function createTrainer(
 
   const { username, name, password } = parsed.data;
 
-  // Check if username already exists
-  const existing = await prisma.user.findFirst({
-    where: {
-      OR: [{ username }, { dni: username }],
-      deletedAt: null,
-    },
-  });
-
-  if (existing) {
-    return {
-      success: false,
-      errors: { username: ["Este DNI ya está registrado"] },
-      message: "El entrenador ya existe",
-    };
-  }
-
   try {
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    // Create user with TRAINER role
-    const trainer = await prisma.user.create({
-      data: {
-        username,
-        dni: username, // DNI is stored in dni field as well
-        name,
-        role: "TRAINER",
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [{ username }, { dni: username }],
+        deletedAt: null,
       },
+      select: { id: true, username: true, name: true },
     });
 
-    // Create associated Account with credential provider
-    await prisma.account.create({
-      data: {
-        userId: trainer.id,
-        accountId: username,
-        providerId: "credential",
-        providerType: "credential",
-        password: hashedPassword,
-      },
+    if (existingUser) {
+      const existingMembership = await prisma.member.findUnique({
+        where: {
+          userId_organizationId: {
+            userId: existingUser.id,
+            organizationId: activeOrganizationId,
+          },
+        },
+        select: { role: true },
+      });
+
+      if (existingMembership?.role === "trainer") {
+        return {
+          success: false,
+          errors: { username: ["Este DNI ya está registrado como entrenador"] },
+          message: "El entrenador ya existe",
+        };
+      }
+
+      if (existingMembership) {
+        return {
+          success: false,
+          errors: { username: ["Este usuario ya pertenece a la organización"] },
+          message: "El usuario ya pertenece a la organización",
+        };
+      }
+
+      await prisma.member.create({
+        data: {
+          userId: existingUser.id,
+          organizationId: activeOrganizationId,
+          role: "trainer",
+        },
+      });
+
+      revalidatePath("/admin/trainers");
+      revalidateTag("users", "max");
+
+      return {
+        success: true,
+        data: { id: existingUser.id, username: existingUser.username || "", name: existingUser.name },
+        message: "Entrenador creado exitosamente",
+      };
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    const trainer = await prisma.$transaction(async (tx) => {
+      const createdTrainer = await tx.user.create({
+        data: {
+          username,
+          dni: username,
+          name,
+        },
+      });
+
+      await tx.account.create({
+        data: {
+          userId: createdTrainer.id,
+          accountId: username,
+          providerId: "credential",
+          providerType: "credential",
+          password: hashedPassword,
+        },
+      });
+
+      await tx.member.create({
+        data: {
+          userId: createdTrainer.id,
+          organizationId: activeOrganizationId,
+          role: "trainer",
+        },
+      });
+
+      return createdTrainer;
     });
 
     revalidatePath("/admin/trainers");
@@ -192,6 +229,7 @@ export async function updateTrainer(
   if (!authCheck.authorized) {
     return { success: false, message: authCheck.message || "No autorizado" };
   }
+  const { activeOrganizationId } = authCheck;
 
   const parsed = updateTrainerSchema.safeParse(data);
   if (!parsed.success) {
@@ -199,12 +237,17 @@ export async function updateTrainer(
     return { success: false, message: firstError };
   }
 
-  // Find trainer and verify role
-  const trainer = await prisma.user.findFirst({
-    where: { id,         role: "TRAINER", deletedAt: null },
+  const trainerMembership = await prisma.member.findFirst({
+    where: {
+      userId: id,
+      organizationId: activeOrganizationId,
+      role: "trainer",
+      user: { deletedAt: null },
+    },
+    select: { userId: true },
   });
 
-  if (!trainer) {
+  if (!trainerMembership) {
     return { success: false, message: "Entrenador no encontrado" };
   }
 
@@ -251,8 +294,8 @@ export async function updateTrainer(
 }
 
 /**
- * Soft delete a trainer (converts to USER role)
- * This preserves routine ownership (creadorId remains valid)
+ * Remove the trainer membership from the active organization.
+ * This preserves the user and any routine ownership.
  */
 export async function deleteTrainer(
   id: string
@@ -261,24 +304,25 @@ export async function deleteTrainer(
   if (!authCheck.authorized) {
     return { success: false, message: authCheck.message || "No autorizado" };
   }
+  const { activeOrganizationId } = authCheck;
 
-  // Find trainer and verify role
-  const trainer = await prisma.user.findFirst({
-    where: { id,         role: "TRAINER", deletedAt: null },
+  const trainerMembership = await prisma.member.findFirst({
+    where: {
+      userId: id,
+      organizationId: activeOrganizationId,
+      role: "trainer",
+      user: { deletedAt: null },
+    },
+    select: { id: true },
   });
 
-  if (!trainer) {
+  if (!trainerMembership) {
     return { success: false, message: "Entrenador no encontrado" };
   }
 
   try {
-    // Soft delete: set role to USER and set deletedAt
-    await prisma.user.update({
-      where: { id },
-      data: {
-        role: "USER",
-        deletedAt: new Date(),
-      },
+    await prisma.member.delete({
+      where: { id: trainerMembership.id },
     });
 
     revalidatePath("/admin/trainers");

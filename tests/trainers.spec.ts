@@ -7,7 +7,7 @@
  * Covered scenarios:
  *   S3.T.1 - create trainer end-to-end (with login-as-trainer verification)
  *   S3.T.2 - edit trainer name
- *   S3.T.3 - soft-delete trainer (role → USER)
+ *   S3.T.3 - remove trainer membership
  *   S3.T.4 - reject duplicate DNI
  *
  * The 7 new data-testid attributes (3 in trainer-manager.tsx + 4 in
@@ -28,9 +28,9 @@
  *   - The `/api/trainers` REST endpoint has NO DELETE route
  *     (confirmed via `ls src/app/api/trainers/`). The only delete
  *     path is the server action via the UI. Cleanup uses the UI.
- *   - Soft-delete changes the trainer's `role` to USER. The admin
- *     layout's `isAdminOrTrainer` check then redirects the
- *     soft-deleted user to `/` instead of allowing them in.
+ *   - Delete removes the trainer Member row for the active organization.
+ *     The admin layout's organization-scoped role check then redirects
+ *     that user to `/` instead of allowing them in.
  *
  * Cleanup: the spec tracks created DNIs. In `afterEach`, each tracked
  * DNI is deleted via the UI (click trash → click "Eliminar" in the
@@ -47,7 +47,7 @@ import { createTrainerFixture } from './fixtures/trainer.fixture';
 test.setTimeout(120_000);
 
 /**
- * Soft-delete a trainer via the UI: click the trash button, then click
+ * Remove a trainer membership via the UI: click the trash button, then click
  * "Eliminar" in the React AlertDialog (NOT a native browser dialog).
  */
 async function deleteTrainerByDni(page: Page, dni: string): Promise<void> {
@@ -55,7 +55,7 @@ async function deleteTrainerByDni(page: Page, dni: string): Promise<void> {
     .locator('[data-testid="trainer-list-item"]')
     .filter({ hasText: dni })
     .first();
-  // The trainer may have already been removed (e.g., a soft-delete test
+  // The trainer may have already been removed (e.g., a deletion test
   // in the same suite). In that case, this is a no-op.
   if ((await item.count()) === 0) return;
   const deleteButton = item.getByTestId('trainer-delete-button');
@@ -124,16 +124,16 @@ test.describe('Trainer CRUD', () => {
     createdDnis.push(fixture.dni);
 
     // Verify the new trainer can log in. Clear cookies, then attempt
-    // to log in as the trainer (DNI + password). The trainer has
-    // role=TRAINER, which the admin layout allows → the trainer
-    // lands on /admin.
+    // to log in as the trainer (DNI + password). The trainer has an
+    // active organization Member role that allows the admin layout →
+    // the trainer lands on /admin.
     await page.context().clearCookies();
     await page.goto('/admin/login');
     await page.waitForSelector('input[id="dni"]', { timeout: 15_000 });
     await page.getByLabel('DNI').fill(fixture.dni);
     await page.getByLabel('Contraseña').fill(fixture.password);
     await page.click('button[type="submit"]');
-    // TRAINER role is allowed by the admin layout, so the trainer
+    // The trainer Member role is allowed by the admin layout, so the trainer
     // lands on /admin (or its subroutes). Wait for the URL to leave
     // /admin/login and stabilize on the admin panel.
     await page.waitForURL((url) => !url.pathname.startsWith('/admin/login'), {
@@ -206,7 +206,7 @@ test.describe('Trainer CRUD', () => {
     ).toHaveCount(0, { timeout: 5_000 });
   });
 
-  test('S3.T.3 - soft-delete trainer (role → USER) + login redirects to /', async ({ page }) => {
+  test('S3.T.3 - remove trainer membership + login redirects to /', async ({ page }) => {
     await loginAsAdmin(page);
     const trainerPage = new TrainerAdminPage(page);
     const fixture = createTrainerFixture();
@@ -227,7 +227,7 @@ test.describe('Trainer CRUD', () => {
     ).toBeVisible({ timeout: 15_000 });
     createdDnis.push(fixture.dni);
 
-    // Soft-delete via the UI: click the trash button, then click
+    // Remove via the UI: click the trash button, then click
     // "Eliminar" in the React AlertDialog.
     const item = page
       .locator('[data-testid="trainer-list-item"]')
@@ -241,17 +241,16 @@ test.describe('Trainer CRUD', () => {
 
     // The trainer is removed from the active list.
     await expect(item).toHaveCount(0, { timeout: 15_000 });
-    // No need to track for cleanup — the trainer is already soft-deleted
-    // (role=USER, deletedAt set). The afterEach UI cleanup is a no-op
-    // for this DNI because the list item is gone.
+    // No need to track for cleanup — the trainer membership has already
+    // been removed. The afterEach UI cleanup is a no-op for this DNI
+    // because the list item is gone.
     const idx = createdDnis.indexOf(fixture.dni);
     if (idx >= 0) createdDnis.splice(idx, 1);
 
-    // Verify the soft-deleted trainer can no longer access the admin
-    // panel. Log out (clear cookies), then try to log in as the
-    // trainer. The login itself succeeds, but the admin layout's
-    // `isAdminOrTrainer` check fails (role is now USER) and
-    // redirects to /.
+    // Verify the removed trainer can no longer access the admin panel.
+    // Log out (clear cookies), then try to log in as the trainer. The
+    // login itself succeeds, but the admin layout's organization-scoped
+    // role check fails and redirects to /.
     await page.context().clearCookies();
     await page.goto('/admin/login');
     await page.waitForSelector('input[id="dni"]', { timeout: 15_000 });

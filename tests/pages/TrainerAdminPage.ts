@@ -19,13 +19,12 @@
  * Per design §6.4 test scenarios:
  *   S3.T.1 create (+ login as trainer verification)
  *   S3.T.2 edit name
- *   S3.T.3 soft-delete (role → USER)
+ *   S3.T.3 remove trainer membership
  *   S3.T.4 reject duplicate DNI
  *
- * Note: `softDeleteByDni` + `expectNotActive` were removed because
- * the actual spec handles soft-delete inline (AlertDialog click
- * per discovery #213, then direct API call to verify role
- * downgraded). Keeping the page object thin per Decision 6.
+ * Note: `deleteByDni` + `expectNotActive` were removed because
+ * the actual spec handles deletion inline (AlertDialog click
+ * per discovery #213). Keeping the page object thin per Decision 6.
  */
 
 import { expect, type Locator, type Page } from '@playwright/test';
