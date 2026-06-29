@@ -86,7 +86,7 @@ export const auth = betterAuth({
 
 export type Session = typeof auth.$Infer.Session;
 export type User = typeof auth.$Infer.Session.user;
-export type MemberRole = "admin" | "trainer" | "member";
+export type MemberRole = "admin" | "trainer";
 
 export interface ActiveMemberAuthContext {
   session: Session;
@@ -101,8 +101,8 @@ export interface ActiveMemberAuthContext {
 //  They take headers (not session) because Better Auth's API
 //  needs the request headers to read the session cookie + activeOrganizationId.
 //
-//  Values for Member.role are LOWERCASE: "admin", "trainer", "member"
-//  (matching Better Auth conventions).
+//  Product behavior only recognizes Member.role values "admin" and "trainer".
+//  Any stored "member" or unsupported role has no permissions and fails closed.
 //
 //  activeOrganizationId is auto-populated by the databaseHooks.session.create
 //  hook at sign-in time (see top of file). For super-admin Tomás, who
@@ -159,7 +159,7 @@ export async function getActiveMemberAuthContext(headers: Headers): Promise<Acti
     return null; // DB outage, network error, etc. — fail-closed
   }
 
-  if (member?.role !== "admin" && member?.role !== "trainer" && member?.role !== "member") {
+  if (member?.role !== "admin" && member?.role !== "trainer") {
     return null;
   }
 

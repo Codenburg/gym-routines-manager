@@ -6,7 +6,8 @@
  * getActiveMemberRole against mocked (session + Member) data and verifies
  * the fail-closed behavior in every edge case:
  *
- *   - session with activeOrganizationId set + member exists → role returned
+ *   - session with activeOrganizationId set + admin/trainer member exists → role returned
+ *   - session with activeOrganizationId set + member/unsupported role → null
  *   - session with activeOrganizationId set + member DOES NOT exist
  *     (org deleted, user removed from org) → null (fail-closed)
  *   - session WITHOUT activeOrganizationId (super-admin Tomás) → null
@@ -185,6 +186,33 @@ describe("auth helpers — session with activeOrganizationId + member exists", (
       },
       select: { role: true },
     });
+  });
+});
+
+describe("auth helpers — session with activeOrganizationId + member has no product role", () => {
+  beforeEach(() => {
+    setSession({
+      session: { activeOrganizationId: "gym" },
+      user: { id: "viewer-id" },
+    } as any);
+  });
+
+  it("fails closed for legacy Member.role = member", async () => {
+    mockMemberFindUnique.mockResolvedValue({ role: "member" });
+
+    expect(await getActiveMemberRole(HDR)).toBeNull();
+    expect(await isAdmin(HDR)).toBe(false);
+    expect(await isTrainer(HDR)).toBe(false);
+    expect(await isAdminOrTrainer(HDR)).toBe(false);
+    expect(await hasRole(HDR, "member")).toBe(false);
+  });
+
+  it("fails closed for unsupported Member.role values", async () => {
+    mockMemberFindUnique.mockResolvedValue({ role: "owner" });
+
+    expect(await getActiveMemberRole(HDR)).toBeNull();
+    expect(await isAdminOrTrainer(HDR)).toBe(false);
+    expect(await hasRole(HDR, "owner")).toBe(false);
   });
 });
 

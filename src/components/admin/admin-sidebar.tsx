@@ -38,8 +38,8 @@ interface NavItem {
   label: string;
   icon: typeof FileText;
   /**
-   * True when the item is restricted to ADMIN only.
-   * TRAINER users see only items with `adminOnly: false` (or unset).
+   * True when the item is restricted to admins only.
+   * Trainers see only items with `adminOnly: false` (or unset).
    * Defaults to false (visible to all admin roles).
    */
   adminOnly?: boolean;
@@ -80,13 +80,13 @@ const navItems: NavItem[] = [
   },
 ];
 
-// Filter nav items based on role
+// Filter nav items based on the active organization role.
 function getVisibleNavItems(role?: string) {
-  if (role === "TRAINER") {
-    // TRAINER sees only items not flagged as admin-only.
+  if (role === "trainer") {
+    // Trainers see only items not flagged as admin-only.
     return navItems.filter((item) => !item.adminOnly);
   }
-  // ADMIN sees all items.
+  // Admins see all items.
   return navItems;
 }
 
