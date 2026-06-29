@@ -3,6 +3,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import 'dotenv/config';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import { GYM_SINGLETON_ID } from '@/lib/gym-constants';
 
 const databaseUrl = process.env.DATABASE_URL || '';
@@ -41,6 +42,13 @@ function parseFormato(formato: string) {
   return { series: parseInt(match[1], 10), repes: parseInt(match[2], 10) };
 }
 
+/**
+ * Generate a cryptographically strong random password (32 hex chars = 128 bits)
+ */
+function generateStrongPassword(): string {
+  return crypto.randomBytes(16).toString('hex');
+}
+
 async function main() {
   console.log('Seeding database...');
 
@@ -54,11 +62,16 @@ async function main() {
     await tx.descuentoDuracion.deleteMany();
     await tx.feriado.deleteMany();
     await tx.gym.deleteMany();
+    await tx.member.deleteMany();
     await tx.session.deleteMany();
     await tx.account.deleteMany();
     await tx.user.deleteMany();
 
-    // Create singleton Organization for multi-tenant migration (step 1 placeholder)
+    // ============================================================
+    // Organization & Gym (singleton)
+    // ============================================================
+
+    // Create Organization — must exist before any user/entity that references it
     await tx.organization.upsert({
       where: { id: GYM_SINGLETON_ID },
       update: {},
@@ -69,7 +82,7 @@ async function main() {
       },
     });
 
-    // Create/update singleton Gym config
+    // Create/update singleton Gym config (FK to Organization)
     // The default 'nombre' is a friendly placeholder ("Mi Gimnasio") so the
     // dev environment shows something sensible on first boot. Admins
     // overwrite this via the gym config page; production deployments should
@@ -86,9 +99,6 @@ async function main() {
         id: 'gym',
         price: 45000,
         nombre: 'Mi Gimnasio',
-        // horarioJson: Prisma.JsonNull writes JSON null to the JSONB cell.
-        // The read boundary Zod-validates against horarioSemanalSchema; a
-        // JSON null is treated as "unconfigured" (public HoursSection hides).
         horarioJson: Prisma.JsonNull,
         direccion: null,
         mapsEmbedUrl: null,
@@ -99,7 +109,10 @@ async function main() {
 
     console.log('Gym config ensured with price: $45.000, nombre: "Mi Gimnasio" (or preserved if already set)');
 
-    // Seed Promociones
+    // ============================================================
+    // Promociones & Descuentos
+    // ============================================================
+
     const promociones = [
       {
         titulo: '2x1 en Matrícula',
@@ -126,10 +139,8 @@ async function main() {
         data: { ...promo, gymId: 'gym' },
       });
     }
-
     console.log(`Created ${promociones.length} promociones`);
 
-    // Seed DescuentosDuracion (meses as enum [3, 6, 9, 12])
     const descuentosDuracion = [
       { meses: 3, porcentaje: 10 },
       { meses: 6, porcentaje: 15 },
@@ -142,10 +153,12 @@ async function main() {
         data: { ...descuento, gymId: 'gym' },
       });
     }
-
     console.log(`Created ${descuentosDuracion.length} descuentos por duración`);
 
+    // ============================================================
     // Routine templates
+    // ============================================================
+
     const routineTemplates = [
       { nombre: 'Full Body', tipo: 'fuerza', descripcion: 'Rutina completa para todo el cuerpo' },
       { nombre: 'Pecho y Tríceps', tipo: 'fuerza', descripcion: 'Entrenamiento de empujes' },
@@ -159,30 +172,31 @@ async function main() {
       { nombre: 'Resistencia', tipo: 'cardio', descripcion: 'Endurance y stamina' },
     ];
 
-    // Create admin users
-    const admins = [
-      { name: 'Nando', dni: '11111111', password: process.env.SEED_ADMIN_PASSWORD_1 },
-    ];
+    // ============================================================
+    // Helper: create user + account + routines
+    // ============================================================
 
-    for (const admin of admins) {
-      if (!admin.password) {
-        console.error(`SEED_ADMIN_PASSWORD for ${admin.name} is not set`);
-        throw new Error(`Missing SEED_ADMIN_PASSWORD for ${admin.name}`);
-      }
-      if (admin.password.length > 72) {
-        console.error(`Password for ${admin.name} exceeds 72 bytes (bcrypt limit)`);
-        throw new Error(`Password too long for ${admin.name}`);
-      }
-      const hashedPwd = await bcrypt.hash(admin.password, 12);
+    async function createUserWithRoutines(
+      tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
+      params: {
+        name: string;
+        dni: string;
+        password: string;
+        isSuperAdmin: boolean;
+        memberRole?: 'admin' | 'trainer'; // undefined = no member entry
+        routineCount: number;
+      },
+    ) {
+      const hashedPwd = await bcrypt.hash(params.password, 12);
 
       const user = await tx.user.create({
         data: {
-          name: admin.name,
-          username: admin.dni,
+          name: params.name,
+          username: params.dni,
           email: null,
-          dni: admin.dni,
+          dni: params.dni,
           emailVerified: false,
-          isSuperAdmin: false,
+          isSuperAdmin: params.isSuperAdmin,
           banned: false,
         },
       });
@@ -190,23 +204,32 @@ async function main() {
       await tx.account.create({
         data: {
           userId: user.id,
-          accountId: admin.dni,
-           providerId: 'credential', // Must be 'credential' for better-auth username plugin
+          accountId: params.dni,
+          providerId: 'credential',
           providerType: 'credential',
           password: hashedPwd,
         },
       });
 
-      console.log(`Admin ${admin.name} created with DNI: ${admin.dni}`);
+      // Create Member entry if role is specified (gym org member)
+      if (params.memberRole) {
+        await tx.member.create({
+          data: {
+            userId: user.id,
+            organizationId: GYM_SINGLETON_ID,
+            role: params.memberRole,
+          },
+        });
+      }
 
-      // Create 10 routines for this admin using user.id as FK
-      for (let i = 0; i < routineTemplates.length; i++) {
-        const template = routineTemplates[i];
+      // Create routines
+      const templateSlice = routineTemplates.slice(0, params.routineCount);
+      for (let i = 0; i < templateSlice.length; i++) {
+        const template = templateSlice[i];
 
-        // Create routine with the admin as creator
         const rutina = await tx.rutina.create({
           data: {
-            nombre: `${template.nombre} - ${admin.name}`,
+            nombre: `${template.nombre} - ${params.name}`,
             tipo: template.tipo,
             descripcion: template.descripcion,
             creadorId: user.id,
@@ -214,7 +237,6 @@ async function main() {
           },
         });
 
-        // Create initial ownership record (creation, not transfer)
         await tx.ownershipTransfer.create({
           data: {
             rutinaId: rutina.id,
@@ -224,8 +246,8 @@ async function main() {
           },
         });
 
-        // Create 1-2 days per routine
-        const numDias = i < 5 ? 2 : 1;
+        // Create 1-2 days per routine (first 5 templates get 2 days)
+        const numDias = i < Math.min(5, params.routineCount) ? 2 : 1;
 
         for (let d = 1; d <= numDias; d++) {
           const ejerciciosData = [
@@ -259,108 +281,101 @@ async function main() {
         }
       }
 
-      console.log(`Created 10 routines for ${admin.name}`);
+      return user;
     }
 
-    // Seed Trainer users
-    const trainers = [
+    // ============================================================
+    // Nando — gym admin (isSuperAdmin: false, Member.role: "admin")
+    // ============================================================
+
+    const adminPassword = process.env.SEED_ADMIN_PASSWORD_1;
+    if (!adminPassword) throw new Error('Missing SEED_ADMIN_PASSWORD_1 for Nando');
+    if (adminPassword.length > 72) throw new Error('Nando password exceeds 72 bytes (bcrypt limit)');
+
+    await createUserWithRoutines(tx as any, {
+      name: 'Nando',
+      dni: '11111111',
+      password: adminPassword,
+      isSuperAdmin: false,
+      memberRole: 'admin',
+      routineCount: 10,
+    });
+
+    console.log('Admin Nando created as gym org admin (Member.role: admin)');
+
+    // ============================================================
+    // Leo, Santi, Facu — trainers (isSuperAdmin: false, Member.role: "trainer")
+    // ============================================================
+
+    const trainerConfigs = [
       { name: 'Leo', dni: '22222222', password: process.env.SEED_TRAINER_PASSWORD_1 },
       { name: 'Santi', dni: '33333333', password: process.env.SEED_TRAINER_PASSWORD_2 },
       { name: 'Facu', dni: '44444444', password: process.env.SEED_TRAINER_PASSWORD_3 },
     ];
 
-    for (const trainer of trainers) {
-      if (!trainer.password) {
-        console.error(`SEED_TRAINER_PASSWORD for ${trainer.name} is not set`);
-        throw new Error(`Missing SEED_TRAINER_PASSWORD for ${trainer.name}`);
-      }
-      if (trainer.password.length > 72) {
-        console.error(`Password for ${trainer.name} exceeds 72 bytes (bcrypt limit)`);
-        throw new Error(`Password too long for ${trainer.name}`);
-      }
-      const hashedPwd = await bcrypt.hash(trainer.password, 12);
+    for (const t of trainerConfigs) {
+      if (!t.password) throw new Error(`Missing SEED_TRAINER_PASSWORD for ${t.name}`);
+      if (t.password.length > 72) throw new Error(`${t.name} password exceeds 72 bytes`);
 
-      const user = await tx.user.create({
-        data: {
-          name: trainer.name,
-          username: trainer.dni,
-          email: null,
-          dni: trainer.dni,
-          emailVerified: false,
-          isSuperAdmin: false,
-          banned: false,
-        },
+      await createUserWithRoutines(tx as any, {
+        name: t.name,
+        dni: t.dni,
+        password: t.password,
+        isSuperAdmin: false,
+        memberRole: 'trainer',
+        routineCount: 5,
       });
 
-      await tx.account.create({
-        data: {
-          userId: user.id,
-          accountId: trainer.dni,
-          providerId: 'credential',
-          providerType: 'credential',
-          password: hashedPwd,
-        },
-      });
-
-      console.log(`Trainer ${trainer.name} created with DNI: ${trainer.dni}`);
-
-      // Create 5 routines for this trainer
-      const trainerTemplates = routineTemplates.slice(0, 5);
-      for (let i = 0; i < trainerTemplates.length; i++) {
-        const template = trainerTemplates[i];
-
-        const rutina = await tx.rutina.create({
-          data: {
-            nombre: `${template.nombre} - ${trainer.name}`,
-            tipo: template.tipo,
-            descripcion: template.descripcion,
-            creadorId: user.id,
-            organizationId: GYM_SINGLETON_ID,
-          },
-        });
-
-        await tx.ownershipTransfer.create({
-          data: {
-            rutinaId: rutina.id,
-            fromUserId: null,
-            toUserId: user.id,
-            organizationId: GYM_SINGLETON_ID,
-          },
-        });
-
-        // Create 2 days per routine
-        for (let d = 1; d <= 2; d++) {
-          const ejerciciosData = [
-            { nombre: 'Press de Banca', formato: '4x10', orden: 1 },
-            { nombre: 'Sentadillas', formato: '4x12', orden: 2 },
-            { nombre: 'Peso Muerto', formato: '3x8', orden: 3 },
-          ];
-
-          const ejercicios = ejerciciosData.map(ej => {
-            const { series, repes } = parseFormato(ej.formato);
-            return {
-              nombre: ej.nombre,
-              series,
-              repes,
-              orden: ej.orden,
-            };
-          });
-
-          await tx.dia.create({
-            data: {
-              musculosEnfocados: [template.tipo],
-              orden: d,
-              rutinaId: rutina.id,
-              ejercicios: {
-                create: ejercicios,
-              },
-            },
-          });
-        }
-      }
-
-      console.log(`Created 5 routines for ${trainer.name}`);
+      console.log(`Trainer ${t.name} created as gym org trainer (Member.role: trainer)`);
     }
+
+    // ============================================================
+    // Tomás — super admin (isSuperAdmin: true, NO Member)
+    // Password generated randomly, printed once below.
+    // ============================================================
+
+    const tomasPassword = generateStrongPassword();
+    const tomasDni = '99999999';
+
+    const tomas = await tx.user.create({
+      data: {
+        name: 'Tomás',
+        username: tomasDni,
+        email: null,
+        dni: tomasDni,
+        emailVerified: false,
+        isSuperAdmin: true,
+        banned: false,
+      },
+    });
+
+    const hashedTomasPwd = await bcrypt.hash(tomasPassword, 12);
+    await tx.account.create({
+      data: {
+        userId: tomas.id,
+        accountId: tomasDni,
+        providerId: 'credential',
+        providerType: 'credential',
+        password: hashedTomasPwd,
+      },
+    });
+
+    // NO Member entry — Tomás is a super-admin with no org membership
+
+    // ============================================================
+    // Print Tomás credentials — ONE TIME only, never persisted
+    // ============================================================
+
+    console.log('');
+    console.log('══════════════════════════════════════════════════');
+    console.log('  TOMÁS — SUPER ADMIN ACCOUNT (ONE-TIME PRINT)');
+    console.log('  Save these credentials in your password manager.');
+    console.log('  They will NOT be shown again.');
+    console.log('');
+    console.log(`  Username: ${tomasDni}`);
+    console.log(`  Password: ${tomasPassword}`);
+    console.log('══════════════════════════════════════════════════');
+    console.log('');
 
     console.log('Seeding complete!');
   });
