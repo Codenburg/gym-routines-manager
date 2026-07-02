@@ -8,6 +8,7 @@ interface PaginationProps {
   totalPages: number;
   search: string;
   trainers: string[];
+  basePath?: string;
 }
 
 export function Pagination({
@@ -15,6 +16,7 @@ export function Pagination({
   totalPages,
   search,
   trainers,
+  basePath = "/",
 }: PaginationProps) {
   // Build base search params
   const buildHref = (page: number) => {
@@ -23,7 +25,7 @@ export function Pagination({
     if (trainers.length > 0) params.set("trainers", trainers.join(","));
     if (page > 1) params.set("page", String(page));
     const queryString = params.toString();
-    return queryString ? `?${queryString}` : "/";
+    return queryString ? `${basePath}?${queryString}` : basePath;
   };
 
   const canGoPrev = currentPage > 1;

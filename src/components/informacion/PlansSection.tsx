@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Promocion } from "@/app/(public)/informacion/page"
+import type { Promocion } from "@/app/g/[orgSlug]/informacion/page"
 import { formatPriceARS } from "@/lib/format"
 
 interface PlansSectionProps {

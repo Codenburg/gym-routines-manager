@@ -18,7 +18,7 @@ import {
  */
 async function verifyAdmin(
   headersList: Headers
-): Promise<{ authorized: boolean; message?: string }> {
+): Promise<{ authorized: boolean; activeOrganizationId?: string; message?: string }> {
   try {
     const session = await auth.api.getSession({ headers: headersList });
     if (!session) {
@@ -27,7 +27,11 @@ async function verifyAdmin(
     if (!(await isAdmin(headersList))) {
       return { authorized: false, message: "No tienes permisos de administrador" };
     }
-    return { authorized: true };
+    const activeOrganizationId = session.session.activeOrganizationId;
+    if (!activeOrganizationId) {
+      return { authorized: false, message: "No hay organización activa" };
+    }
+    return { authorized: true, activeOrganizationId };
   } catch {
     return { authorized: false, message: "Error de autenticación" };
   }
@@ -40,8 +44,12 @@ async function verifyAdmin(
  */
 export async function getGymConfig() {
   try {
+    const authCheck = await verifyAdmin(await headers());
+    if (!authCheck.authorized || !authCheck.activeOrganizationId) {
+      return null;
+    }
     const gym = await prisma.gym.findUnique({
-      where: { id: "gym" },
+      where: { id: authCheck.activeOrganizationId },
     });
     return gym;
   } catch (error) {
@@ -97,6 +105,33 @@ export async function getGymNameForServer(): Promise<string | null> {
 }
 
 /**
+ * Cached tenant-scoped read of the public gym display name.
+ *
+ * @param organizationId - Resolved public tenant organization id.
+ * @returns The tenant gym name, or null when unavailable.
+ */
+export async function getGymNameForServerForTenant(
+  organizationId: string
+): Promise<string | null> {
+  return unstable_cache(
+    async (orgId: string) => {
+      try {
+        const gym = await prisma.gym.findUnique({
+          where: { id: orgId },
+          select: { nombre: true },
+        });
+        return gym?.nombre ?? null;
+      } catch (error) {
+        console.error("[getGymNameForServerForTenant] failed", error);
+        return null;
+      }
+    },
+    ["gym-name-for-tenant"],
+    { tags: ["gym-config", `gym:${organizationId}:config`], revalidate: 60 }
+  )(organizationId);
+}
+
+/**
  * Zod-narrowed snapshot of the gym display fields, ready to be passed
  * to client components. The raw `prisma.gym` row types `horarioJson`
  * as `Prisma.JsonValue` (loose), so we validate it against
@@ -140,6 +175,40 @@ export async function getGymDisplayForServer() {
 }
 
 /**
+ * Cached tenant-scoped read of public gym display fields.
+ *
+ * @param organizationId - Resolved public tenant organization id.
+ * @returns Validated public display fields, or null when unavailable.
+ */
+export async function getGymDisplayForServerForTenant(organizationId: string) {
+  return unstable_cache(
+    async (orgId: string) => {
+      try {
+        const gym = await prisma.gym.findUnique({ where: { id: orgId } });
+        if (!gym) return null;
+        const horarioJsonParsed = horarioSemanalSchema.safeParse(gym.horarioJson);
+        const horarioJson: HorarioSemanal | null = horarioJsonParsed.success
+          ? horarioJsonParsed.data
+          : null;
+        return {
+          nombre: gym.nombre,
+          horarioJson,
+          direccion: gym.direccion,
+          mapsEmbedUrl: gym.mapsEmbedUrl,
+          socialInstagram: gym.socialInstagram,
+          socialWhatsapp: gym.socialWhatsapp,
+        };
+      } catch (error) {
+        console.error("[getGymDisplayForServerForTenant] failed", error);
+        return null;
+      }
+    },
+    ["gym-display-for-tenant"],
+    { tags: ["gym-config", `gym:${organizationId}:config`], revalidate: 60 }
+  )(organizationId);
+}
+
+/**
  * Zod schema for price validation
  * min: 1000 ARS, max: 500000 ARS, max 2 decimal places
  */
@@ -166,6 +235,10 @@ export async function updateGymPrice(
   if (!authCheck.authorized) {
     return { success: false, message: authCheck.message || "No autorizado" };
   }
+  const organizationId = authCheck.activeOrganizationId;
+  if (!organizationId) {
+    return { success: false, message: "No hay organización activa" };
+  }
 
   // Validate price with Zod
   const rawPrice = formData.get("price");
@@ -182,7 +255,7 @@ export async function updateGymPrice(
   try {
     // Check if gym exists
     const existing = await prisma.gym.findUnique({
-      where: { id: "gym" },
+      where: { id: organizationId },
     });
 
     if (!existing) {
@@ -190,16 +263,18 @@ export async function updateGymPrice(
     }
 
     const gym = await prisma.gym.update({
-      where: { id: "gym" },
+      where: { id: organizationId },
       data: { price: parsed.data.price },
     });
 
-    // Revalidate paths
+    // Revalidate admin path and cache tags. Canonical public pages are tenant-scoped
+    // under `/g/[orgSlug]/*`; slice 2 write-path work will add tenant-path
+    // revalidation once slug mutation/admin organization switching lands.
     revalidatePath("/api/gym");
-    revalidatePath("/informacion");
     revalidatePath("/admin");
 
     revalidateTag("gym-config", "max");
+    revalidateTag(`gym:${organizationId}:config`, "max");
 
     return {
       success: true,
@@ -230,8 +305,9 @@ export async function updateGymPrice(
  *      column.
  *   2. `revalidateTag("gym-config")` — purges the cached reader used by
  *      generateMetadata and the public pages.
- *   3. `revalidatePath` for `/`, `/informacion`, `/admin` — forces a
- *      fresh render of every page that consumes the gym config.
+ *   3. `revalidatePath` for `/admin` — forces a fresh render of the admin
+ *      page that consumes the gym config. Canonical public tenant paths
+ *      are covered by cache tags until slice 2 adds write-path slug logic.
  *
  * Returns FormState<{ field, value }> so the calling form can resync
  * inputs and trigger a success toast. The `value` is the post-parse
@@ -245,6 +321,10 @@ export async function updateGymField(
   const authCheck = await verifyAdmin(await headers());
   if (!authCheck.authorized) {
     return { success: false, message: authCheck.message || "No autorizado" };
+  }
+  const organizationId = authCheck.activeOrganizationId;
+  if (!organizationId) {
+    return { success: false, message: "No hay organización activa" };
   }
 
   const parsed = gymFieldSchema.safeParse({
@@ -261,19 +341,18 @@ export async function updateGymField(
   }
 
   try {
-    const existing = await prisma.gym.findUnique({ where: { id: "gym" } });
+    const existing = await prisma.gym.findUnique({ where: { id: organizationId } });
     if (!existing) {
       return { success: false, message: "Configuración del gym no encontrada" };
     }
 
     await prisma.gym.update({
-      where: { id: "gym" },
+      where: { id: organizationId },
       data: { [parsed.data.field]: parsed.data.value },
     });
 
     revalidateTag("gym-config", "max");
-    revalidatePath("/");
-    revalidatePath("/informacion");
+    revalidateTag(`gym:${organizationId}:config`, "max");
     revalidatePath("/admin");
 
     return {
@@ -359,12 +438,16 @@ export async function clearGymDisplayField(
   if (!authCheck.authorized) {
     return { success: false, message: authCheck.message ?? "No autorizado" };
   }
+  const organizationId = authCheck.activeOrganizationId;
+  if (!organizationId) {
+    return { success: false, message: "No hay organización activa" };
+  }
   if (!isClearableGymField(field)) {
     return { success: false, message: "Campo no vaciable" };
   }
   try {
     await prisma.gym.update({
-      where: { id: "gym" },
+      where: { id: organizationId },
       data: { [field]: null },
     });
     // Invalidate the cached reader so the next read sees fresh data.
@@ -386,6 +469,7 @@ export async function clearGymDisplayField(
     // which re-fetches the RSC tree so the input visually clears in
     // parallel with the toast appearing.
     updateTag("gym-config");
+    updateTag(`gym:${organizationId}:config`);
     return { success: true };
   } catch (err) {
     console.error("[clearGymDisplayField] failed", err);

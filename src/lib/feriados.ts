@@ -39,3 +39,55 @@ export async function getFeriados() {
     { tags: ["feriados"], revalidate: 30 }
   )();
 }
+
+/**
+ * Cached tenant-scoped read of public feriados.
+ *
+ * @param organizationId - Resolved public tenant organization id.
+ * @returns Feriados owned by the tenant.
+ */
+export async function getFeriadosForTenant(organizationId: string) {
+  return unstable_cache(
+    async (orgId: string) => {
+      try {
+        return await prisma.feriado.findMany({
+          where: { gymId: orgId },
+          orderBy: { fecha: "asc" },
+        });
+      } catch (error) {
+        console.error("[getFeriadosForTenant] Failed to fetch feriados:", error);
+        return [];
+      }
+    },
+    ["feriados-for-tenant"],
+    { tags: ["feriados", `feriados:${organizationId}`], revalidate: 30 }
+  )(organizationId);
+}
+
+/**
+ * Cached tenant-scoped latest feriado creation date for notification badges.
+ *
+ * @param organizationId - Resolved public tenant organization id.
+ * @returns Latest tenant feriado creation date as ISO string, or null.
+ */
+export async function getLatestFeriadoDateForTenant(
+  organizationId: string
+): Promise<string | null> {
+  return unstable_cache(
+    async (orgId: string) => {
+      try {
+        const latest = await prisma.feriado.findFirst({
+          where: { gymId: orgId },
+          orderBy: { createdAt: "desc" },
+          select: { createdAt: true },
+        });
+        return latest ? latest.createdAt.toISOString() : null;
+      } catch (error) {
+        console.error("[getLatestFeriadoDateForTenant] Failed to fetch latest feriado:", error);
+        return null;
+      }
+    },
+    ["latest-feriado-date-for-tenant"],
+    { tags: ["feriados", `feriados:${organizationId}`], revalidate: 30 }
+  )(organizationId);
+}

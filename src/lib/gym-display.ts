@@ -30,3 +30,23 @@ export function resolveGymName(
 
   return GENERIC_GYM_NAME;
 }
+
+/**
+ * Resolves a tenant public display name without deploy/global branding fallback.
+ *
+ * Canonical tenant pages must never leak `NEXT_PUBLIC_GYM_NAME` when the
+ * tenant-specific `Gym.nombre` is missing. The only safe public fallback is
+ * the neutral generic label.
+ *
+ * @param dbName - Tenant-scoped `Gym.nombre` value.
+ * @param envName - Optional environment fallback.
+ * @returns The resolved public gym name.
+ */
+export function resolveGymNameForTenant(
+  dbName: string | null | undefined
+): string {
+  const trimmedDb = dbName?.trim();
+  if (trimmedDb) return trimmedDb;
+
+  return GENERIC_GYM_NAME;
+}

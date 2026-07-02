@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { DescuentoDuracion } from "@/app/(public)/informacion/page"
+import type { DescuentoDuracion } from "@/app/g/[orgSlug]/informacion/page"
 import { formatPriceARS } from "@/lib/format"
 
 interface DurationDiscountsSectionProps {

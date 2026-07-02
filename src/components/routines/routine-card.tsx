@@ -2,16 +2,19 @@ import Link from "next/link";
 import { Calendar } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Rutina } from "@/lib/rutinas";
+import { buildPublicHref } from "@/lib/tenants/href";
 
 interface RoutineCardProps {
   rutina: Rutina;
+  orgSlug?: string;
 }
 
-export function RoutineCard({ rutina }: RoutineCardProps) {
+export function RoutineCard({ rutina, orgSlug }: RoutineCardProps) {
   const diasLabel = rutina.diasCount === 1 ? "1 día" : `${rutina.diasCount} días`;
+  const href = orgSlug ? buildPublicHref(orgSlug, `/rutinas/${rutina.id}`) : `/rutinas/${rutina.id}`;
 
   return (
-    <Link href={`/rutinas/${rutina.id}`} prefetch={true}>
+    <Link href={href} prefetch={true}>
       <Card className="group cursor-pointer transition-all duration-300 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/10 h-full flex flex-col">
         <CardHeader>
           <div className="flex items-start justify-between gap-2">

@@ -33,3 +33,51 @@ export async function getPromociones() {
     { tags: ["promociones"], revalidate: 60 }
   )();
 }
+
+/**
+ * Cached tenant-scoped read of promociones for public/server consumers.
+ *
+ * @param organizationId - Resolved public tenant organization id.
+ * @returns Promociones owned by the tenant.
+ */
+export async function getPromocionesForTenant(organizationId: string) {
+  return unstable_cache(
+    async (orgId: string) => {
+      try {
+        return await prisma.promocion.findMany({
+          where: { gymId: orgId },
+          orderBy: { createdAt: "desc" },
+        });
+      } catch (error) {
+        console.error("[getPromocionesForTenant] Failed to fetch promociones:", error);
+        return [];
+      }
+    },
+    ["promociones-for-tenant"],
+    { tags: ["promociones", `promociones:${organizationId}`], revalidate: 60 }
+  )(organizationId);
+}
+
+/**
+ * Cached tenant-scoped read of active promociones for the public information page.
+ *
+ * @param organizationId - Resolved public tenant organization id.
+ * @returns Active promociones owned by the tenant.
+ */
+export async function getPromocionesActivasForTenant(organizationId: string) {
+  return unstable_cache(
+    async (orgId: string) => {
+      try {
+        return await prisma.promocion.findMany({
+          where: { gymId: orgId, activo: true },
+          orderBy: { createdAt: "desc" },
+        });
+      } catch (error) {
+        console.error("[getPromocionesActivasForTenant] Failed to fetch promociones:", error);
+        return [];
+      }
+    },
+    ["promociones-activas-for-tenant"],
+    { tags: ["promociones", `promociones:${organizationId}`], revalidate: 60 }
+  )(organizationId);
+}

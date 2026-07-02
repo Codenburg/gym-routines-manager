@@ -2,8 +2,7 @@ import { unstable_cache } from "next/cache";
 import prisma from "@/lib/prisma";
 
 /**
- * Cached read of the Gym singleton's price field for server-side
- * consumers (admin dashboard, public pages).
+ * Cached tenant-scoped read of a gym price for server-side consumers.
  *
  * - 60s TTL safety net
  * - tagged "gym-config" so `revalidateTag("gym-config")` in
@@ -16,13 +15,12 @@ import prisma from "@/lib/prisma";
  *
  * Migrated to Next.js 16 `use cache` + `cacheTag` + `cacheLife`.
  */
-// Migrated from `use cache` to `unstable_cache` — see openspec/changes/fix-use-cache-prisma-rsc-errors/.
-export async function getGymPrice(): Promise<number | null> {
+async function readGymPrice(organizationId: string, cacheKey: string): Promise<number | null> {
   return unstable_cache(
-    async () => {
+    async (orgId: string) => {
       try {
         const gym = await prisma.gym.findUnique({
-          where: { id: "gym" },
+          where: { id: orgId },
           select: { price: true },
         });
         return gym ? Number(gym.price) : null;
@@ -31,7 +29,22 @@ export async function getGymPrice(): Promise<number | null> {
         return null;
       }
     },
-    ["gym-price"],
-    { tags: ["gym-config"], revalidate: 60 }
-  )();
+    [cacheKey],
+    { tags: ["gym-config", `gym:${organizationId}:config`], revalidate: 60 }
+  )(organizationId);
+}
+
+// Migrated from `use cache` to `unstable_cache` — see openspec/changes/fix-use-cache-prisma-rsc-errors/.
+export async function getGymPrice(organizationId: string): Promise<number | null> {
+  return readGymPrice(organizationId, "gym-price");
+}
+
+/**
+ * Cached tenant-scoped read of a gym price.
+ *
+ * @param organizationId - Resolved public tenant organization id.
+ * @returns The tenant gym price, or null when unavailable.
+ */
+export async function getGymPriceForTenant(organizationId: string): Promise<number | null> {
+  return readGymPrice(organizationId, "gym-price-for-tenant");
 }

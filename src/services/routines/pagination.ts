@@ -102,6 +102,63 @@ export async function getTrainerCounts(search: string): Promise<TrainerCount[]> 
 }
 
 /**
+ * Tenant-scoped trainer counts for canonical public routes.
+ *
+ * @param organizationId - Resolved public tenant organization id.
+ * @param search - Optional routine-name search term.
+ * @returns Trainer counts for routines owned by the tenant.
+ */
+export async function getTrainerCountsForTenant(
+  organizationId: string,
+  search: string
+): Promise<TrainerCount[]> {
+  return unstable_cache(
+    async (orgId: string, searchTerm: string) => {
+      try {
+        const where: Record<string, unknown> = { organizationId: orgId };
+        if (searchTerm.trim()) {
+          where.nombre = {
+            contains: searchTerm.trim(),
+            mode: "insensitive",
+          };
+        }
+
+        const trainerCountsRaw = await prisma.rutina.groupBy({
+          by: ["creadorId"],
+          where,
+          _count: { id: true },
+        });
+
+        const groupedTrainerIds = trainerCountsRaw.map((t) => t.creadorId);
+        const trainersMap = new Map<string, string>();
+
+        if (groupedTrainerIds.length > 0) {
+          const trainersData = await prisma.user.findMany({
+            where: {
+              id: { in: groupedTrainerIds },
+              members: { some: { organizationId: orgId } },
+            },
+            select: { id: true, name: true },
+          });
+          trainersData.forEach((t) => trainersMap.set(t.id, t.name));
+        }
+
+        return trainerCountsRaw.map((t) => ({
+          trainerId: t.creadorId,
+          nombre: trainersMap.get(t.creadorId) || "Unknown",
+          count: t._count.id,
+        }));
+      } catch (error) {
+        console.error("[getTrainerCountsForTenant] Failed to fetch:", error);
+        return [];
+      }
+    },
+    ["trainer-counts-for-tenant"],
+    { tags: [RUTINAS_CACHE_TAG, `${RUTINAS_CACHE_TAG}:${organizationId}`], revalidate: 30 }
+  )(organizationId, search);
+}
+
+/**
  * Get routines with pagination, total count, and trainer counts.
  * All three queries share the same WHERE filter for consistency.
  * Trainer counts include names resolved from User table.
@@ -209,4 +266,100 @@ export async function getRoutinesPaginated(
     ["rutinas-paginated"],
     { tags: [RUTINAS_CACHE_TAG], revalidate: 30 }
   )(params);
+}
+
+/**
+ * Tenant-scoped public routine pagination for canonical public routes.
+ *
+ * @param organizationId - Resolved public tenant organization id.
+ * @param params - Pagination, search, and trainer filters.
+ * @returns Paginated routines owned by the tenant.
+ */
+export async function getRoutinesPaginatedForTenant(
+  organizationId: string,
+  params: PaginationParams
+): Promise<PaginationResult> {
+  return unstable_cache(
+    async (orgId: string, p: PaginationParams) => {
+      const { page, pageSize, search, trainers } = p;
+
+      let trainerIds: string[] | undefined;
+      if (trainers && trainers.length > 0) {
+        const trainerUsers = await prisma.user.findMany({
+          where: {
+            name: {
+              in: trainers,
+              mode: "insensitive",
+            },
+            members: { some: { organizationId: orgId } },
+          },
+          select: { id: true },
+        });
+        trainerIds = trainerUsers.map((u) => u.id);
+      }
+
+      const where: Record<string, unknown> = { organizationId: orgId };
+
+      if (search?.trim()) {
+        where.nombre = {
+          contains: search.trim(),
+          mode: "insensitive",
+        };
+      }
+
+      if (trainerIds && trainerIds.length > 0) {
+        where.creadorId = {
+          in: trainerIds,
+        };
+      }
+
+      try {
+        const data = await prisma.rutina.findMany({
+          where,
+          select: {
+            id: true,
+            nombre: true,
+            tipo: true,
+            descripcion: true,
+            creadorId: true,
+            createdAt: true,
+            updatedAt: true,
+            _count: {
+              select: { dias: true },
+            },
+            creadorUser: {
+              select: { id: true, name: true },
+            },
+          },
+          take: pageSize,
+          skip: (page - 1) * pageSize,
+          orderBy: { createdAt: "desc" },
+        });
+
+        const transformedData = data.map((rutina) => ({
+          id: rutina.id,
+          nombre: rutina.nombre,
+          tipo: rutina.tipo,
+          descripcion: rutina.descripcion,
+          creadorId: rutina.creadorId,
+          diasCount: rutina._count.dias,
+          createdAt: rutina.createdAt.toISOString(),
+          updatedAt: rutina.updatedAt.toISOString(),
+          creadorUser: rutina.creadorUser,
+        }));
+
+        const total = await prisma.rutina.count({ where });
+
+        return { data: transformedData, total };
+      } catch (error) {
+        return {
+          data: [],
+          total: 0,
+          error: error instanceof Error ? error.message : "Unknown error",
+        };
+      }
+    },
+    ["rutinas-paginated-for-tenant"],
+    { tags: [RUTINAS_CACHE_TAG, `${RUTINAS_CACHE_TAG}:${organizationId}`], revalidate: 30 }
+  )(organizationId, params);
 }

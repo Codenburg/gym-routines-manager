@@ -1,6 +1,5 @@
 import { unstable_cache } from "next/cache";
 import prisma from "@/lib/prisma";
-import { DataResult, ok, err } from "@/lib/data-result";
 
 /**
  * Creator user (from FK relation)
@@ -147,6 +146,21 @@ export async function getRutinas(organizationId?: string, ownerId?: string) {
 
 // Cache tag for manual revalidation
 const RUTINAS_CACHE_TAG = "rutinas";
+
+/**
+ * Cached tenant-scoped public routine list.
+ *
+ * @param organizationId - Resolved public tenant organization id.
+ * @param ownerId - Optional owner filter.
+ * @returns Routines owned by the tenant.
+ */
+export async function getRutinasForTenant(organizationId: string, ownerId?: string) {
+  return unstable_cache(
+    async (orgId: string, oid: string | undefined) => fetchRutinasListFromDb(orgId, oid),
+    ["rutinas-list-for-tenant"],
+    { tags: [RUTINAS_CACHE_TAG, `${RUTINAS_CACHE_TAG}:${organizationId}`], revalidate: 60 }
+  )(organizationId, ownerId);
+}
 
 async function fetchRutinaById(id: string): Promise<RutinaDetail | null> {
   try {
@@ -310,6 +324,24 @@ export async function getCachedRutinaByIdForOrg(
 }
 
 /**
+ * Cached tenant-scoped public routine detail reader.
+ *
+ * @param id - Routine id from the canonical public route.
+ * @param organizationId - Resolved public tenant organization id.
+ * @returns The routine only when it belongs to the tenant; otherwise null.
+ */
+export async function getCachedRutinaByIdForTenant(
+  id: string,
+  organizationId: string
+): Promise<RutinaDetail | null> {
+  return unstable_cache(
+    async (rutinaId: string, orgId: string) => fetchRutinaByIdForOrg(rutinaId, orgId),
+    ["rutina-by-id-for-tenant"],
+    { tags: [RUTINAS_CACHE_TAG, `${RUTINAS_CACHE_TAG}:${organizationId}`], revalidate: 60 }
+  )(id, organizationId);
+}
+
+/**
  * Revalidate rutinas cache. Call this after creating/updating/deleting routines.
  */
 export async function revalidateRutinasCache(): Promise<void> {
@@ -351,5 +383,33 @@ export async function getStats(organizationId: string, ownerId?: string): Promis
     },
     ["rutinas-stats"],
     { tags: [RUTINAS_CACHE_TAG], revalidate: 60 }
+  )(organizationId, ownerId);
+}
+
+/**
+ * Cached tenant-scoped public routine stats.
+ *
+ * @param organizationId - Resolved public tenant organization id.
+ * @param ownerId - Optional owner filter.
+ * @returns Routine stats scoped to the tenant.
+ */
+export async function getStatsForTenant(
+  organizationId: string,
+  ownerId?: string
+): Promise<RutinasStats> {
+  return unstable_cache(
+    async (orgId: string, oid: string | undefined) => {
+      const rutinaWhere = oid ? { organizationId: orgId, creadorId: oid } : { organizationId: orgId };
+
+      const [rutinasCount, diasCount, ejerciciosCount] = await Promise.all([
+        prisma.rutina.count({ where: rutinaWhere }),
+        prisma.dia.count({ where: { rutina: rutinaWhere } }),
+        prisma.ejercicio.count({ where: { dia: { rutina: rutinaWhere } } }),
+      ]);
+
+      return { rutinasCount, diasCount, ejerciciosCount };
+    },
+    ["rutinas-stats-for-tenant"],
+    { tags: [RUTINAS_CACHE_TAG, `${RUTINAS_CACHE_TAG}:${organizationId}`], revalidate: 60 }
   )(organizationId, ownerId);
 }

@@ -32,9 +32,10 @@ interface Rutina {
 
 interface RoutineListProps {
   rutinas: Rutina[] | null;
+  orgSlug?: string;
 }
 
-export function RoutineList({ rutinas }: RoutineListProps) {
+export function RoutineList({ rutinas, orgSlug }: RoutineListProps) {
   // null means DB error - show error state (NOT cached)
   if (rutinas === null) {
     return (
@@ -60,7 +61,7 @@ export function RoutineList({ rutinas }: RoutineListProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="routine-list-content">
       {rutinas.map((rutina) => (
-        <RoutineCard key={rutina.id} rutina={rutina} />
+        <RoutineCard key={rutina.id} rutina={rutina} orgSlug={orgSlug} />
       ))}
     </div>
   );
