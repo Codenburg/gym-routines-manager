@@ -210,6 +210,7 @@ describe("clearGymDisplayField — cache invalidation", () => {
 
     expect(result.success).toBe(true);
     expect(mockUpdateTag).toHaveBeenCalledWith("gym-config");
+    expect(mockUpdateTag).toHaveBeenCalledWith("gym:gym:config");
     // Next.js 16 prefers updateTag over revalidateTag in Server Actions
     // for read-your-own-writes semantics: the next reader sees the
     // just-written null value immediately, regardless of the previous

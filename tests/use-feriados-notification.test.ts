@@ -1,19 +1,14 @@
 /**
- * Unit tests for useFeriadosNotification hook
- * 
- * Tests the core logic:
- * - ISO string comparison
- * - localStorage read/write
- * - First visit auto-save
- * - Fail-safe behavior
- * - markAsSeen persistence
+ * Unit tests for useFeriadosNotification hook.
+ *
+ * Slice 1 cutover removed the legacy `/api/feriados/latest` public REST
+ * dependency. The hook now consumes the server-provided latest holiday date.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { useFeriadosNotification } from '@/hooks/use-feriados-notification'
 
-// Mock localStorage with proper typing
 const localStorageMock = {
   store: {} as Record<string, string>,
   getItem: vi.fn((_key: string): string | null => localStorageMock.store[_key] ?? null),
@@ -26,145 +21,95 @@ const localStorageMock = {
 
 Object.defineProperty(global, 'localStorage', { value: localStorageMock })
 
-// Mock fetch
-const mockFetch = vi.fn()
-global.fetch = mockFetch
-
 describe('useFeriadosNotification Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     localStorageMock.store = {}
   })
 
-  describe('5.1 - hasNew = false when latestFeriadoDate equals lastSeen (same date)', () => {
-    it('should set hasNew to false when dates are identical', async () => {
-      const sameDate = '2026-03-25T00:00:00.000Z'
-      localStorageMock.getItem.mockReturnValueOnce(sameDate) // lastSeen
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ latestFeriadoDate: sameDate }),
-      })
+  it('sets hasNew to false when latestFeriadoDate equals lastSeen', async () => {
+    const sameDate = '2026-03-25T00:00:00.000Z'
+    localStorageMock.getItem.mockReturnValueOnce(sameDate)
 
-      const { result } = renderHook(() => useFeriadosNotification())
+    const { result } = renderHook(() => useFeriadosNotification(sameDate, 'iron-gym'))
 
-      await waitFor(() => expect(result.current.latestFeriadoDate).toBe(sameDate))
-
-      expect(result.current.hasNew).toBe(false)
-    })
+    await waitFor(() => expect(result.current.latestFeriadoDate).toBe(sameDate))
+    expect(result.current.hasNew).toBe(false)
   })
 
-  describe('5.2 - hasNew = true when latestFeriadoDate > lastSeen (newer date)', () => {
-    it('should set hasNew to true when latest is newer than lastSeen', async () => {
-      const lastSeen = '2026-03-01T00:00:00.000Z'
-      const latest = '2026-03-25T00:00:00.000Z'
-      localStorageMock.getItem.mockReturnValueOnce(lastSeen)
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ latestFeriadoDate: latest }),
-      })
+  it('sets hasNew to true when the server-provided latest date is newer than lastSeen', async () => {
+    const lastSeen = '2026-03-01T00:00:00.000Z'
+    const latest = '2026-03-25T00:00:00.000Z'
+    localStorageMock.getItem.mockReturnValueOnce(lastSeen)
 
-      const { result } = renderHook(() => useFeriadosNotification())
+    const { result } = renderHook(() => useFeriadosNotification(latest, 'iron-gym'))
 
-      await waitFor(() => expect(result.current.latestFeriadoDate).toBe(latest))
-
-      expect(result.current.hasNew).toBe(true)
-    })
+    await waitFor(() => expect(result.current.latestFeriadoDate).toBe(latest))
+    expect(result.current.hasNew).toBe(true)
   })
 
-  describe('5.3 - hasNew = false on fetch error (fail-safe)', () => {
-    it('should set hasNew to false when fetch fails', async () => {
-      localStorageMock.getItem.mockReturnValueOnce(null)
-      mockFetch.mockRejectedValueOnce(new Error('Network error'))
+  it('sets hasNew to false when no server date is provided', async () => {
+    localStorageMock.getItem.mockReturnValueOnce(null)
 
-      const { result } = renderHook(() => useFeriadosNotification())
+    const { result } = renderHook(() => useFeriadosNotification(null, 'iron-gym'))
 
-      // Wait for the effect to complete (hasNew should become false)
-      await waitFor(() => expect(result.current.hasNew).toBe(false))
-    })
-
-    it('should set hasNew to false when API returns non-OK status', async () => {
-      localStorageMock.getItem.mockReturnValueOnce(null)
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-      })
-
-      const { result } = renderHook(() => useFeriadosNotification())
-
-      await waitFor(() => expect(result.current.hasNew).toBe(false))
-    })
+    await waitFor(() => expect(result.current.latestFeriadoDate).toBe(null))
+    expect(result.current.hasNew).toBe(false)
   })
 
-  describe('5.4 - markAsSeen does NOT write to localStorage when latestFeriadoDate is null', () => {
-    it('should not call localStorage.setItem when latestFeriadoDate is null', async () => {
-      localStorageMock.getItem.mockReturnValueOnce(null)
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ latestFeriadoDate: null }),
-      })
+  it('does not write to localStorage when latestFeriadoDate is null', async () => {
+    localStorageMock.getItem.mockReturnValueOnce(null)
 
-      const { result } = renderHook(() => useFeriadosNotification())
+    const { result } = renderHook(() => useFeriadosNotification(null, 'iron-gym'))
 
-      await waitFor(() => expect(result.current.latestFeriadoDate).toBe(null))
+    await waitFor(() => expect(result.current.latestFeriadoDate).toBe(null))
+    result.current.markAsSeen()
 
-      result.current.markAsSeen()
-
-      expect(localStorageMock.setItem).toHaveBeenCalledTimes(0)
-    })
+    expect(localStorageMock.setItem).toHaveBeenCalledTimes(0)
   })
 
-  describe('5.5 - First visit auto-saves baseline to localStorage', () => {
-    it('should auto-save latestFeriadoDate to localStorage on first visit', async () => {
-      const latest = '2026-03-25T00:00:00.000Z'
-      localStorageMock.getItem.mockReturnValueOnce(null) // No lastSeen
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ latestFeriadoDate: latest }),
-      })
+  it('auto-saves the server-provided latest date as the first-visit baseline', async () => {
+    const latest = '2026-03-25T00:00:00.000Z'
+    localStorageMock.getItem.mockReturnValueOnce(null)
 
-      const { result } = renderHook(() => useFeriadosNotification())
+    const { result } = renderHook(() => useFeriadosNotification(latest, 'iron-gym'))
 
-      await waitFor(() => expect(result.current.latestFeriadoDate).toBe(latest))
+    await waitFor(() => expect(result.current.latestFeriadoDate).toBe(latest))
 
-      // Should have auto-saved the latest date as baseline
-      expect(localStorageMock.setItem).toHaveBeenCalledWith('feriados_last_seen_at', latest)
-      // But hasNew should be false (first visit never shows badge)
-      expect(result.current.hasNew).toBe(false)
-    })
+    expect(localStorageMock.setItem).toHaveBeenCalledWith('feriados_last_seen_at:iron-gym', latest)
+    expect(result.current.hasNew).toBe(false)
+  })
 
-    it('should NOT auto-save when latestFeriadoDate is null on first visit', async () => {
-      localStorageMock.getItem.mockReturnValueOnce(null)
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ latestFeriadoDate: null }),
-      })
+  it('keeps badge state isolated per tenant slug', async () => {
+    const oldDate = '2026-03-01T00:00:00.000Z'
+    const latest = '2026-03-25T00:00:00.000Z'
+    localStorageMock.store = {
+      'feriados_last_seen_at:iron-gym': latest,
+      'feriados_last_seen_at:steel-club': oldDate,
+    }
 
-      const { result } = renderHook(() => useFeriadosNotification())
+    const { result } = renderHook(() => useFeriadosNotification(latest, 'steel-club'))
 
-      await waitFor(() => expect(result.current.latestFeriadoDate).toBe(null))
-
-      // Should NOT have called setItem since there's nothing to save
-      expect(localStorageMock.setItem).toHaveBeenCalledTimes(0)
-      expect(result.current.hasNew).toBe(false)
-    })
+    await waitFor(() => expect(result.current.latestFeriadoDate).toBe(latest))
+    expect(localStorageMock.getItem).toHaveBeenCalledWith('feriados_last_seen_at:steel-club')
+    expect(result.current.hasNew).toBe(true)
   })
 })
 
 describe('ISO String Comparison Logic', () => {
-  it('should correctly compare ISO strings - newer date is greater', () => {
+  it('correctly compares ISO strings - newer date is greater', () => {
     const newer = '2026-12-25T00:00:00.000Z'
     const older = '2026-01-01T00:00:00.000Z'
     expect(newer > older).toBe(true)
   })
 
-  it('should correctly compare ISO strings - same date is not greater', () => {
+  it('correctly compares ISO strings - same date is not greater', () => {
     const date1 = '2026-03-25T00:00:00.000Z'
     const date2 = '2026-03-25T00:00:00.000Z'
     expect(date1 > date2).toBe(false)
   })
 
-  it('should correctly compare ISO strings - lexicographic works for dates', () => {
-    // ISO strings sort correctly lexicographically for UTC timestamps
+  it('correctly compares ISO strings lexicographically', () => {
     const march = '2026-03-25T00:00:00.000Z'
     const april = '2026-04-01T00:00:00.000Z'
     expect(april > march).toBe(true)

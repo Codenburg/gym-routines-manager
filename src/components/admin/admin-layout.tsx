@@ -18,21 +18,38 @@ interface AdminLayoutProps {
    * (or the generic last-resort when neither DB nor env var is set).
    */
   gymName: string;
+  publicSiteHref: string | null;
 }
 
-export function AdminLayout({ children, username, role, gymName }: AdminLayoutProps) {
+export function AdminLayout({
+  children,
+  username,
+  role,
+  gymName,
+  publicSiteHref,
+}: AdminLayoutProps) {
   // AdminSidebar's `role` prop is `string | undefined` — drop null if present.
   const sidebarRole = role ?? undefined;
   return (
     <div className="min-h-screen bg-background">
       {/* Desktop: AdminSidebar in flow, h-screen. Hidden on mobile. */}
       <div className="hidden lg:flex">
-        <AdminSidebar username={username} role={sidebarRole} gymName={gymName} />
+        <AdminSidebar
+          username={username}
+          role={sidebarRole}
+          gymName={gymName}
+          publicSiteHref={publicSiteHref}
+        />
       </div>
 
       {/* Mobile: AdminSidebar renders its own fixed top header. Hidden on desktop. */}
       <div className="lg:hidden">
-        <AdminSidebar username={username} role={sidebarRole} gymName={gymName} />
+        <AdminSidebar
+          username={username}
+          role={sidebarRole}
+          gymName={gymName}
+          publicSiteHref={publicSiteHref}
+        />
       </div>
 
       {/* Content renders ONCE; CSS controls position and padding per breakpoint.

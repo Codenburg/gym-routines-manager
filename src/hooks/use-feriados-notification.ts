@@ -1,10 +1,14 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 
-const STORAGE_KEY = "feriados_last_seen_at";
-const API_URL = "/api/feriados/latest";
-const THROTTLE_MS = 5 * 60 * 1000; // 5 minutes between refetches
+const STORAGE_KEY_PREFIX = "feriados_last_seen_at";
+
+function getStorageKey(orgSlug: string | null | undefined): string | null {
+  const trimmed = orgSlug?.trim();
+  if (!trimmed) return null;
+  return `${STORAGE_KEY_PREFIX}:${trimmed}`;
+}
 
 interface UseFeriadosNotificationReturn {
   hasNew: boolean;
@@ -24,17 +28,21 @@ interface UseFeriadosNotificationReturn {
  * - markAsSeen(): persists latestFeriadoDate to localStorage
  * 
  * Re-evaluation triggers:
- * - On mount (initial fetch)
- * - On window focus (user returns to tab)
+ * - On mount when the server-provided latest date changes
  */
-export function useFeriadosNotification(): UseFeriadosNotificationReturn {
+export function useFeriadosNotification(
+  initialLatestFeriadoDate?: string | null,
+  orgSlug?: string | null
+): UseFeriadosNotificationReturn {
   const [hasNew, setHasNew] = useState(false);
-  const [latestFeriadoDate, setLatestFeriadoDate] = useState<string | null>(null);
-  const lastCheckRef = useRef<number>(0);
+  const [latestFeriadoDate, setLatestFeriadoDate] = useState<string | null>(
+    initialLatestFeriadoDate ?? null
+  );
 
   function markAsSeen() {
-    if (latestFeriadoDate) {
-      localStorage.setItem(STORAGE_KEY, latestFeriadoDate);
+    const storageKey = getStorageKey(orgSlug);
+    if (latestFeriadoDate && storageKey) {
+      localStorage.setItem(storageKey, latestFeriadoDate);
       setHasNew(false);
     }
   }
@@ -42,27 +50,21 @@ export function useFeriadosNotification(): UseFeriadosNotificationReturn {
   useEffect(() => {
     let cancelled = false;
 
-    async function checkForNew() {
-      const now = Date.now();
-      if (now - lastCheckRef.current < THROTTLE_MS) return;
-      lastCheckRef.current = now;
-
+    function checkForNew() {
       try {
-        const lastSeen = localStorage.getItem(STORAGE_KEY);
-
-        const res = await fetch(API_URL);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        const data = await res.json();
-        const latest: string | null = data.latestFeriadoDate;
+        const storageKey = getStorageKey(orgSlug);
+        const lastSeen = storageKey ? localStorage.getItem(storageKey) : null;
+        const latest = initialLatestFeriadoDate ?? null;
 
         if (cancelled) return;
 
         setLatestFeriadoDate(latest);
 
-        if (!lastSeen && latest) {
+        if (!storageKey) {
+          setHasNew(false);
+        } else if (!lastSeen && latest) {
           // First visit: auto-save baseline, hasNew = false
-          localStorage.setItem(STORAGE_KEY, latest);
+          localStorage.setItem(storageKey, latest);
           setHasNew(false);
         } else if (!lastSeen && !latest) {
           setHasNew(false);
@@ -81,17 +83,10 @@ export function useFeriadosNotification(): UseFeriadosNotificationReturn {
 
     checkForNew();
 
-    function handleFocus() {
-      checkForNew();
-    }
-
-    window.addEventListener("focus", handleFocus);
-
     return () => {
       cancelled = true;
-      window.removeEventListener("focus", handleFocus);
     };
-  }, []);
+  }, [initialLatestFeriadoDate, orgSlug]);
 
   return { hasNew, markAsSeen, latestFeriadoDate };
 }

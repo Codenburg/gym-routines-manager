@@ -4,23 +4,26 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { headers } from "next/headers";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
-import { auth, isAdmin } from "@/lib/auth";
-import { GYM_SINGLETON_ID } from "@/lib/gym-constants";
+import { getActiveMemberAuthContext } from "@/lib/auth";
 import { createDescuentoDuracionSchema, updateDescuentoDuracionSchema, type DescuentoDuracionFormState } from "@/lib/schemas";
 
 /**
  * Helper function to verify admin access
  */
-async function verifyAdmin(hdrs: Headers): Promise<{ authorized: boolean; message?: string }> {
+type AdminAuthCheck =
+  | { authorized: true; activeOrganizationId: string }
+  | { authorized: false; message: string };
+
+async function verifyAdmin(hdrs: Headers): Promise<AdminAuthCheck> {
   try {
-    const session = await auth.api.getSession({ headers: hdrs });
-    if (!session) {
+    const authContext = await getActiveMemberAuthContext(hdrs);
+    if (!authContext) {
       return { authorized: false, message: "Debes iniciar sesión" };
     }
-    if (!(await isAdmin(hdrs))) {
+    if (authContext.role !== "admin") {
       return { authorized: false, message: "No tienes permisos de administrador" };
     }
-    return { authorized: true };
+    return { authorized: true, activeOrganizationId: authContext.activeOrganizationId };
   } catch {
     return { authorized: false, message: "Error de autenticación" };
   }
@@ -77,6 +80,7 @@ export async function createDescuentoDuracion(
   if (!authCheck.authorized) {
     return { success: false, errors: { _form: [authCheck.message || "No autorizado"] } };
   }
+  const { activeOrganizationId } = authCheck;
 
   const rawData = {
     meses: parseInt(formData.get("meses") as string, 10),
@@ -90,7 +94,7 @@ export async function createDescuentoDuracion(
 
   try {
     const descuento = await prisma.descuentoDuracion.create({
-      data: { ...parsed.data, gymId: GYM_SINGLETON_ID },
+      data: { ...parsed.data, gymId: activeOrganizationId },
     });
 
     // Next 16 revalidateTag requires a profile arg; the existing project
@@ -125,6 +129,7 @@ export async function updateDescuentoDuracion(
   if (!authCheck.authorized) {
     return { success: false, errors: { _form: [authCheck.message || "No autorizado"] } };
   }
+  const { activeOrganizationId } = authCheck;
 
   const rawData = {
     meses: parseInt(formData.get("meses") as string, 10),
@@ -137,10 +142,22 @@ export async function updateDescuentoDuracion(
   }
 
   try {
-    const descuento = await prisma.descuentoDuracion.update({
-      where: { id },
+    const updated = await prisma.descuentoDuracion.updateMany({
+      where: { id, gymId: activeOrganizationId },
       data: parsed.data,
     });
+
+    if (updated.count === 0) {
+      return { success: false, errors: { _form: ["Descuento no encontrado"] } };
+    }
+
+    const descuento = await prisma.descuentoDuracion.findFirst({
+      where: { id, gymId: activeOrganizationId },
+    });
+
+    if (!descuento) {
+      return { success: false, errors: { _form: ["Error al actualizar el descuento"] } };
+    }
 
     revalidateTag("descuentos-duracion", "max");
     revalidatePath("/admin/descuentos-duracion");
@@ -168,9 +185,16 @@ export async function deleteDescuentoDuracion(
   if (!authCheck.authorized) {
     return { success: false, errors: { _form: [authCheck.message || "No autorizado"] } };
   }
+  const { activeOrganizationId } = authCheck;
 
   try {
-    await prisma.descuentoDuracion.delete({ where: { id } });
+    const deleted = await prisma.descuentoDuracion.deleteMany({
+      where: { id, gymId: activeOrganizationId },
+    });
+
+    if (deleted.count === 0) {
+      return { success: false, errors: { _form: ["Descuento no encontrado"] } };
+    }
 
     revalidateTag("descuentos-duracion", "max");
     revalidatePath("/admin/descuentos-duracion");

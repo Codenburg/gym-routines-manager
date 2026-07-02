@@ -9,7 +9,7 @@
  * Flujo de validación:
  * 1. Obtener sesión con auth.api.getSession({ headers })
  * 2. Si no hay sesión → redirect("/admin/login") - NO renderiza nada
- * 3. Si no es admin ni trainer → redirect("/") - NO renderiza nada
+ * 3. Si no es admin ni trainer → redirect("/admin/login") - NO renderiza nada
  * 4. Solo si pasa validación → renderizar AdminLayoutComponent (client)
  */
 
@@ -17,8 +17,9 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { auth, isAdminOrTrainer, getActiveMemberRole } from "@/lib/auth";
 import { AdminLayout as AdminLayoutComponent } from "@/components/admin/admin-layout";
-import { getGymNameForServer } from "@/app/actions/gym";
+import { getGymNameForServerForTenant } from "@/app/actions/gym";
 import { resolveGymName } from "@/lib/gym-display";
+import { getPublicHrefForOrganization } from "@/lib/tenants/resolve";
 
 export default async function AdminLayout({
   children,
@@ -41,8 +42,8 @@ export default async function AdminLayout({
   // Verificar rol: solo ADMIN o TRAINER pueden acceder al panel de admin
   // Trainers necesitan acceso para gestionar sus rutinas
   if (!(await isAdminOrTrainer(headersList))) {
-    // No es admin ni trainer → redirect al home
-    redirect("/");
+    // No es admin ni trainer → redirect to the auth boundary, not a legacy public URL.
+    redirect("/admin/login");
   }
 
   // Resolve gym name via the same DB → env → "Gimnasio" chain used by
@@ -51,7 +52,9 @@ export default async function AdminLayout({
   // failing the admin layout render.
   let gymName: string;
   try {
-    const dbName = await getGymNameForServer();
+    const dbName = session.session.activeOrganizationId
+      ? await getGymNameForServerForTenant(session.session.activeOrganizationId)
+      : null;
     gymName = resolveGymName(dbName);
   } catch {
     gymName = resolveGymName(null);
@@ -61,6 +64,9 @@ export default async function AdminLayout({
   // By this point isAdminOrTrainer has confirmed a valid role exists,
   // but be defensive in case DB state changed mid-request.
   const memberRole = await getActiveMemberRole(headersList);
+  const publicSiteHref = session.session.activeOrganizationId
+    ? await getPublicHrefForOrganization(session.session.activeOrganizationId)
+    : null;
 
   // Sesión válida y tiene rol permitido → renderizar con el layout de admin
   // El AdminLayoutComponent es un Client Component para el dropdown, etc.
@@ -70,6 +76,7 @@ export default async function AdminLayout({
       username={session.user.name || "Admin"}
       role={memberRole ?? undefined}
       gymName={gymName}
+      publicSiteHref={publicSiteHref}
     >
       {children}
     </AdminLayoutComponent>

@@ -95,6 +95,7 @@ function SidebarContent({
   username,
   role,
   gymName,
+  publicSiteHref,
 }: {
   onItemClick?: () => void;
   username?: string;
@@ -106,6 +107,7 @@ function SidebarContent({
    * the chain guarantees the value is already safe.
    */
   gymName: string;
+  publicSiteHref: string | null;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -181,7 +183,12 @@ function SidebarContent({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-56">
             <DropdownMenuItem
-              onClick={() => router.push("/")}
+              onClick={() => {
+                if (publicSiteHref) {
+                  router.push(publicSiteHref);
+                }
+              }}
+              disabled={!publicSiteHref}
               className="cursor-pointer"
             >
               <ExternalLink className="w-5 h-5 mr-2" />
@@ -215,10 +222,12 @@ export function AdminSidebar({
   username,
   role,
   gymName,
+  publicSiteHref,
 }: {
   username?: string;
   role?: string;
   gymName: string;
+  publicSiteHref: string | null;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -248,6 +257,7 @@ export function AdminSidebar({
             username={username}
             role={role}
             gymName={gymName}
+            publicSiteHref={publicSiteHref}
           />
         </SheetContent>
       </Sheet>
@@ -256,7 +266,12 @@ export function AdminSidebar({
       <aside
         className="hidden lg:flex flex-col w-64 h-screen fixed left-0 top-0 bg-secondary border-r border-border z-30"
       >
-        <SidebarContent username={username} role={role} gymName={gymName} />
+        <SidebarContent
+          username={username}
+          role={role}
+          gymName={gymName}
+          publicSiteHref={publicSiteHref}
+        />
       </aside>
     </>
   );

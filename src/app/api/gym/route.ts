@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth, isAdmin } from "@/lib/auth";
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { Prisma } from "../../../../generated/client";
 import {
   horarioSemanalSchema,
@@ -97,7 +97,7 @@ const gymUpdateSchema = z
  */
 async function verifyAdmin(
   headers: Headers
-): Promise<{ authorized: boolean; message?: string }> {
+): Promise<{ authorized: boolean; activeOrganizationId?: string; message?: string }> {
   try {
     const session = await auth.api.getSession({ headers });
     if (!session) {
@@ -106,7 +106,11 @@ async function verifyAdmin(
     if (!(await isAdmin(headers))) {
       return { authorized: false, message: "No tienes permisos de administrador" };
     }
-    return { authorized: true };
+    const activeOrganizationId = session.session.activeOrganizationId;
+    if (!activeOrganizationId) {
+      return { authorized: false, message: "No hay organización activa" };
+    }
+    return { authorized: true, activeOrganizationId };
   } catch {
     return { authorized: false, message: "Error de autenticación" };
   }
@@ -114,7 +118,7 @@ async function verifyAdmin(
 
 /**
  * GET /api/gym
- * Returns the singleton gym configuration
+ * Returns the active tenant gym configuration for admins only.
  *
  * Response 200:
  * - Gym object with id, price, the 5 string display fields (any may be
@@ -124,17 +128,27 @@ async function verifyAdmin(
  * Response 500:
  * - Error message indicating service unavailability
  */
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  const authCheck = await verifyAdmin(request.headers);
+  if (!authCheck.authorized) {
+    const status = authCheck.message === "Debes iniciar sesión" ? 401 : 403;
+    return NextResponse.json({ error: authCheck.message }, { status });
+  }
+  const organizationId = authCheck.activeOrganizationId;
+  if (!organizationId) {
+    return NextResponse.json({ error: "No hay organización activa" }, { status: 403 });
+  }
+
   try {
-    let gym = await prisma.gym.findUnique({
-      where: { id: "gym" },
+    const gym = await prisma.gym.findUnique({
+      where: { id: organizationId },
     });
 
-    // Auto-create gym if it doesn't exist
     if (!gym) {
-      gym = await prisma.gym.create({
-        data: { id: "gym", price: 45000 },
-      });
+      return NextResponse.json(
+        { error: "Configuración del gym no encontrada" },
+        { status: 404 }
+      );
     }
 
     // Zod-narrow the horarioJson column at the read boundary. If the DB
@@ -172,7 +186,7 @@ export async function GET(): Promise<NextResponse> {
 
 /**
  * PATCH /api/gym
- * Updates the singleton gym configuration (admin only)
+ * Updates the active tenant gym configuration (admin only)
  *
  * Request Body (at least one field required):
  * - price: number (optional, positive)
@@ -208,6 +222,10 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     const status = authCheck.message === "Debes iniciar sesión" ? 401 : 403;
     return NextResponse.json({ error: authCheck.message }, { status });
   }
+  const organizationId = authCheck.activeOrganizationId;
+  if (!organizationId) {
+    return NextResponse.json({ error: "No hay organización activa" }, { status: 403 });
+  }
 
   try {
     const body = await request.json();
@@ -222,7 +240,7 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
 
     // Check if gym exists
     const existing = await prisma.gym.findUnique({
-      where: { id: "gym" },
+      where: { id: organizationId },
     });
 
     if (!existing) {
@@ -243,15 +261,17 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     }
 
     const gym = await prisma.gym.update({
-      where: { id: "gym" },
+      where: { id: organizationId },
       data: updateData,
     });
 
-    // Revalidate pages that display gym config
-    revalidatePath("/");
-    revalidatePath("/informacion");
+    // Revalidate admin surfaces that display gym config. Canonical public
+    // tenant paths are under `/g/[orgSlug]/*` and are handled by cache tags
+    // in the server-action write path until slice 2 owns write-path cleanup.
     revalidatePath("/admin");
     revalidatePath("/api/gym");
+    revalidateTag("gym-config", "max");
+    revalidateTag(`gym:${organizationId}:config`, "max");
 
     // Zod-narrow the freshly-persisted value to be consistent with GET.
     const horarioJsonParsed = horarioSemanalSchema.safeParse(gym.horarioJson);

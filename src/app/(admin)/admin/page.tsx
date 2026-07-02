@@ -34,7 +34,7 @@ export default async function AdminDashboardPage() {
     [stats, rutinas, gymPrice] = await Promise.all([
       getStats(authContext.activeOrganizationId, ownerId),
       getRutinas(authContext.activeOrganizationId, ownerId),
-      getGymPrice(),
+      getGymPrice(authContext.activeOrganizationId),
     ]);
   } catch (error) {
     console.error("[AdminDashboardPage] failed to load dashboard data:", error);

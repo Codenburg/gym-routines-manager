@@ -2,11 +2,12 @@
 
 import { useEffect, useRef } from "react";
 
-const STORAGE_KEY = "feriados_last_seen_at";
+const STORAGE_KEY_PREFIX = "feriados_last_seen_at";
 
 interface MarkAsSeenWrapperProps {
   children: React.ReactNode;
   latestFeriadoDate: string | null;
+  orgSlug: string;
 }
 
 /**
@@ -18,15 +19,15 @@ interface MarkAsSeenWrapperProps {
  * 
  * Uses a ref to prevent double invocation in React StrictMode.
  */
-export function MarkAsSeenWrapper({ children, latestFeriadoDate }: MarkAsSeenWrapperProps) {
+export function MarkAsSeenWrapper({ children, latestFeriadoDate, orgSlug }: MarkAsSeenWrapperProps) {
   const called = useRef(false);
 
   useEffect(() => {
     if (!called.current && latestFeriadoDate) {
       called.current = true;
-      localStorage.setItem(STORAGE_KEY, latestFeriadoDate);
+      localStorage.setItem(`${STORAGE_KEY_PREFIX}:${orgSlug}`, latestFeriadoDate);
     }
-  }, [latestFeriadoDate]);
+  }, [latestFeriadoDate, orgSlug]);
 
   return <>{children}</>;
 }
